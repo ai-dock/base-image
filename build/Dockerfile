@@ -7,6 +7,7 @@ ARG PYTHON_VERSION=3.10
 FROM nvidia/cuda:${CUDA_VERSION}-${CUDA_TYPE}-ubuntu${UBUNTU_VERSION}
 
 LABEL org.opencontainers.image.source https://github.com/ai-dock/base-image
+LABEL org.opencontainers.image.description "Base image for ai-dock"
 
 # Set ENV variables
 ENV LANG C.UTF-8

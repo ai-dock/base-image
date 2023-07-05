@@ -9,7 +9,7 @@ services:
         CUDA_TYPE: ${CUDA_TYPE}
         PYTHON_VERSION: ${PYTHON_VERSION}
       tags:
-        - "ghcr.io/ai-dock/base-container:${UBUNTU_VERSION}_${CUDA_VERSION}-${CUDA_TYPE}-${PYTHON_VERSION}"
+        - "ghcr.io/ai-dock/base-image:${UBUNTU_VERSION}_${CUDA_VERSION}-${CUDA_TYPE}-${PYTHON_VERSION}"
     image: ghcr.io/ai-dock/base-container:${UBUNTU_VERSION}_${CUDA_VERSION}-${CUDA_TYPE}-${PYTHON_VERSION}
     security_opt:
       - apparmor:unconfined
