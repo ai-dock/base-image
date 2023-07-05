@@ -4,13 +4,14 @@ services:
     build:
       context: ./build
       args:
+        # set in .env 
         UBUNTU_VERSION: ${UBUNTU_VERSION}
         CUDA_VERSION: ${CUDA_VERSION}
         CUDA_TYPE: ${CUDA_TYPE}
-        PYTHON_VERSION: ${PYTHON_VERSION}
+        MAMBA_BASE_PYTHON_VERSION: ${MAMBA_BASE_PYTHON_VERSION}
       tags:
-        - "ghcr.io/ai-dock/base-image:${UBUNTU_VERSION}_${CUDA_VERSION}-${CUDA_TYPE}-${PYTHON_VERSION}"
-    image: ghcr.io/ai-dock/base-image:${UBUNTU_VERSION}_${CUDA_VERSION}-${CUDA_TYPE}-${PYTHON_VERSION}
+        - "ghcr.io/ai-dock/base-image:${UBUNTU_VERSION}_${CUDA_VERSION}-${CUDA_TYPE}_${MAMBA_BASE_PYTHON_VERSION}"
+    image: ghcr.io/ai-dock/base-image:${UBUNTU_VERSION}_${CUDA_VERSION}-${CUDA_TYPE}_${MAMBA_BASE_PYTHON_VERSION}
     security_opt:
       - apparmor:unconfined
     cap_add:

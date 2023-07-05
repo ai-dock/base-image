@@ -1,12 +1,12 @@
 ARG CUDA_VERSION=11.8.0
 ARG CUDA_TYPE="base"
 ARG UBUNTU_VERSION=22.04
-ARG PYTHON_VERSION=3.10
 
 # Ensure Nvidia container toolkit
 FROM nvidia/cuda:${CUDA_VERSION}-${CUDA_TYPE}-ubuntu${UBUNTU_VERSION}
 
 LABEL org.opencontainers.image.source https://github.com/ai-dock/base-image
+
 LABEL org.opencontainers.image.description "Base image for ai-dock"
 
 # Set ENV variables
@@ -20,7 +20,9 @@ ENV PIP_INSTALL="pip --no-cache-dir install"
 ENV RCLONE_CONFIG="/etc/rclone/rclone.conf"
 ENV MAMBA_BASE_ENV="system"
 ENV MAMBA_BASE_RUN="micromamba run -n $MAMBA_BASE_ENV"
-ENV MAMBA_BASE_PYTHON_VERSION=$PYTHON_VERSION
+
+ARG MAMBA_BASE_PYTHON_VERSION=3.10
+ENV MAMBA_BASE_PYTHON_VERSION=${MAMBA_BASE_PYTHON_VERSION}
 
 # Minimal ubuntu base. We will be using conda-forge via micromamba to manage most of our packages. Avoid adding anything with a python dependency
 RUN apt-get update && \
@@ -53,7 +55,7 @@ RUN apt-get update && \
 # Create base conda-forge environment. 
 # Increased image size but micromamba is configured to create hardlinks so subsequent environments will be smaller.
 RUN $MAMBA_CREATE -n $MAMBA_BASE_ENV python=${MAMBA_BASE_PYTHON_VERSION} && \
-    micromamba -n $MAMBA_BASE_ENV install -c conda-forge \
+    micromamba -n $MAMBA_BASE_ENV install -y -c conda-forge \
         supervisor \
         rclone && \
     mkdir -p /var/log/supervisor && \
