@@ -1,0 +1,32 @@
+version: "3.8"
+services:
+  supervisor:
+    build:
+      context: ./build
+      args:
+        UBUNTU_VERSION: ${UBUNTU_VERSION}
+        CUDA_VERSION: ${CUDA_VERSION}
+        CUDA_TYPE: ${CUDA_TYPE}
+        PYTHON_VERSION: ${PYTHON_VERSION}
+      tags:
+        - "ghcr.io/ai-dock/base-container:${UBUNTU_VERSION}_${CUDA_VERSION}-${CUDA_TYPE}-${PYTHON_VERSION}"
+    image: ghcr.io/ai-dock/base-container:${UBUNTU_VERSION}_${CUDA_VERSION}-${CUDA_TYPE}-${PYTHON_VERSION}
+    security_opt:
+      - apparmor:unconfined
+    cap_add:
+      - SYS_ADMIN
+    devices:
+      - '/dev/fuse:/dev/fuse'
+    volumes:
+      - /etc/passwd:/etc/passwd:ro
+      - /etc/group:/etc/group:ro
+      - ./config/rclone:/etc/rclone
+      - ./workspace:/workspace
+      # Will echo to root-owned authorized_keys file;
+      # Avoids changing local file owner
+      - ./config/authorized_keys:/root/.ssh/authorized_keys_mount
+    ports:
+        # SSH available on host machine port 2222 to avoid conflict. Change to suit
+        - 2222:22
+        # Rclone webserver for interactive configuration
+        - 53682:53682
