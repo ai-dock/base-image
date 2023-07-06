@@ -81,6 +81,7 @@ If you are logged into the container you can follow the logs by running `logtail
 Some ports need to be exposed for the services to run or for certain features of the provided software to function
 
 
-
-
-
+| Open Port           | Service / Description |
+| ------------------- | --------------------- |
+| 22                  | SSH server            |
+| 53682               | Rclone interactive config |
