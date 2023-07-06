@@ -21,9 +21,6 @@ ENV RCLONE_CONFIG="/etc/rclone/rclone.conf"
 ENV MAMBA_BASE_ENV="system"
 ENV MAMBA_BASE_RUN="micromamba run -n $MAMBA_BASE_ENV"
 
-ARG MAMBA_BASE_PYTHON_VERSION=3.10
-ENV MAMBA_BASE_PYTHON_VERSION=${MAMBA_BASE_PYTHON_VERSION}
-
 # Minimal ubuntu base. We will be using conda-forge via micromamba to manage most of our packages. Avoid adding anything with a python dependency
 RUN apt-get update && \
     $APT_INSTALL \
@@ -54,6 +51,9 @@ RUN apt-get update && \
 
 # Create base conda-forge environment. 
 # Increased image size but micromamba is configured to create hardlinks so subsequent environments will be smaller.
+ARG MAMBA_BASE_PYTHON_VERSION=3.10
+ENV MAMBA_BASE_PYTHON_VERSION=${MAMBA_BASE_PYTHON_VERSION}
+
 RUN $MAMBA_CREATE -n $MAMBA_BASE_ENV python=${MAMBA_BASE_PYTHON_VERSION} && \
     micromamba -n $MAMBA_BASE_ENV install -y -c conda-forge \
         supervisor \

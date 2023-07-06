@@ -31,3 +31,6 @@ services:
         - 2222:22
         # Rclone webserver for interactive configuration
         - 53682:53682
+    environment:
+        - MY_VAR="an example"
+    env_file: config/env.conf
