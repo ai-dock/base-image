@@ -1,0 +1,3 @@
+#!/bin/bash
+
+$MAMBA_BASE_RUN supervisorctl -c /etc/supervisor/supervisord.conf "$@"

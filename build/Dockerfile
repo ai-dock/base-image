@@ -13,7 +13,7 @@ LABEL org.opencontainers.image.description "Base image for ai-dock"
 ENV LANG C.UTF-8
 ENV SHELL=/bin/bash
 ENV DEBIAN_FRONTEND=noninteractive
-ENV PATH=/opt/base/bin:/opt/micromamba/bin:$PATH
+ENV PATH=/opt/ai-dock/bin:/opt/micromamba/bin:$PATH
 ENV APT_INSTALL="apt-get install -y --no-install-recommends"
 ENV MAMBA_CREATE="micromamba --experimental create -y -c conda-forge -c defaults"
 ENV PIP_INSTALL="pip --no-cache-dir install"
@@ -24,6 +24,7 @@ ENV MAMBA_BASE_RUN="micromamba run -n $MAMBA_BASE_ENV"
 # Minimal ubuntu base. We will be using conda-forge via micromamba to manage most of our packages. Avoid adding anything with a python dependency
 RUN apt-get update && \
     $APT_INSTALL \
+        acl \
         bzip2 \
         zip \
         unzip \
@@ -36,6 +37,9 @@ RUN apt-get update && \
         fuse3 \
         openssh-server \
         libcap2-bin && \
+    mkdir /workspace && \
+    touch /workspace/WARNING.txt && \
+    printf "This directory is not a mounted volume." > /workspace/WARNING.txt && \
     mkdir -p /root/.ssh && \
     chmod 700 /root/.ssh && \
     touch /root/.ssh/authorized_keys && \
@@ -58,12 +62,15 @@ RUN $MAMBA_CREATE -n $MAMBA_BASE_ENV python=${MAMBA_BASE_PYTHON_VERSION} && \
     micromamba -n $MAMBA_BASE_ENV install -y -c conda-forge \
         supervisor \
         rclone && \
+    rm -rf /root/micromamba/envs/$MAMBA_BASE_ENV/etc/supervisord* && \
     mkdir -p /var/log/supervisor && \
     mkdir -p /etc/rclone && \
     touch /etc/rclone/rclone.conf
 
 ADD ./opt /opt
 ADD ./etc /etc
+ADD ./usr /usr
+ADD ./root /root
 
 EXPOSE 22
 
