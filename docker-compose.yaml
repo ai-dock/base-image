@@ -8,10 +8,9 @@ services:
         UBUNTU_VERSION: ${UBUNTU_VERSION}
         CUDA_VERSION: ${CUDA_VERSION}
         CUDA_TYPE: ${CUDA_TYPE}
-        MAMBA_BASE_PYTHON_VERSION: ${MAMBA_BASE_PYTHON_VERSION}
       tags:
-        - "ghcr.io/ai-dock/base-image:${UBUNTU_VERSION}_${CUDA_VERSION}-${CUDA_TYPE}_${MAMBA_BASE_PYTHON_VERSION}"
-    image: ghcr.io/ai-dock/base-image:${UBUNTU_VERSION}_${CUDA_VERSION}-${CUDA_TYPE}_${MAMBA_BASE_PYTHON_VERSION}
+        - "ghcr.io/ai-dock/base-image:${UBUNTU_VERSION}_${CUDA_VERSION}-${CUDA_TYPE}"
+    image: ghcr.io/ai-dock/base-image:${UBUNTU_VERSION}_${CUDA_VERSION}-${CUDA_TYPE}
     security_opt:
       - apparmor:unconfined
     cap_add:

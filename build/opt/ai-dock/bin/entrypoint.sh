@@ -48,7 +48,9 @@ touch /root/.no_auto_tmux
 # Ensure the workspace owner can access files from outside of the container
 export WORKSPACE_UID=$(stat -c '%g' /workspace)
 export WORKSPACE_GID=$(stat -c '%G' /workspace)
-setfacl -R -d -m u:${WORKSPACE_UID}:rwx /workspace
+if [[ ! -z $SKIP_ACL ]]; then
+    setfacl -R -d -m u:${WORKSPACE_UID}:rwx /workspace
+fi
 
 # Ensure all variables available for interactive sessions
 while IFS='=' read -r -d '' key val; do

@@ -12,6 +12,8 @@ A 'feature-complete' docker-compose.yaml file is included for your convenience. 
 
 The image is compatible with any GPU cloud platform. You simply need to pass environment variables at runtime.
 
+All images built for ai-dock are tested for compatibility with both [vast.ai](https://cloud.vast.ai/?ref=62897) and [runpod.io](https://runpod.io?ref=m0vk9g4f).
+
 ## Environment Variables
 
 | Variable            | Description |
@@ -30,6 +32,12 @@ You may opt to mount a data volume at `/workspace` - This is a directory that ai
 This is usually of importance where large files are downloaded at runtime.  Any image that makes use of this directory should replace this paragraph and document how and why /workspace is being utilised.
 
 The provided docker-compose.yaml will mount the local directory `./workspace` at `/workspace`.
+
+As docker containers generally run as the root user, new files created in /workspace will be owned by uid 0(root).
+
+To ensure that the files remain accessible to the local user that owns the directory, the docker entrypoint will set a default ACL on the directory by executing the commamd `setfacl -R -d -m u:${WORKSPACE_UID}:rwx /workspace`.
+
+If you do not want this, you can set the environment variable `SKIP_ACL=true`.
 
 ## Running Services
 
@@ -53,6 +61,8 @@ To make use of this service you should map port 22 to a port of your choice on t
 
 ### Rclone mount
 
+Rclone allows you to access your cloud storage from within the container by configuring one or more remotes. If you are unfamiliar with the project you can find out more at the [Rclone website](https://rclone.org/).
+
 Any Rclone remotes that you have specified, either through mounting the config directory or via setting environment variables will be mounted at `/mnt/[remote name]`. For this service to start, the following conditions must be met:
 
 - Fuse3 installed in the host operating system
@@ -66,7 +76,7 @@ Any Rclone remotes that you have specified, either through mounting the config d
 
 The provided docker-compose.yaml includes a working configuration (add your own remotes).
 
-In the event that the conditions listed cannot be met, `rclone` will still be abailable to use via the CLI - only mounts will be unavailable.
+In the event that the conditions listed cannot be met, `rclone` will still be available to use via the CLI - only mounts will be unavailable.
 
 If you intend to use the `rclone create' command to interactively generate remote configurations you should ensure port 53682 is mapped to the host operating system see https://rclone.org/remote_setup/ for further details.
 
