@@ -63,7 +63,7 @@ To make use of this service you should map port 22 to a port of your choice on t
 
 Rclone allows you to access your cloud storage from within the container by configuring one or more remotes. If you are unfamiliar with the project you can find out more at the [Rclone website](https://rclone.org/).
 
-Any Rclone remotes that you have specified, either through mounting the config directory or via setting environment variables will be mounted at `/mnt/[remote name]`. For this service to start, the following conditions must be met:
+Any Rclone remotes that you have specified, either through mounting the config directory or via setting environment variables will be mounted at `/workspace/remote/[remote name]`. For this service to start, the following conditions must be met:
 
 - Fuse3 installed in the host operating system
 - Kernel module `fuse` loaded in the host

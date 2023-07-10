@@ -45,11 +45,22 @@ fi
 # Don't run tmux automatically on vast.ai
 touch /root/.no_auto_tmux
 
+# Determine /workspace mount status
+mountpoint /workspace
+if [[ $? -eq 0 ]]; then
+    export WORKSPACE_MOUNTED=true
+else
+    export WORKSPACE_MOUNTED=false
+    touch /workspace/WARNING-NO-MOUNT.txt
+    printf "This directory is not a mounted volume.\n\nData saved here will not survive if the container is destroyed." > /workspace/WARNING-NO-MOUNT.txt
+fi
+
 # Ensure the workspace owner can access files from outside of the container
-export WORKSPACE_UID=$(stat -c '%g' /workspace)
-export WORKSPACE_GID=$(stat -c '%G' /workspace)
-if [[ ! -z $SKIP_ACL ]]; then
+export WORKSPACE_UID=$(stat -c '%u' /workspace)
+export WORKSPACE_GID=$(stat -c '%g' /workspace)
+if [[ -z $SKIP_ACL ]]; then
     setfacl -R -d -m u:${WORKSPACE_UID}:rwx /workspace
+    setfacl -R -d -m m:rwx /workspace
 fi
 
 # Ensure all variables available for interactive sessions

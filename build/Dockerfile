@@ -37,9 +37,7 @@ RUN apt-get update && \
         fuse3 \
         openssh-server \
         libcap2-bin && \
-    mkdir /workspace && \
-    touch /workspace/WARNING.txt && \
-    printf "This directory is not a mounted volume." > /workspace/WARNING.txt && \
+    mkdir -p /workspace/remote/ && \
     mkdir -p /root/.ssh && \
     chmod 700 /root/.ssh && \
     touch /root/.ssh/authorized_keys && \
@@ -65,7 +63,8 @@ RUN $MAMBA_CREATE -n $MAMBA_BASE_ENV python=${MAMBA_BASE_PYTHON_VERSION} && \
     rm -rf /root/micromamba/envs/$MAMBA_BASE_ENV/etc/supervisord* && \
     mkdir -p /var/log/supervisor && \
     mkdir -p /etc/rclone && \
-    touch /etc/rclone/rclone.conf
+    touch /etc/rclone/rclone.conf && \
+    micromamba clean -ay
 
 ADD ./opt /opt
 ADD ./etc /etc
