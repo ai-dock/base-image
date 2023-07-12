@@ -1,16 +1,14 @@
 version: "3.8"
+# Compose file variables set in .env
 services:
   supervisor:
     build:
       context: ./build
       args:
-        # set in .env 
-        UBUNTU_VERSION: ${UBUNTU_VERSION}
-        CUDA_VERSION: ${CUDA_VERSION}
-        CUDA_TYPE: ${CUDA_TYPE}
+        IMAGE_BASE: ${IMAGE_BASE}
       tags:
-        - "ghcr.io/ai-dock/base-image:${UBUNTU_VERSION}_${CUDA_VERSION}-${CUDA_TYPE}"
-    image: ghcr.io/ai-dock/base-image:${UBUNTU_VERSION}_${CUDA_VERSION}-${CUDA_TYPE}
+        - "ghcr.io/ai-dock/base-image:${IMAGE_TAG}"
+    image: ghcr.io/ai-dock/base-image:${IMAGE_TAG}
     security_opt:
       - apparmor:unconfined
     cap_add:
@@ -31,5 +29,6 @@ services:
         # Rclone webserver for interactive configuration
         - 53682:53682
     environment:
-        - MY_VAR="an example"
+        # Don't enclose values in quotes
+        - WORKSPACE=/workspace/
     env_file: config/env.conf

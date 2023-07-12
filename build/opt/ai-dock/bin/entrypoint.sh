@@ -1,6 +1,13 @@
 #!/bin/bash
 
-WORKSPACE="/workspace"
+if [[ -z $WORKSPACE ]]; then
+    export WORKSPACE="/workspace/"
+else
+    ws_tmp="/$WORKSPACE/"
+    export WORKSPACE=${ws_tmp//\/\//\/}
+fi
+
+mkdir -p ${WORKSPACE}remote/.cache
 
 # Replace ___ with a space. Vast.ai fix
 while IFS='=' read -r -d '' key val; do
@@ -31,6 +38,27 @@ if [[ ! -z $SSH_PUBLIC_KEY ]]; then
     printf "$SSH_PUBLIC_KEY\n" >> /root/.ssh/authorized_keys
 fi
 
+# Don't run tmux automatically on vast.ai
+touch /root/.no_auto_tmux
+
+# Determine workspace mount status
+mountpoint $WORKSPACE
+if [[ $? -eq 0 ]]; then
+    export WORKSPACE_MOUNTED=true
+else
+    export WORKSPACE_MOUNTED=false
+    touch /${WORKSPACE}/WARNING-NO-MOUNT.txt
+    printf "This directory is not a mounted volume.\n\nData saved here will not survive if the container is destroyed.\n" > "${WORKSPACE}WARNING-NO-MOUNT.txt"
+fi
+
+# Ensure the workspace owner can access files from outside of the container
+export WORKSPACE_UID=$(stat -c '%u' $WORKSPACE)
+export WORKSPACE_GID=$(stat -c '%g' $WORKSPACE)
+if [[ -z $SKIP_ACL ]]; then
+    setfacl -R -d -m u:${WORKSPACE_UID}:rwx ${WORKSPACE}
+    setfacl -R -d -m m:rwx ${WORKSPACE}
+fi
+
 # Determine if rclone mount will be possible
 capsh --print | grep "Current:" | grep -q cap_sys_admin
 if [[ $? -ne 0 && ! -f /dev/fuse ]]; then
@@ -40,27 +68,6 @@ if [[ $? -ne 0 && ! -f /dev/fuse ]]; then
     export RCLONE_MOUNT_COUNT=0
 else
     export RCLONE_MOUNT_COUNT=$(micromamba run -n $MAMBA_BASE_ENV rclone listremotes |wc -w)
-fi
-
-# Don't run tmux automatically on vast.ai
-touch /root/.no_auto_tmux
-
-# Determine /workspace mount status
-mountpoint /workspace
-if [[ $? -eq 0 ]]; then
-    export WORKSPACE_MOUNTED=true
-else
-    export WORKSPACE_MOUNTED=false
-    touch /workspace/WARNING-NO-MOUNT.txt
-    printf "This directory is not a mounted volume.\n\nData saved here will not survive if the container is destroyed." > /workspace/WARNING-NO-MOUNT.txt
-fi
-
-# Ensure the workspace owner can access files from outside of the container
-export WORKSPACE_UID=$(stat -c '%u' /workspace)
-export WORKSPACE_GID=$(stat -c '%g' /workspace)
-if [[ -z $SKIP_ACL ]]; then
-    setfacl -R -d -m u:${WORKSPACE_UID}:rwx /workspace
-    setfacl -R -d -m m:rwx /workspace
 fi
 
 # Ensure all variables available for interactive sessions

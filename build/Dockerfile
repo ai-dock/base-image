@@ -1,13 +1,11 @@
-ARG CUDA_VERSION=11.8.0
-ARG CUDA_TYPE="base"
-ARG UBUNTU_VERSION=22.04
+# For build automation - Allows building from any Debian-based image
+ARG IMAGE_BASE="nvidia/cuda:11.8.0-base-ubuntu22.04"
 
-# Ensure Nvidia container toolkit
-FROM nvidia/cuda:${CUDA_VERSION}-${CUDA_TYPE}-ubuntu${UBUNTU_VERSION}
+FROM $IMAGE_BASE
 
 LABEL org.opencontainers.image.source https://github.com/ai-dock/base-image
 
-LABEL org.opencontainers.image.description "Base image for ai-dock"
+LABEL org.opencontainers.image.description "Base image for ai-dock."
 
 # Set ENV variables
 ENV LANG C.UTF-8
@@ -21,7 +19,7 @@ ENV RCLONE_CONFIG="/etc/rclone/rclone.conf"
 ENV MAMBA_BASE_ENV="system"
 ENV MAMBA_BASE_RUN="micromamba run -n $MAMBA_BASE_ENV"
 
-# Minimal ubuntu base. We will be using conda-forge via micromamba to manage most of our packages. Avoid adding anything with a python dependency
+# Minimal ubuntu base. We will be using conda-forge via micromamba to manage most of our packages. Avoid adding anything with a python dependency.
 RUN apt-get update && \
     $APT_INSTALL \
         acl \
@@ -37,7 +35,6 @@ RUN apt-get update && \
         fuse3 \
         openssh-server \
         libcap2-bin && \
-    mkdir -p /workspace/remote/ && \
     mkdir -p /root/.ssh && \
     chmod 700 /root/.ssh && \
     touch /root/.ssh/authorized_keys && \
@@ -51,10 +48,12 @@ RUN apt-get update && \
     curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba && \
     micromamba shell init --shell bash --root-prefix=~/micromamba
 
-# Create base conda-forge environment. 
-# Increased image size but micromamba is configured to create hardlinks so subsequent environments will be smaller.
+# System python version just needs to support latest supervisor version. We never want to use it to run additional software.
 ARG MAMBA_BASE_PYTHON_VERSION=3.10
 ENV MAMBA_BASE_PYTHON_VERSION=${MAMBA_BASE_PYTHON_VERSION}
+
+# Create base conda-forge environment. 
+# Increased image size but micromamba is configured to create hardlinks so subsequent environments will be smaller.
 
 RUN $MAMBA_CREATE -n $MAMBA_BASE_ENV python=${MAMBA_BASE_PYTHON_VERSION} && \
     micromamba -n $MAMBA_BASE_ENV install -y -c conda-forge \

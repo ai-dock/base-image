@@ -7,7 +7,17 @@
 # Also allows killing the container from inside.
 
 
-trap 'kill $(jobs -p)' EXIT
+trap cleanup EXIT
+
+function cleanup() {
+    printf "Cleaning up...\n"
+    # Each running process should have its own cleanup routine
+    wait -n
+    $MAMBA_BASE_RUN supervisorctl stop all
+    kill -9 $(cat /var/run/supervisord.pid)
+    rm /var/run/supervisord.pid
+    rm /var/run/supervisor.sock
+}
 
 
 for i in "$@"; do

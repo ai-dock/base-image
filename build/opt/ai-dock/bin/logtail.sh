@@ -1,6 +1,10 @@
 #!/bin/bash
 
-trap 'kill $(jobs -p)' EXIT
+trap cleanup EXIT
+
+function cleanup() {
+    kill $(jobs -p) >/dev/null 2>&1
+}
 
 # Tail and print logs for all of our services
 # Needed for 'docker logs' and ssh users

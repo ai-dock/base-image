@@ -20,6 +20,7 @@ All images built for ai-dock are tested for compatibility with both [vast.ai](ht
 | ------------------- | ----------- |
 | GPU_COUNT           | Limit the number of available GPUs |
 | SSH_PUBKEY          | Your public key for SSH |
+| WORKSPACE           | A volume path. Defaults to `/workspace/`` |
 | RCLONE_*            | Rclone configuration - See [rclone documentation](https://rclone.org/docs/#config-file) |
 
 
@@ -27,9 +28,11 @@ All images built for ai-dock are tested for compatibility with both [vast.ai](ht
 
 Data inside docker containers is ephemeral - You'll lose all of it when the container is destroyed.
 
-You may opt to mount a data volume at `/workspace` - This is a directory that ai-dock images will look for to make downloaded data available outside of the container for persistence. 
+You may opt to mount a data volume at `/workspace` - This is a directory that ai-dock images will look for to make downloaded data available outside of the container for persistence.
 
 This is usually of importance where large files are downloaded at runtime.  Any image that makes use of this directory should replace this paragraph and document how and why /workspace is being utilised.
+
+You can define an alternative path for the workspace directory by passing the environment variable `WORKSPACE=/my/alternative/path/` and mounting your volume there. This feature will generally assist where cloud providers enforce their own mountpoint location for persistent storage.
 
 The provided docker-compose.yaml will mount the local directory `./workspace` at `/workspace`.
 

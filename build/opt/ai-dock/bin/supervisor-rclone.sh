@@ -11,8 +11,18 @@ function cleanup {
     fi
 }
 
-# As array
-readarray -t REMOTES < <($MABMA_BASE_RUN rclone listremotes)
+# Determine if rclone mount will be possible
+# Repeat of entrypoint, in case of manual start attempt
+capsh --print | grep "Current:" | grep -q cap_sys_admin
+if [[ $? -ne 0 && ! -f /dev/fuse ]]; then
+    # Not in container with sufficient privileges
+    printf "Environment unsuitable for rclone mount...\n"
+    printf "rclone remains available via CLI\n"
+    exit 0
+else
+    # As array
+    readarray -t REMOTES < <($MABMA_BASE_RUN rclone listremotes)
+fi
 
 if [ ${#REMOTES[@]} -eq 0 ]; then
     printf "No remotes configured for rclone\n"
@@ -25,8 +35,8 @@ fi
 
 remote=${REMOTES[$PROC_NUM]}
 name="${remote%:*}"
-local_path="/workspace/remote/$name"
-cache_dir="/workspace/remote/.cache/$name"
+local_path="${WORKSPACE}remote/$name"
+cache_dir="${WORKSPACE}remote/.cache/$name"
 # Try really, really hard to ensure not already mounted/fix transport not connected errors
 fusermount -uz "${local_path}" >/dev/null 2>&1
 umount "$local_path" >/dev/null 2>&1
