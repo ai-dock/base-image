@@ -12,7 +12,7 @@ ENV LANG C.UTF-8
 ENV SHELL=/bin/bash
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PATH=/opt/ai-dock/bin:/opt/micromamba/bin:$PATH
-ENV APT_INSTALL="apt-get install -y --no-install-recommends"
+ENV APT_INSTALL="apt install -y --no-install-recommends"
 ENV MAMBA_CREATE="micromamba --experimental create -y -c conda-forge -c defaults"
 ENV PIP_INSTALL="pip --no-cache-dir install"
 ENV RCLONE_CONFIG="/etc/rclone/rclone.conf"
@@ -20,21 +20,25 @@ ENV MAMBA_BASE_ENV="system"
 ENV MAMBA_BASE_RUN="micromamba run -n $MAMBA_BASE_ENV"
 
 # Minimal ubuntu base. We will be using conda-forge via micromamba to manage most of our packages. Avoid adding anything with a python dependency.
-RUN apt-get update && \
+RUN apt update && \
+    apt upgrade -y --no-install-recommends && \
     $APT_INSTALL \
         acl \
         bzip2 \
-        zip \
-        unzip \
         curl \
-        wget \
-        nano \
+        fuse3 \
+        git \
         less \
+        libcap2-bin \
+        nano \
+        openssh-server \
         screen \
         tmux \
-        fuse3 \
-        openssh-server \
-        libcap2-bin && \
+        unzip \
+        vim \
+        wget \
+        zip && \
+    apt clean -y && \
     mkdir -p /root/.ssh && \
     chmod 700 /root/.ssh && \
     touch /root/.ssh/authorized_keys && \

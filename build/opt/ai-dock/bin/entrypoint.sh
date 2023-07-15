@@ -55,8 +55,8 @@ fi
 export WORKSPACE_UID=$(stat -c '%u' $WORKSPACE)
 export WORKSPACE_GID=$(stat -c '%g' $WORKSPACE)
 if [[ -z $SKIP_ACL ]]; then
-    setfacl -R -d -m u:${WORKSPACE_UID}:rwx ${WORKSPACE}
-    setfacl -R -d -m m:rwx ${WORKSPACE}
+    setfacl -d -m u:${WORKSPACE_UID}:rwx ${WORKSPACE}
+    setfacl -d -m m:rwx ${WORKSPACE}
 fi
 
 # Determine if rclone mount will be possible

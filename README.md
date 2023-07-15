@@ -38,7 +38,7 @@ The provided docker-compose.yaml will mount the local directory `./workspace` at
 
 As docker containers generally run as the root user, new files created in /workspace will be owned by uid 0(root).
 
-To ensure that the files remain accessible to the local user that owns the directory, the docker entrypoint will set a default ACL on the directory by executing the commamd `setfacl -R -d -m u:${WORKSPACE_UID}:rwx /workspace`.
+To ensure that the files remain accessible to the local user that owns the directory, the docker entrypoint will set a default ACL on the directory by executing the commamd `setfacl -d -m u:${WORKSPACE_UID}:rwx /workspace`.
 
 If you do not want this, you can set the environment variable `SKIP_ACL=true`.
 
