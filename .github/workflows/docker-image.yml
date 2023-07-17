@@ -1,0 +1,42 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  nvidia-base:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        img:
+          - nvidia/cuda
+        cuda:
+          - 11.8.0
+          - 12.2.0
+        level:
+          - "base"
+          - "runtime"
+          - "cudnn8-runtime"
+          - "devel"
+          - "cudnn8-devel"
+        os:
+          - 22.04
+    steps:
+      -
+        name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      -
+        name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          args:
+            IMAGE_BASE: ${{ matrix.img }}:${{ matrix.cuda }}-${{ matrix.level }}-ubuntu${{ matrix.os }}
+          push: true
+          tags: 
+            - ghcr.io/ai-dock/base-image:nvc-${{ matrix.cuda }}-${{ matrix.level }}-${{ matrix.os }}
