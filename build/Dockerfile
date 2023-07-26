@@ -1,80 +1,47 @@
 # For build automation - Allows building from any Debian-based image
 ARG IMAGE_BASE="nvidia/cuda:11.8.0-base-ubuntu22.04"
+FROM ${IMAGE_BASE}
 
-FROM $IMAGE_BASE
+# Determines which scripts at /opt/ai-dock/bin/build/layerX will be run by init.sh
+ARG XPU_TARGET="GPU_NVIDIA" # GPU_AMD, CPU
+ENV XPU_TARGET=${XPU_TARGET}
 
 LABEL org.opencontainers.image.source https://github.com/ai-dock/base-image
 
 LABEL org.opencontainers.image.description "Base image for ai-dock."
+
+LABEL maintainer="Rob Ballantyne <rob@dynamedia.uk>"
 
 # Set ENV variables
 ENV LANG C.UTF-8
 ENV SHELL=/bin/bash
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PATH=/opt/ai-dock/bin:/opt/micromamba/bin:$PATH
-ENV APT_INSTALL="apt install -y --no-install-recommends"
+ENV APT_INSTALL="apt-get install -y --no-install-recommends"
 ENV MAMBA_CREATE="micromamba --experimental create -y -c conda-forge -c defaults"
-ENV PIP_INSTALL="pip --no-cache-dir install"
 ENV RCLONE_CONFIG="/etc/rclone/rclone.conf"
 ENV MAMBA_BASE_ENV="system"
 ENV MAMBA_BASE_RUN="micromamba run -n $MAMBA_BASE_ENV"
-
-# Minimal ubuntu base. We will be using conda-forge via micromamba to manage most of our packages. Avoid adding anything with a python dependency.
-RUN apt update && \
-    apt upgrade -y --no-install-recommends && \
-    $APT_INSTALL \
-        acl \
-        bzip2 \
-        curl \
-        fuse3 \
-        git \
-        less \
-        libcap2-bin \
-        nano \
-        openssh-server \
-        screen \
-        tmux \
-        unzip \
-        vim \
-        wget \
-        zip && \
-    apt clean -y && \
-    mkdir -p /root/.ssh && \
-    chmod 700 /root/.ssh && \
-    touch /root/.ssh/authorized_keys && \
-    chmod 600 /root/.ssh/authorized_keys && \
-    mkdir -p /run/sshd && \
-    chmod 700 /run/sshd && \
-    rm /etc/update-motd.d/10-help-text && \
-    rm /etc/update-motd.d/60-unminimize && \
-    mkdir -p /opt/micromamba && \
-    cd /opt/micromamba && \
-    curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba && \
-    micromamba shell init --shell bash --root-prefix=~/micromamba
-
-# System python version just needs to support latest supervisor version. We never want to use it to run additional software.
 ARG MAMBA_BASE_PYTHON_VERSION=3.10
 ENV MAMBA_BASE_PYTHON_VERSION=${MAMBA_BASE_PYTHON_VERSION}
+# Copy early so we can use scripts in the build - Changes to these files will invalidate the cache and cause a rebuild.
+COPY ./COPY_ROOT/ /
 
-# Create base conda-forge environment. 
-# Increased image size but micromamba is configured to create hardlinks so subsequent environments will be smaller.
+# Env these args - We need them to ease software installation in extended images
+ARG CUDA_VERSION
+ENV CUDA_VERSION=${CUDA_VERSION}
+ARG CUDNN_VERSION
+ENV CUDNN_VERSION=${CUDNN_VERSION}
+ARG CUDA_LEVEL
+ENV CUDA_LEVEL=${CUDA_LEVEL}
+ARG ROCM_VERSION
+ENV ROCM_VERSION=${ROCM_VERSION}
+ARG ROCM_LEVEL
+ENV ROCM_LEVEL=${ROCM_LEVEL}
 
-RUN $MAMBA_CREATE -n $MAMBA_BASE_ENV python=${MAMBA_BASE_PYTHON_VERSION} && \
-    micromamba -n $MAMBA_BASE_ENV install -y -c conda-forge \
-        supervisor \
-        rclone && \
-    rm -rf /root/micromamba/envs/$MAMBA_BASE_ENV/etc/supervisord* && \
-    mkdir -p /var/log/supervisor && \
-    mkdir -p /etc/rclone && \
-    touch /etc/rclone/rclone.conf && \
-    micromamba clean -ay
-
-ADD ./opt /opt
-ADD ./etc /etc
-ADD ./usr /usr
-ADD ./root /root
-
-EXPOSE 22
+# Use build scripts to ensure we can build all targets from one Dockerfile in a single layer.
+# Don't put anything heavy in here - We can use multi-stage building above if necessary.
+RUN bash -c /opt/ai-dock/bin/build/layer0/init.sh
 
 ENTRYPOINT [ "entrypoint.sh" ]
 

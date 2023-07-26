@@ -1,11 +1,17 @@
 version: "3.8"
-# Compose file variables set in .env
+# Compose file build variables set in .env
 services:
   supervisor:
     build:
       context: ./build
       args:
         IMAGE_BASE: ${IMAGE_BASE}
+        XPU_TARGET: ${XPU_TARGET}
+        CUDA_VERSION: ${CUDA_VERSION}
+        CUDA_LEVEL: ${CUDA_LEVEL}
+        CUDNN_VERSION: ${CUDNN_VERSION}
+        ROCM_VERSION: ${ROCM_VERSION}
+        ROCM_LEVEL: ${ROCM_LEVEL}
       tags:
         - "ghcr.io/ai-dock/base-image:${IMAGE_TAG}"
     image: ghcr.io/ai-dock/base-image:${IMAGE_TAG}
@@ -14,11 +20,16 @@ services:
     cap_add:
       - SYS_ADMIN
     devices:
-      - '/dev/fuse:/dev/fuse'
+      # For Rclone mount
+      - "/dev/fuse:/dev/fuse"
+      # For AMD GPU
+      #- "/dev/kfd:/dev/kfd"
     volumes:
+      # For Rclone mount
       - /etc/passwd:/etc/passwd:ro
       - /etc/group:/etc/group:ro
       - ./config/rclone:/etc/rclone
+      # Workspace
       - ./workspace:/workspace:rshared
       # Will echo to root-owned authorized_keys file;
       # Avoids changing local file owner

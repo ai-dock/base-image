@@ -1,9 +1,13 @@
 name: Docker Image CI
 
-on:
-  workflow_dispatch:
-  push:
-    branches: [ "main" ]
+###
+# This would be the ideal workflow, but it doesn't work.
+# docker/setup-buildx-action@v2 is not able to reliably
+# build images for ghcr.io
+# Keeping this around for a future fix -
+# Pinning buildkit works *sometimes*
+###
+on: workflow_dispatch
     
 env:
   UBUNTU_VERSION: 22.04
@@ -22,6 +26,13 @@ jobs:
         name: Checkout
         uses: actions/checkout@v3
       -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+        ## Attempt to solve ghcr build failures https://github.com/docker/build-push-action/issues/761 - 0.12.0 does not fix.
+        with:
+          driver-opts: |
+            image=moby/buildkit:v0.10.6
+      -
         name: Login to GitHub Container Registry
         uses: docker/login-action@v2
         with:
@@ -39,6 +50,8 @@ jobs:
           push: true
           # Avoids unknown/unknown architecture and extra metadata
           provenance: false
+          #cache-from: type=gha,scope=${{ github.ref_name }}-${{ env.TAG }}
+          #cache-to: type=gha,mode=max,scope=${{ github.ref_name }}-${{ env.TAG }}
           tags: |
             ghcr.io/${{ env.PACKAGE_NAME }}:${{ env.TAG }}
     
@@ -71,6 +84,13 @@ jobs:
         name: Checkout
         uses: actions/checkout@v3
       -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+        ## Attempt to solve ghcr build failures https://github.com/docker/build-push-action/issues/761 - 0.12.0 does not fix.
+        with:
+          driver-opts: |
+            image=moby/buildkit:v0.10.6
+      -
         name: Login to GitHub Container Registry
         uses: docker/login-action@v2
         with:
@@ -89,6 +109,8 @@ jobs:
             CUDA_LEVEL=${{ matrix.level }}
           push: true
           provenance: false
+          #cache-from: type=gha,scope=${{ github.ref_name }}-${{ env.TAG }}
+          #cache-to: type=gha,mode=max,scope=${{ github.ref_name }}-${{ env.TAG }}
           tags: |
             ghcr.io/${{ env.PACKAGE_NAME }}:${{ env.TAG }}
 
@@ -112,6 +134,13 @@ jobs:
         name: Checkout
         uses: actions/checkout@v3
       -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+        ## Attempt to solve ghcr build failures https://github.com/docker/build-push-action/issues/761 - 0.12.0 does not fix.
+        with:
+          driver-opts: |
+            image=moby/buildkit:v0.10.6
+      -
         name: Login to GitHub Container Registry
         uses: docker/login-action@v2
         with:
@@ -130,5 +159,7 @@ jobs:
             ROCM_LEVEL=${{ matrix.level }}
           push: true
           provenance: false
+          #cache-from: type=gha,scope=${{ github.ref_name }}-${{ env.TAG }}
+          #cache-to: type=gha,mode=max,scope=${{ github.ref_name }}-${{ env.TAG }}
           tags: |
             ghcr.io/${{ env.PACKAGE_NAME }}:${{ env.TAG }}

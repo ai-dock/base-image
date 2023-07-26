@@ -15,14 +15,19 @@ while IFS='=' read -r -d '' key val; do
 done < <(env -0)
 
 if [[ -z $GPU_COUNT ]]; then
-    export GPU_COUNT=$(ls -l /proc/driver/nvidia/gpus/ | grep -c ^d)
+    if [[ "$XPU_TARGET" == "NVIDIA_GPU" ]]; then
+        export GPU_COUNT=$(ls -l /proc/driver/nvidia/gpus/ | grep -c ^d)
+    # TODO FIXME
+    elif [[ "$XPU_TARGET" == "AMD_GPU" ]]; then
+        export GPU_COUNT=1
+    fi
 fi
 
 if [[ -f "/root/.ssh/authorized_keys_mount" ]]; then
     cat /root/.ssh/authorized_keys_mount > /root/.ssh/authorized_keys
 fi
 
-# named to avoid conflict with the cloud providers below
+# Named to avoid conflict with the cloud providers below
 if [[ ! -z $SSH_PUBKEY ]]; then
     printf "$SSH_PUBKEY\n" >> /root/.ssh/authorized_keys
 fi

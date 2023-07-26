@@ -20,7 +20,7 @@ All images built for ai-dock are tested for compatibility with both [vast.ai](ht
 | ------------------- | ----------- |
 | GPU_COUNT           | Limit the number of available GPUs |
 | SSH_PUBKEY          | Your public key for SSH |
-| WORKSPACE           | A volume path. Defaults to `/workspace/`` |
+| WORKSPACE           | A volume path. Defaults to `/workspace/` |
 | RCLONE_*            | Rclone configuration - See [rclone documentation](https://rclone.org/docs/#config-file) |
 
 
@@ -44,7 +44,7 @@ If you do not want this, you can set the environment variable `SKIP_ACL=true`.
 
 ## Running Services
 
-This image will start multiple processes on starting a container. All processes are managed by supervisord so will restart upon failure until you stop the container.
+This image will spawn multiple processes upon starting a container. All processes are managed by supervisord so will restart upon failure until you either manually stop them or terminate the container.
 
 ### SSHD
 

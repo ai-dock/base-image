@@ -1,7 +1,0 @@
-Container based on ai-dock/base-container (https://github.com/ai-dock/base-container)
-
-All running services are managed by supervisord. You can use supervisorctl to view, start and stop them.
-
-Some useful commands:
-
-  - 'logtail.sh' will print live logs for all processes.
