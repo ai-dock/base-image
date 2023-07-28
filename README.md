@@ -29,9 +29,42 @@ Images that include Jupyter are also tested to ensure compatibility with [Papers
 
 Environment variables can be specified by using any of the standard methods (`docker-compose.yaml`, `docker run -e...`). Additionally, environment variables can also be passed as parameters of `init.sh`.
 
-Passing environment variables to init.sh is usually unnecessary, but is useful for some cloud environments where the full `docker run` command cannot be specified.
+Passing environment variables to `init.sh` is usually unnecessary, but may be useful in some cloud environments where the full `docker run` command cannot be specified.
 
 Example usage: `docker run -e STANDARD_VAR1="this value" -e STANDARD_VAR2="that value" init.sh EXTRA_VAR="other value"`
+
+
+## Software Management
+
+A small software collection is installed by apt-get. This is mostly to provide basic functionality, but also includes `openssh-server` as the OS vendor is likely to be first to patch any security issues.
+
+All other software is installed into its own environment by `micromamba`, which is a drop-in replacement for conda/mamba. Read more about it [here](https://mamba.readthedocs.io/en/latest/user_guide/micromamba.html).
+
+Micromamba environments are particularly useful where several software packages are required but their dependencies conflict. 
+
+### Installed Micromamba Environments
+
+| Environment    | Packages / Rationale |
+| -------------- | ----------------------------------------- |
+| `base`         | micromamba's base environment |
+| `system`       | `supervisord`, `rclone` - latest versions |
+
+If you are extending this image or running an interactive session where additional software is required, you should almost certainly create a new environment first. See below for guidance.
+
+### Useful Micromamba Commands
+
+| Command                              | Function |
+| -------------------------------------| --------------------- |
+| `micromamba env list`                | List available environments |
+| `micromamba activate [name]`         | Activate the named environment |
+| `micromamba deactivate`              | Close the active environment |
+| `micromamba run -n [name] [command]` | Run a command in the named environment without activating |
+
+AI-Dock images create micromamba environments using the `--experimental` flag to enable hardlinks which can save disk space where multiple environments are available.
+
+To create an additional micromamba environment, eg for python, you can use the following:
+
+`micromamba --experimental create -y -c conda-forge -c defaults -n [name] python=3.10`
 
 ## Volumes
 
@@ -53,7 +86,7 @@ If you do not want this, you can set the environment variable `SKIP_ACL=true`.
 
 ## Running Services
 
-This image will spawn multiple processes upon starting a container. All processes are managed by supervisord so will restart upon failure until you either manually stop them or terminate the container.
+This image will spawn multiple processes upon starting a container. All processes are managed by [supervisord](https://supervisord.readthedocs.io/en/latest/) so will restart upon failure until you either manually stop them or terminate the container.
 
 ### SSHD
 
@@ -90,7 +123,7 @@ The provided docker-compose.yaml includes a working configuration (add your own 
 
 In the event that the conditions listed cannot be met, `rclone` will still be available to use via the CLI - only mounts will be unavailable.
 
-If you intend to use the `rclone create' command to interactively generate remote configurations you should ensure port 53682 is mapped to the host operating system see https://rclone.org/remote_setup/ for further details.
+If you intend to use the `rclone create` command to interactively generate remote configurations you should ensure port 53682 is mapped to the host operating system see https://rclone.org/remote_setup/ for further details.
 
 ### Logtail
 
