@@ -8,11 +8,15 @@ This file should form the basis for the README.md for all extended images, with 
 
 A 'feature-complete' docker-compose.yaml file is included for your convenience. All features of the image are included - Simply edit the environment variables, save and then type `docker compose up`.
 
+If you prefer to use the standard `docker run` syntax, the command to pass is `init.sh`.
+
 ## Run in the Cloud
 
 The image is compatible with any GPU cloud platform. You simply need to pass environment variables at runtime.
 
 All images built for ai-dock are tested for compatibility with both [vast.ai](https://cloud.vast.ai/?ref=62897) and [runpod.io](https://runpod.io?ref=m0vk9g4f).
+
+Images that include Jupyter are also tested to ensure compatibility with [Paperspace Gradient](https://console.paperspace.com/signup?R=FI2IEQI)
 
 ## Environment Variables
 
@@ -23,6 +27,11 @@ All images built for ai-dock are tested for compatibility with both [vast.ai](ht
 | WORKSPACE           | A volume path. Defaults to `/workspace/` |
 | RCLONE_*            | Rclone configuration - See [rclone documentation](https://rclone.org/docs/#config-file) |
 
+Environment variables can be specified by using any of the standard methods (`docker-compose.yaml`, `docker run -e...`). Additionally, environment variables can also be passed as parameters of `init.sh`.
+
+Passing environment variables to init.sh is usually unnecessary, but is useful for some cloud environments where the full `docker run` command cannot be specified.
+
+Example usage: `docker run -e STANDARD_VAR1="this value" -e STANDARD_VAR2="that value" init.sh EXTRA_VAR="other value"`
 
 ## Volumes
 
