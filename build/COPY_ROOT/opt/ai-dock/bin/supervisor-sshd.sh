@@ -6,10 +6,8 @@ function cleanup() {
     kill $(jobs -p)
 }
 
-AU_FILE="/root/.ssh/authorized_keys"
-ssh-keygen -l -f $AU_FILE
-
-if [[ $? -gt 0 ]]; then
+ak_file="/root/.ssh/authorized_keys"
+if [[ ! $(ssh-keygen -l -f $ak_file) ]]; then
     printf "Skipping SSH server: No public key\n" 1>&2
     # No error - Supervisor will not atempt restart
     exit 0

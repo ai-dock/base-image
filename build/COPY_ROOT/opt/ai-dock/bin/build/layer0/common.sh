@@ -9,6 +9,7 @@ apt-get upgrade -y --no-install-recommends
 # A minimal collection of packages.
 $APT_INSTALL \
     acl \
+    bc \
     bzip2 \
     ca-certificates \
     curl \
@@ -46,13 +47,13 @@ curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/mi
 micromamba shell init --shell bash --root-prefix=~/micromamba
 
 # Install the 'system' base micromamba environment
-$MAMBA_CREATE -n $MAMBA_BASE_ENV python=${MAMBA_BASE_PYTHON_VERSION}
-micromamba -n $MAMBA_BASE_ENV install -y -c conda-forge \
-        supervisor \
-        rclone
+$MAMBA_CREATE -n "${MAMBA_BASE_ENV}" python="${MAMBA_BASE_PYTHON_VERSION}"
+micromamba -n "${MAMBA_BASE_ENV}" install -y -c conda-forge \
+    supervisor \
+    rclone
         
 # We will use a config from /etc
-rm -rf /root/micromamba/envs/$MAMBA_BASE_ENV/etc/supervisord*
+rm -rf /root/micromamba/envs/"${MAMBA_BASE_ENV}"/etc/supervisord*
 
 # Ensure critical paths/files are present
 mkdir -p --mode=0755 /etc/apt/keyrings

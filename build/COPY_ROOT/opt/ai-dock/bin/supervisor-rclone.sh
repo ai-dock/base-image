@@ -4,10 +4,10 @@ trap cleanup EXIT
 
 function cleanup {
     kill $(jobs -p)
-    if [[ ! -z $name ]]; then
-        fusermount -az $local_path >/dev/null 2>&1
-        umount $local_path >/dev/null 2>&1
-        rm -rf $cache_dir >/dev/null 2>&1
+    if [[ -n $name ]]; then
+        fusermount -az "$local_path" >/dev/null 2>&1
+        umount "$local_path" >/dev/null 2>&1
+        rm -rf "$cache_dir" >/dev/null 2>&1
     fi
 }
 
@@ -43,15 +43,15 @@ umount "$local_path" >/dev/null 2>&1
 printf "Mounting remote '%s' at %s" "$remote" "${local_path}..."
 rm -rf "$cache_dir" >/dev/null 2>&1
 mkdir -p "$cache_dir"
-chown "$WORKSPACE_UID.$WORKSPACE_GID" $cache_dir
+chown "$WORKSPACE_UID.$WORKSPACE_GID" "$cache_dir"
 mkdir -p "${local_path}"
-chown "$WORKSPACE_UID.$WORKSPACE_GID" $local_path
+chown "$WORKSPACE_UID.$WORKSPACE_GID" "$local_path"
 wait -n
 $MABMA_BASE_RUN rclone mount \
     --allow-non-empty \
     --allow-other \
-    --uid $WORKSPACE_UID \
-    --gid $WORKSPACE_GID \
+    --uid "$WORKSPACE_UID" \
+    --gid "$WORKSPACE_GID" \
     --cache-dir "$cache_dir" \
     --vfs-cache-mode full \
     "${remote}" \

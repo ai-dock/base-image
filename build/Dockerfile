@@ -43,6 +43,4 @@ ENV ROCM_LEVEL=${ROCM_LEVEL}
 # Don't put anything heavy in here - We can use multi-stage building above if necessary.
 RUN bash -c /opt/ai-dock/bin/build/layer0/init.sh
 
-ENTRYPOINT [ "entrypoint.sh" ]
-
-CMD ["supervisord-init.sh"]
+CMD ["init.sh"]
