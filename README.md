@@ -4,6 +4,12 @@ All ai-dock images are extended from this base image.
 
 This file should form the basis for the README.md for all extended images, with nothing but this introduction removed and additional features documented as required.
 
+## Pre-built Images
+
+Docker images are built automatically through a GitHub Actions workflow and hosted at the GitHub Container Registry. Browse [here](https://github.com/ai-dock/base-image/pkgs/container/base-image) for an image suitable for your target environment.
+
+You can also self-build from source by editing `.env` and running `docker compose build`.
+
 ## Run Locally
 
 A 'feature-complete' docker-compose.yaml file is included for your convenience. All features of the image are included - Simply edit the environment variables, save and then type `docker compose up`.
@@ -12,7 +18,7 @@ If you prefer to use the standard `docker run` syntax, the command to pass is `i
 
 ## Run in the Cloud
 
-The image is compatible with any GPU cloud platform. You simply need to pass environment variables at runtime.
+This image should be compatible with any GPU cloud platform. You simply need to pass environment variables at runtime. Please raise an issue on this repository if your provider cannot run the image.
 
 All images built for ai-dock are tested for compatibility with both [vast.ai](https://cloud.vast.ai/?ref=62897) and [runpod.io](https://runpod.io?ref=m0vk9g4f).
 
@@ -60,7 +66,7 @@ If you are extending this image or running an interactive session where addition
 | `micromamba deactivate`              | Close the active environment |
 | `micromamba run -n [name] [command]` | Run a command in the named environment without activating |
 
-AI-Dock images create micromamba environments using the `--experimental` flag to enable hardlinks which can save disk space where multiple environments are available.
+All ai-dock images create micromamba environments using the `--experimental` flag to enable hardlinks which can save disk space where multiple environments are available.
 
 To create an additional micromamba environment, eg for python, you can use the following:
 
