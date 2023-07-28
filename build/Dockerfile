@@ -43,4 +43,5 @@ ENV ROCM_LEVEL=${ROCM_LEVEL}
 # Don't put anything heavy in here - We can use multi-stage building above if necessary.
 RUN bash -c /opt/ai-dock/bin/build/layer0/init.sh
 
+# Keep init.sh as-is and place additional logic in /opt/ai-dock/bin/preflight.sh
 CMD ["init.sh"]
