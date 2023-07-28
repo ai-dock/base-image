@@ -29,9 +29,10 @@ Images that include Jupyter are also tested to ensure compatibility with [Papers
 | Variable            | Description |
 | ------------------- | ----------- |
 | GPU_COUNT           | Limit the number of available GPUs |
+| RCLONE_*            | Rclone configuration - See [rclone documentation](https://rclone.org/docs/#config-file) |
+| SKIP_ACL            | Set `true` to skip modifying workspace ACL |
 | SSH_PUBKEY          | Your public key for SSH |
 | WORKSPACE           | A volume path. Defaults to `/workspace/` |
-| RCLONE_*            | Rclone configuration - See [rclone documentation](https://rclone.org/docs/#config-file) |
 
 Environment variables can be specified by using any of the standard methods (`docker-compose.yaml`, `docker run -e...`). Additionally, environment variables can also be passed as parameters of `init.sh`.
 
