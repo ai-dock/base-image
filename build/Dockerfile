@@ -19,11 +19,12 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV PATH=/opt/ai-dock/bin:/opt/micromamba/bin:$PATH
 ENV APT_INSTALL="apt-get install -y --no-install-recommends"
 ENV MAMBA_CREATE="micromamba --experimental create -y -c conda-forge -c defaults"
-ENV RCLONE_CONFIG="/etc/rclone/rclone.conf"
+ENV MAMBA_ROOT_PREFIX=/opt/micromamba
 ENV MAMBA_BASE_ENV="system"
 ENV MAMBA_BASE_RUN="micromamba run -n $MAMBA_BASE_ENV"
 ARG MAMBA_BASE_PYTHON_VERSION=3.10
 ENV MAMBA_BASE_PYTHON_VERSION=${MAMBA_BASE_PYTHON_VERSION}
+ENV RCLONE_CONFIG="/etc/rclone/rclone.conf"
 # Copy early so we can use scripts in the build - Changes to these files will invalidate the cache and cause a rebuild.
 COPY ./COPY_ROOT/ /
 

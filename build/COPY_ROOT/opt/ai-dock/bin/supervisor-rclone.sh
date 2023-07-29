@@ -3,7 +3,7 @@
 trap cleanup EXIT
 
 function cleanup {
-    kill $(jobs -p)
+    kill $(jobs -p) > /dev/null 2>&1
     if [[ -n $name ]]; then
         fusermount -az "$local_path" >/dev/null 2>&1
         umount "$local_path" >/dev/null 2>&1

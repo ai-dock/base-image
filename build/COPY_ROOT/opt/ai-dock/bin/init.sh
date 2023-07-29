@@ -12,7 +12,7 @@ function cleanup() {
     # Each running process should have its own cleanup routine
     wait -n
     $MAMBA_BASE_RUN supervisorctl stop all
-    kill -9 "$(cat /var/run/supervisord.pid)"
+    kill -9 $(cat /var/run/supervisord.pid) > /dev/null 2>&1
     rm /var/run/supervisord.pid
     rm /var/run/supervisor.sock
 }
@@ -129,7 +129,9 @@ function mount_rclone_remotes() {
 
 function cloud_fixes() {
     # Don't run tmux automatically on vast.ai
-    touch /root/.no_auto_tmux
+    if [[ -n $VAST_NO_TMUX ]]; then
+        touch /root/.no_auto_tmux
+    fi
 }
 
 function run_preflight_script() {

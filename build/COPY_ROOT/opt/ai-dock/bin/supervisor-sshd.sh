@@ -3,7 +3,7 @@
 trap cleanup EXIT
 
 function cleanup() {
-    kill $(jobs -p)
+    kill $(jobs -p) > /dev/null 2>&1
 }
 
 ak_file="/root/.ssh/authorized_keys"
