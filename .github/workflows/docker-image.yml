@@ -36,6 +36,7 @@ jobs:
           build-args: |
             IMAGE_BASE=ubuntu:${{ env.UBUNTU_VERSION }}
             XPU_TARGET=CPU
+            MAMBA_DEFAULT_ENV=system
           push: true
           # Avoids unknown/unknown architecture and extra metadata
           provenance: false
@@ -87,6 +88,7 @@ jobs:
             XPU_TARGET=NVIDIA_GPU
             CUDA_VERSION=${{ matrix.cuda }}
             CUDA_LEVEL=${{ matrix.level }}
+            MAMBA_DEFAULT_ENV=system
           push: true
           provenance: false
           tags: |
@@ -128,6 +130,7 @@ jobs:
             XPU_TARGET=AMD_GPU
             ROCM_VERSION=${{ matrix.rocm }}
             ROCM_LEVEL=${{ matrix.level }}
+            MAMBA_DEFAULT_ENV=system
           push: true
           provenance: false
           tags: |
