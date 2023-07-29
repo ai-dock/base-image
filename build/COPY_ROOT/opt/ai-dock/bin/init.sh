@@ -94,7 +94,7 @@ function set_workspace() {
     mkdir -p "${WORKSPACE}"remote/.cache
     
     # Determine workspace mount status
-    if [[ $(mountpoint "$WORKSPACE") ]]; then
+    if mountpoint "$WORKSPACE"; then
         export WORKSPACE_MOUNTED=true
     else
         export WORKSPACE_MOUNTED=false
@@ -116,7 +116,7 @@ function set_workspace() {
 function mount_rclone_remotes() {
     # Determine if rclone mount will be possible
     capsh --print | grep "Current:" | grep -q cap_sys_admin
-    if [[ $? -ne 0 && ! -f /dev/fuse ]]; then
+    if [[ $? -ne 0 || ! -f /dev/fuse ]]; then
         # Not in container with sufficient privileges
         printf "Environment unsuitable for rclone mount...\n"
         printf "rclone remains available via CLI\n"
@@ -135,7 +135,7 @@ function cloud_fixes() {
 function run_preflight_script() {
     # Child images can provide in their PATH
     printf "Looking for preflight.sh...\n"
-    if [[ ! $(which preflight.sh)  ]]; then
+    if ! which preflight.sh; then
         printf "Not found\n"
     else
         preflight.sh
