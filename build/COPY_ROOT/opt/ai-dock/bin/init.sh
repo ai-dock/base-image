@@ -94,12 +94,15 @@ function set_workspace() {
     mkdir -p "${WORKSPACE}"remote/.cache
     
     # Determine workspace mount status
-    if mountpoint "$WORKSPACE"; then
+    if mountpoint "$WORKSPACE" > /dev/null 2>&1; then
         export WORKSPACE_MOUNTED=true
     else
         export WORKSPACE_MOUNTED=false
-        touch /"${WORKSPACE}"/WARNING-NO-MOUNT.txt
-        printf "This directory is not a mounted volume.\n\nData saved here will not survive if the container is destroyed.\n" > "${WORKSPACE}WARNING-NO-MOUNT.txt"
+        no_mount_warning_file="${WORKSPACE}WARNING-NO-MOUNT.txt"
+        no_mount_warning="$WORKSPACE is not a mounted volume.\n\nData saved here will not survive if the container is destroyed.\n"
+        printf "%b" "${no_mount_warning}"
+        touch "${no_mount_warning_file}"
+        printf "%b" "${no_mount_warning}" > "${no_mount_warning_file}"
     fi
     
     # Ensure the workspace owner can access files from outside of the container
@@ -115,15 +118,27 @@ function set_workspace() {
 
 function mount_rclone_remotes() {
     # Determine if rclone mount will be possible
+    mount_env_warning_file="${WORKSPACE}remote/WARNING-CANNOT-MOUNT-REMOTES.txt"
+    no_remotes_warning_file="${WORKSPACE}remote/WARNING-NO-REMOTES-CONFIGURED.txt"
+    rm ${mount_env_warning_file} > /dev/null 2>&1
+    rm ${no_remotes_warning_file} > /dev/null 2>&1
     capsh --print | grep "Current:" | grep -q cap_sys_admin
     if [[ $? -ne 0 || ! -e /dev/fuse ]]; then
         # Not in container with sufficient privileges
-        printf "Environment unsuitable for rclone mount...\n"
-        printf "rclone remains available via CLI\n"
+        mount_env_warning="Environment unsuitable for rclone mount...\nrclone remains available via CLI\n"
+        printf "%b" "${mount_env_warning}"
+        touch "${mount_env_warning_file}"
+        printf "%b" "${mount_env_warning}" > "${mount_env_warning_file}"
         export RCLONE_MOUNT_COUNT=0
     else
         RCLONE_MOUNT_COUNT=$(micromamba run -n "$MAMBA_BASE_ENV" rclone listremotes |wc -w)
         export RCLONE_MOUNT_COUNT
+        if [[ $RCLONE_MOUNT_COUNT -eq 0 ]]; then
+            no_remotes_warning="You have no configured rclone remotes to be mounted\n"
+            printf "%b" "${no_remotes_warning}"
+            touch "${no_remotes_warning_file}"
+            printf "%b" "${no_remotes_warning}" > ${no_remotes_warning_file}
+        fi
     fi
 }
 
@@ -149,6 +164,8 @@ function write_bashrc() {
     while IFS='=' read -r -d '' key val; do
         printf "export %s=\"%s\"\n" "$key" "$val" >> /root/.bashrc
     done < <(env -0)
+    
+    printf "cd %s\n" "$WORKSPACE" >> /root/.bashrc
 }
 
 main "$@"; exit
