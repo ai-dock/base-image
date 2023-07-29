@@ -6,7 +6,7 @@ env:
 on:
   workflow_dispatch:
   workflow_run:
-    workflows: ["Docker Image CI"]
+    workflows: ["Docker Image CI", "Docker Image CI - buildx experiment"]
     types:
       - completed
 
