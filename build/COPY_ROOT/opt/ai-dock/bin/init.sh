@@ -116,7 +116,7 @@ function set_workspace() {
 function mount_rclone_remotes() {
     # Determine if rclone mount will be possible
     capsh --print | grep "Current:" | grep -q cap_sys_admin
-    if [[ $? -ne 0 || ! -f /dev/fuse ]]; then
+    if [[ $? -ne 0 || ! -e /dev/fuse ]]; then
         # Not in container with sufficient privileges
         printf "Environment unsuitable for rclone mount...\n"
         printf "rclone remains available via CLI\n"
