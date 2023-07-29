@@ -165,6 +165,8 @@ function write_bashrc() {
         printf "export %s=\"%s\"\n" "$key" "$val" >> /root/.bashrc
     done < <(env -0)
     
+    printf "micromamba activate %s\n" $MAMBA_DEFAULT_ENV >> /root/.bashrc
+    
     printf "cd %s\n" "$WORKSPACE" >> /root/.bashrc
 }
 
