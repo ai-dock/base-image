@@ -161,6 +161,7 @@ function run_preflight_script() {
 
 function write_bashrc() {
     # Ensure all variables available for interactive sessions
+    env > /etc/environment
     while IFS='=' read -r -d '' key val; do
         printf "export %s=\"%s\"\n" "$key" "$val" >> /root/.bashrc
     done < <(env -0)
