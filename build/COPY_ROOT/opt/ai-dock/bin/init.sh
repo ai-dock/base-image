@@ -166,6 +166,17 @@ function write_bashrc() {
         printf "export %s=\"%s\"\n" "$key" "$val" >> /root/.bashrc
     done < <(env -0)
     
+    a='alias rclone="micromamba run -n system rclone"'
+    printf "%s\n" "$a" >> /root/.bashrc
+    
+    a='alias supervisorctl="micromamba run -n system supervisorctl -c /etc/supervisor/supervisord.conf"'
+    printf "%s\n" "$a" >> /root/.bashrc
+    
+    a='alias supervisord="micromamba run -n system supervisord -c /etc/supervisor/supervisord.conf"'
+    printf "%s\n" "$a" >> /root/.bashrc
+    
+    
+    
     printf "micromamba activate %s\n" $MAMBA_DEFAULT_ENV >> /root/.bashrc
     
     printf "cd %s\n" "$WORKSPACE" >> /root/.bashrc
