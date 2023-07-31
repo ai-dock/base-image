@@ -24,17 +24,17 @@ All images built for ai-dock are tested for compatibility with both [vast.ai](ht
 
 Images that include Jupyter are also tested to ensure compatibility with [Paperspace Gradient](https://console.paperspace.com/signup?R=FI2IEQI)
 
-### Connecting to your instance
+### Connecting to Your Instance
 
 All services listen for connections at [`0.0.0.0`](https://en.m.wikipedia.org/wiki/0.0.0.0). This gives you some flexibility in how you interact with your instance:
 
-_**Expose the ports**_
+_**Expose the Ports**_
 
 This is fine if you are working locally but can be **dangerous for remote connections** where data is passed in plaintext between your machine and the container over http.
 
 _**SSH Tunnel**_
 
-This is the preferred method. You will only need to expose port 22 (SSH) which can then be used with port forwarding to allow **secure** connections to your services.
+This is the preferred method. You will only need to expose `port 22` (SSH) which can then be used with port forwarding to allow **secure** connections to your services.
 
 If you are unfamiliar with port forwarding then you should read the guides [here](https://www.digitalocean.com/community/tutorials/ssh-essentials-working-with-ssh-servers-clients-and-keys?refcode=405a7b000d31#setting-up-ssh-tunnels) and [here](https://www.digitalocean.com/community/tutorials/how-to-set-up-ssh-tunneling-on-a-vps?refcode=405a7b000d31).
 
@@ -126,7 +126,7 @@ There are several ways to get your keys to the container.
 
 If you choose not to provide a public key then the SSH server will not be started.
 
-To make use of this service you should map port 22 to a port of your choice on the host operating system.
+To make use of this service you should map `port 22` to a port of your choice on the host operating system.
 
 See [this guide](https://www.digitalocean.com/community/tutorials/ssh-essentials-working-with-ssh-servers-clients-and-keys?refcode=405a7b000d31#) by DigitalOcean for an excellent introduction to working with SSH servers.
 
@@ -141,15 +141,15 @@ Any Rclone remotes that you have specified, either through mounting the config d
 - Host `/etc/passwd` mounted in the container
 - Host `/etc/group` mounted in the container
 - Host device `/dev/fuse` made available to the container
-- Container must run with cap-add SYS_ADMIN
-- Container must run with securiry-opt apparmor:unconfined
+- Container must run with `cap-add SYS_ADMIN`
+- Container must run with `securiry-opt apparmor:unconfined`
 - At least one remote must be configured
 
 The provided docker-compose.yaml includes a working configuration (add your own remotes).
 
 In the event that the conditions listed cannot be met, `rclone` will still be available to use via the CLI - only mounts will be unavailable.
 
-If you intend to use the `rclone create` command to interactively generate remote configurations you should ensure port 53682 is accessible. See https://rclone.org/remote_setup/ for further details.
+If you intend to use the `rclone create` command to interactively generate remote configurations you should ensure `port 53682` is accessible. See https://rclone.org/remote_setup/ for further details.
 
 ### Logtail
 
@@ -161,7 +161,7 @@ If you are logged into the container you can follow the logs by running `logtail
 
 Some ports need to be open for the services to run or for certain features of the provided software to function
 
-| Open Port           | Service / Description |
-| ------------------- | --------------------- |
-| 22                  | SSH server            |
-| 53682               | Rclone interactive config |
+| Open Port             | Service / Description |
+| --------------------- | --------------------- |
+| `22`                  | SSH server            |
+| `53682`               | Rclone interactive config |
