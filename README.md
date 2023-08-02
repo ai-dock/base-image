@@ -170,7 +170,7 @@ To make use of this service you should map `port 22` to a port of your choice on
 See [this guide](https://www.digitalocean.com/community/tutorials/ssh-essentials-working-with-ssh-servers-clients-and-keys?refcode=405a7b000d31#) by DigitalOcean for an excellent introduction to working with SSH servers.
 
 >[!NOTE]  
->_SSHD is included because the end-user should be able to know the version prior to deloyment. Using a providers add-on does not guarantee this._
+>_SSHD is included because the end-user should be able to know the version prior to deloyment. Using a providers add-on, if available, does not guarantee this._
 
 ### Rclone mount
 
@@ -226,7 +226,7 @@ Where a GPU is required you will need either `:*cuda*` or `:*rocm*` depending on
 
 A curated list of VM providers currently offering GPU instances:
 
-- [Akami/Linode](https://linode.com)
+- [Akami/Linode](https://www.linode.com/lp/refer/?r=d49cf667cec6bcbb6c2d7d70665c5c9b9a5a4b95)
 - [Amazon Web Services](https://aws.amazon.com)
 - [Google Compute Engine](https://cloud.google.com)
 - [Vultr](https://www.vultr.com/?ref=9519053-8H)
