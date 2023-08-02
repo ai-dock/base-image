@@ -6,7 +6,23 @@ This file should form the basis for the README.md for all extended images, with 
 
 ## Pre-built Images
 
-Docker images are built automatically through a GitHub Actions workflow and hosted at the GitHub Container Registry. Browse [here](https://github.com/ai-dock/base-image/pkgs/container/base-image) for an image suitable for your target environment.
+Docker images are built automatically through a GitHub Actions workflow and hosted at the GitHub Container Registry. 
+
+#### Version Tags
+
+There is no `latest` tag.
+Tags follow these patterns:
+
+##### _CUDA_
+`:cuda-[x.x.x]{-cudnn[x]}-[base|runtime|devel]-[ubuntu-version]`
+
+##### _ROCm_
+`:rocm-[x.x.x]-[core|runtime|devel]-[ubuntu-version]`
+
+##### _CPU_
+`:ubuntu-[ubuntu-version]`
+
+Browse [here](https://github.com/ai-dock/base-image/pkgs/container/base-image) for an image suitable for your target environment.
 
 You can also self-build from source by editing `.env` and running `docker compose build`.
 
@@ -20,9 +36,31 @@ If you prefer to use the standard `docker run` syntax, the command to pass is `i
 
 This image should be compatible with any GPU cloud platform. You simply need to pass environment variables at runtime. Please raise an issue on this repository if your provider cannot run the image.
 
+__Container Cloud__
+
+Container providers don't give you access to the docker host but are quick and easy to set up. They are often inexpensive when compared to a full VM or bare metal solution.
+
 All images built for ai-dock are tested for compatibility with both [vast.ai](https://cloud.vast.ai/?ref=62897) and [runpod.io](https://runpod.io?ref=m0vk9g4f).
 
 Images that include Jupyter are also tested to ensure compatibility with [Paperspace Gradient](https://console.paperspace.com/signup?R=FI2IEQI)
+
+See a list of pre-configured templates [here](#pre-configured-templates)
+
+>[!WARNING]  
+>Container cloud providers may offer both 'community' and 'secure' versions of their cloud. If your usecase involves storing sensitive information (eg. API keys, auth tokens) then you should always choose the secure option.
+
+__VM Cloud__
+
+Running docker images on a virtual machine/bare metal server is much like running locally.
+
+You'll need to:
+- Configure your server
+- Set up docker
+- Clone this repository
+- Edit `.env`and `docker-compose.yml`
+- Run `docker compose up`
+
+Find a list of compatible VM providers [here](#compatible-vm-providers).
 
 ### Connecting to Your Instance
 
@@ -110,7 +148,8 @@ This image will spawn multiple processes upon starting a container because some 
 
 All processes are managed by [supervisord](https://supervisord.readthedocs.io/en/latest/) and will restart upon failure until you either manually stop them or terminate the container.
 
-*Some of the included services would not normally be found **inside** of a container. They are, however, necessary here as some cloud providers give no access to the host; Containers are deployed as if they were a virtual machine.*
+>[!NOTE]  
+>*Some of the included services would not normally be found **inside** of a container. They are, however, necessary here as some cloud providers give no access to the host; Containers are deployed as if they were a virtual machine.*
 
 ### SSHD
 
@@ -129,6 +168,9 @@ If you choose not to provide a public key then the SSH server will not be starte
 To make use of this service you should map `port 22` to a port of your choice on the host operating system.
 
 See [this guide](https://www.digitalocean.com/community/tutorials/ssh-essentials-working-with-ssh-servers-clients-and-keys?refcode=405a7b000d31#) by DigitalOcean for an excellent introduction to working with SSH servers.
+
+>[!NOTE]  
+>_SSHD is included because the end-user should be able to know the version prior to deloyment. Using a providers add-on does not guarantee this._
 
 ### Rclone mount
 
@@ -151,6 +193,12 @@ In the event that the conditions listed cannot be met, `rclone` will still be av
 
 If you intend to use the `rclone create` command to interactively generate remote configurations you should ensure `port 53682` is accessible. See https://rclone.org/remote_setup/ for further details.
 
+>[!NOTE]  
+>_Rclone is included to give the end-user an opportunity to easily transfer files between the instance and their cloud storage provider._
+
+>[!WARNING]  
+>You should only provide auth tokens in secure cloud environments.
+
 ### Logtail
 
 This script follows and prints the log files for each of the above services to stdout. This allows you to follow the progress of all running services through docker's own logging system.
@@ -165,3 +213,24 @@ Some ports need to be open for the services to run or for certain features of th
 | --------------------- | --------------------- |
 | `22`                  | SSH server            |
 | `53682`               | Rclone interactive config |
+
+## Pre-Configured Templates
+
+There are no templates for the base image.
+
+## Compatible VM Providers
+
+Images that do not require a GPU will run anywhere - Use an image tagged `:*-ubuntu-xx.xx`
+
+Where a GPU is required you will need either `:*cuda*` or `:*rocm*` depending on the underlying hardware.
+
+A curated list of VM providers currently offering GPU instances:
+
+- [Akami/Linode](https://linode.com)
+- [Amazon Web Services](https://aws.amazon.com)
+- [Google Compute Engine](https://cloud.google.com)
+- [Vultr](https://www.vultr.com/?ref=9519053-8H)
+
+---
+
+_The author ([@robballantyne](https://github.com/robballantyne)) may be compensated if you sign up to services linked in this document. Testing multiple variants of GPU images in many different environments is both costly and time-consuming; This helps to offset costs_
