@@ -48,6 +48,7 @@ jobs:
     strategy:
       matrix:
         cuda:
+          - 11.7.1
           - 11.8.0
           - 12.1.0
           - 12.2.0
@@ -99,7 +100,8 @@ jobs:
     strategy:
       matrix:
         rocm:
-          - 5.4.1
+          - 5.4.2
+          - 5.6
         level:
           - "core"
           - "runtime"
