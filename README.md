@@ -240,7 +240,7 @@ There are no templates for the base image.
 
 ## Compatible VM Providers
 
-Images that do not require a GPU will run anywhere - Use an image tagged `:*-ubuntu-xx.xx`
+Images that do not require a GPU will run anywhere - Use an image tagged `:*-cpu-xx.xx`
 
 Where a GPU is required you will need either `:*cuda*` or `:*rocm*` depending on the underlying hardware.
 

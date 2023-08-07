@@ -13,7 +13,7 @@ env:
   LATEST_CPU: "null"
 
 jobs:
-  ubuntu-base:
+  cpu-base:
     runs-on: ubuntu-latest
     steps:
       -
@@ -59,6 +59,7 @@ jobs:
   nvidia-base:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         cuda:
           - 11.7.1
@@ -121,6 +122,7 @@ jobs:
   amd-base:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         rocm:
           - 5.4.2
