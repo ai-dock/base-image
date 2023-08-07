@@ -5,6 +5,7 @@ services:
     build:
       context: ./build
       args:
+        # Remove as appropriate
         IMAGE_BASE: ${IMAGE_BASE}
         XPU_TARGET: ${XPU_TARGET}
         CUDA_VERSION: ${CUDA_VERSION}
@@ -14,16 +15,31 @@ services:
         ROCM_LEVEL: ${ROCM_LEVEL}
       tags:
         - "ghcr.io/ai-dock/base-image:${IMAGE_TAG}"
+        
     image: ghcr.io/ai-dock/base-image:${IMAGE_TAG}
+    
     security_opt:
+      # For Rclone mount
       - apparmor:unconfined
+      # For AMD GPU
+      #- seccomp:unconfined
+    
     cap_add:
+      # For Rclone mount
       - SYS_ADMIN
+    
     devices:
       # For Rclone mount
       - "/dev/fuse:/dev/fuse"
       # For AMD GPU
       #- "/dev/kfd:/dev/kfd"
+      #- "/dev/dri:/dev/dri"
+      
+    # For AMD GPU
+    #group_add:
+    #  - video
+    #  - render
+    
     volumes:
       # For Rclone mount
       - /etc/passwd:/etc/passwd:ro
@@ -34,12 +50,16 @@ services:
       # Will echo to root-owned authorized_keys file;
       # Avoids changing local file owner
       - ./config/authorized_keys:/root/.ssh/authorized_keys_mount
+    
     ports:
         # SSH available on host machine port 2222 to avoid conflict. Change to suit
         - 2222:22
         # Rclone webserver for interactive configuration
         - 53682:53682
+   
     environment:
         # Don't enclose values in quotes
         - WORKSPACE=/workspace/
+        #- PROVISIONING_SCRIPT=https://raw.githubusercontent.com/ai-dock/base-image/main/demo/provisioning.sh
+    
     env_file: config/env.conf

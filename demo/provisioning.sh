@@ -4,6 +4,6 @@ set -e
 
 printf "Hello world!\n"
 
-printf "This script runs late and has access to all environment variables...\n\n"
+printf "This script runs late and has access to all environment variables...\n"
 
 env

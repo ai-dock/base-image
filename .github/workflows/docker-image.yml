@@ -8,6 +8,9 @@ on:
 env:
   UBUNTU_VERSION: 22.04
   BUILDX_NO_DEFAULT_ATTESTATIONS: 1
+  LATEST_CUDA: "null"
+  LATEST_ROCM: "null"
+  LATEST_CPU: "null"
 
 jobs:
   ubuntu-base:
@@ -17,7 +20,6 @@ jobs:
         name: Env Setter
         run: |
           echo "PACKAGE_NAME=${GITHUB_REPOSITORY,,}" >> ${GITHUB_ENV}
-          echo "TAG=ubuntu-${{ env.UBUNTU_VERSION }}" >> ${GITHUB_ENV}
       -
         name: Checkout
         uses: actions/checkout@v3
@@ -28,6 +30,18 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      -
+        name: Set tags
+        run: |
+          img_path="ghcr.io/${{ env.PACKAGE_NAME }}"
+          ver_tag="cpu-${{ env.UBUNTU_VERSION }}"
+          
+          if [[ $ver_tag == ${{ env.LATEST_CPU }} ]]; then
+              TAGS="${img_path}:latest-cpu, ${img_path}:$ver_tag"
+          else
+              TAGS="${img_path}:$ver_tag"
+          fi
+          echo "TAGS=${TAGS}" >> ${GITHUB_ENV}
       -
         name: Build and push
         uses: docker/build-push-action@v4
@@ -40,8 +54,7 @@ jobs:
           push: true
           # Avoids unknown/unknown architecture and extra metadata
           provenance: false
-          tags: |
-            ghcr.io/${{ env.PACKAGE_NAME }}:${{ env.TAG }}
+          tags: ${{ env.TAGS }}
     
   nvidia-base:
     runs-on: ubuntu-latest
@@ -68,7 +81,6 @@ jobs:
         name: Env Setter
         run: |
           echo "PACKAGE_NAME=${GITHUB_REPOSITORY,,}" >> ${GITHUB_ENV}
-          echo "TAG=cuda-${{ matrix.cuda }}-${{ matrix.level }}-${{ env.UBUNTU_VERSION }}" >> ${GITHUB_ENV}
       -
         name: Checkout
         uses: actions/checkout@v3
@@ -79,6 +91,18 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      -
+        name: Set tags
+        run: |
+          img_path="ghcr.io/${{ env.PACKAGE_NAME }}"
+          ver_tag="cuda-${{ matrix.cuda }}-${{ matrix.level }}-${{ env.UBUNTU_VERSION }}"
+          
+          if [[ $ver_tag == ${{ env.LATEST_CUDA }} ]]; then
+              TAGS="${img_path}:latest, ${img_path}:latest-cuda, ${img_path}:$ver_tag"
+          else
+              TAGS="${img_path}:$ver_tag"
+          fi
+          echo "TAGS=${TAGS}" >> ${GITHUB_ENV}
       -
         name: Build and push
         uses: docker/build-push-action@v4
@@ -92,8 +116,7 @@ jobs:
             MAMBA_DEFAULT_ENV=system
           push: true
           provenance: false
-          tags: |
-            ghcr.io/${{ env.PACKAGE_NAME }}:${{ env.TAG }}
+          tags: ${{ env.TAGS }}
 
   amd-base:
     runs-on: ubuntu-latest
@@ -123,6 +146,18 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       -
+        name: Set tags
+        run: |
+          img_path="ghcr.io/${{ env.PACKAGE_NAME }}"
+          ver_tag="rocm-${{ matrix.rocm }}-${{ matrix.level }}-${{ env.UBUNTU_VERSION }}"
+          
+          if [[ $ver_tag == ${{ env.LATEST_ROCM }} ]]; then
+              TAGS="${img_path}:latest-rocm, ${img_path}:$ver_tag"
+          else
+              TAGS="${img_path}:$ver_tag"
+          fi
+          echo "TAGS=${TAGS}" >> ${GITHUB_ENV}
+      -
         name: Build and push
         uses: docker/build-push-action@v4
         with:
@@ -135,5 +170,4 @@ jobs:
             MAMBA_DEFAULT_ENV=system
           push: true
           provenance: false
-          tags: |
-            ghcr.io/${{ env.PACKAGE_NAME }}:${{ env.TAG }}
+          tags: ${{ env.TAGS }}

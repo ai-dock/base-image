@@ -8,8 +8,6 @@ if [[ -z $ROCM_VERSION ]]; then
     exit 1
 fi
 
-printf "ROCM_VERSION=%s\n" ${ROCM_VERSION} > /root/.bashrc
-
 curl -Ss https://repo.radeon.com/rocm/rocm.gpg.key | gpg --dearmor | tee /etc/apt/keyrings/rocm.gpg > /dev/null
 
 echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/rocm.gpg] https://repo.radeon.com/rocm/apt/${ROCM_VERSION} jammy main" \
@@ -26,16 +24,17 @@ echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/rocm.gpg] https://repo.radeon.
 apt-get update
 
 if [[ "${ROCM_LEVEL}" == "core" ]]; then
-    $APT_INSTALL rocm-core
+    $APT_INSTALL rocm-core \
+                 rocm-opencl-runtime
 
 elif [[ "${ROCM_LEVEL}" == "runtime" ]]; then
-    $APT_INSTALL rocm-opencl-runtime \
-                 rocm-hip-runtime
+    $APT_INSTALL rocm-dev
 
 elif [[ "${ROCM_LEVEL}" == "devel" ]]; then
     $APT_INSTALL rocm-libs \
                  rocm-opencl-sdk \
-                 rocm-hip-sdk
+                 rocm-hip-sdk \
+                 rocm-ml-sdk
 
 else
     printf "No valid ROCM_LEVEL specified\n" >&2

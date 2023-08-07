@@ -19,8 +19,10 @@ Tags follow these patterns:
 ##### _ROCm_
 `:rocm-[x.x.x]-[core|runtime|devel]-[ubuntu-version]`
 
+ROCm builds are experimental. Please give feedback.
+
 ##### _CPU_
-`:ubuntu-[ubuntu-version]`
+`:cpu-[ubuntu-version]`
 
 Browse [here](https://github.com/ai-dock/base-image/pkgs/container/base-image) for an image suitable for your target environment.
 
@@ -34,7 +36,10 @@ If you prefer to use the standard `docker run` syntax, the command to pass is `i
 
 ## Run in the Cloud
 
-This image should be compatible with any GPU cloud platform. You simply need to pass environment variables at runtime. Please raise an issue on this repository if your provider cannot run the image.
+This image should be compatible with any GPU cloud platform. You simply need to pass environment variables at runtime. 
+
+>[!NOTE]  
+>Please raise an issue on this repository if your provider cannot run the image.
 
 __Container Cloud__
 
@@ -81,6 +86,7 @@ If you are unfamiliar with port forwarding then you should read the guides [here
 | Variable              | Description |
 | --------------------- | ----------- |
 | `GPU_COUNT`           | Limit the number of available GPUs |
+| `PROVISIONING_SCRIPT` | URL of a remote script to execute on init. See [note](#provisioning-script). |
 | `RCLONE_*`            | Rclone configuration - See [rclone documentation](https://rclone.org/docs/#config-file) |
 | `SKIP_ACL`            | Set `true` to skip modifying workspace ACL |
 | `SSH_PUBKEY`          | Your public key for SSH |
@@ -91,6 +97,20 @@ Environment variables can be specified by using any of the standard methods (`do
 Passing environment variables to `init.sh` is usually unnecessary, but may be useful in some cloud environments where the full `docker run` command cannot be specified.
 
 Example usage: `docker run -e STANDARD_VAR1="this value" -e STANDARD_VAR2="that value" init.sh EXTRA_VAR="other value"`
+
+## Provisioning script
+
+It can be useful to perform certain actions when starting a container, such as creating directories and downloading files.
+
+You can use the environment variable `PROVISIONING_SCRIPT` to specify the URL of a script you'd like to run.
+
+If you are running locally you may instead opt to mount an executable script at `/opt/ai-dock/bin/provisioning.sh`.
+
+>[!NOTE]  
+>`supervisord` will not spawn any processes until the provisioning script has completed.
+
+>[!WARNING]  
+>Only use scripts that you trust and which cannot be changed without your consent.
 
 ## Software Management
 

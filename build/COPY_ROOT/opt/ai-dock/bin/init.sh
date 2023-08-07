@@ -26,6 +26,8 @@ function main() {
     cloud_fixes
     run_preflight_script
     write_bashrc
+    get_provisioning_script
+    run_provisioning_script
     
     # Killing supervisord will stop/force restart the container
     wait -n
@@ -44,6 +46,11 @@ function set_envs() {
     while IFS='=' read -r -d '' key val; do
         export "${key}"="${val//___/' '}"
     done < <(env -0)
+    
+    # TODO: branch init.sh into common,nvidia,amd,cpu
+    if [[ $XPU_TARGET == "AMD_GPU" ]]; then
+            export PATH=$PATH:/opt/rocm/bin
+    fi
 }
 
 function set_ssh_keys() {
@@ -175,11 +182,34 @@ function write_bashrc() {
     a='alias supervisord="micromamba run -n system supervisord -c /etc/supervisor/supervisord.conf"'
     printf "%s\n" "$a" >> /root/.bashrc
     
-    
-    
     printf "micromamba activate %s\n" $MAMBA_DEFAULT_ENV >> /root/.bashrc
     
     printf "cd %s\n" "$WORKSPACE" >> /root/.bashrc
+}
+
+function get_provisioning_script() {
+    if [[ -n  $PROVISIONING_SCRIPT ]]; then
+        file="/opt/ai-dock/bin/provisioning.sh"
+        set +e
+        curl -L -o ${file} ${PROVISIONING_SCRIPT}
+        if [[ "$?" -eq 0 ]]; then
+            printf "Successfully created %s from %s\n" "$file" "$PROVISIONING_SCRIPT"
+            chmod +x $file
+        else
+            printf "Failed to fetch %s\n" "$PROVISIONING_SCRIPT"
+            rm $file > /dev/null 2>&1
+        fi
+    fi
+}
+
+function run_provisioning_script() {
+    # Child images can provide in their PATH
+    printf "Looking for provisioning.sh...\n"
+    if ! which provisioning.sh; then
+        printf "Not found\n"
+    else
+        provisioning.sh
+    fi
 }
 
 main "$@"; exit
