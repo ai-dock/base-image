@@ -142,7 +142,7 @@ All ai-dock images create micromamba environments using the `--experimental` fla
 
 To create an additional micromamba environment, eg for python, you can use the following:
 
-`micromamba --experimental create -y -c conda-forge -c defaults -n [name] python=3.10`
+`micromamba --experimental create -y -c conda-forge -n [name] python=3.10`
 
 ## Volumes
 
