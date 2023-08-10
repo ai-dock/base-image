@@ -1,3 +1,5 @@
+[![Docker Build](https://github.com/ai-dock/base-image/actions/workflows/docker-build.yml/badge.svg)](https://github.com/ai-dock/base-image/actions/workflows/docker-build.yml)
+
 # Base Image
 
 All ai-dock images are extended from this base image.
