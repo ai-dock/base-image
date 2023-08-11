@@ -21,7 +21,6 @@ $APT_INSTALL \
     libelf1 \
     lsb-release \
     nano \
-    openssh-server \
     screen \
     tmux \
     unzip \
@@ -29,12 +28,13 @@ $APT_INSTALL \
     zip
 
 # Prepare environment for running SSHD
+chmod 700 /root
 mkdir -p /root/.ssh
 chmod 700 /root/.ssh
 touch /root/.ssh/authorized_keys
 chmod 600 /root/.ssh/authorized_keys
-mkdir -p /run/sshd
-chmod 700 /run/sshd
+#mkdir -p /run/sshd
+#chmod 700 /run/sshd
 
 # Remove less relevant parts of motd
 rm /etc/update-motd.d/10-help-text
@@ -50,6 +50,7 @@ micromamba shell init --shell bash --root-prefix=/opt/micromamba
 $MAMBA_CREATE -n "${MAMBA_BASE_ENV}" python="${MAMBA_BASE_PYTHON_VERSION}"
 micromamba -n "${MAMBA_BASE_ENV}" install -y -c conda-forge \
     supervisor \
+    openssh \
     rclone
         
 # We will use a config from /etc
@@ -58,5 +59,6 @@ rm -rf /root/micromamba/envs/"${MAMBA_BASE_ENV}"/etc/supervisord*
 # Ensure critical paths/files are present
 mkdir -p --mode=0755 /etc/apt/keyrings
 mkdir -p /var/log/supervisor
+mkdir -p /var/empty
 mkdir -p /etc/rclone
 touch /etc/rclone/rclone.conf

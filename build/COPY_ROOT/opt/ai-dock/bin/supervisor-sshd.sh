@@ -18,6 +18,6 @@ if [[ ! $(ssh-keygen -l -f $ak_file) ]]; then
 fi
 
 printf "Starting SSH server...\n"
-
+micromamba -n ${MAMBA_BASE_ENV} run /opt/micromamba/envs/"${MAMBA_BASE_ENV}"/bin/ssh-keygen -A
 wait -n
-/usr/sbin/sshd -D -p $SSH_PORT
+micromamba -n ${MAMBA_BASE_ENV} run /opt/micromamba/envs/"${MAMBA_BASE_ENV}"/bin/sshd -D -p $SSH_PORT

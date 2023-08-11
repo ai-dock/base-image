@@ -117,18 +117,18 @@ If you are running locally you may instead opt to mount an executable script at 
 
 ## Software Management
 
-A small software collection is installed by apt-get. This is mostly to provide basic functionality, but also includes `openssh-server` as the OS vendor is likely to be first to patch any security issues.
+A small software collection is installed by apt-get to provide basic utility.
 
-All other software is installed into its own environment by `micromamba`, which is a drop-in replacement for conda/mamba. Read more about it [here](https://mamba.readthedocs.io/en/latest/user_guide/micromamba.html).
+All other software is installed by `micromamba`, which is a drop-in replacement for conda/mamba. Read more about it [here](https://mamba.readthedocs.io/en/latest/user_guide/micromamba.html).
 
 Micromamba environments are particularly useful where several software packages are required but their dependencies conflict. 
 
 ### Installed Micromamba Environments
 
-| Environment    | Packages / Rationale |
+| Environment    | Packages |
 | -------------- | ----------------------------------------- |
 | `base`         | micromamba's base environment |
-| `system`       | `supervisord`, `rclone` - latest versions |
+| `system`       | `supervisord`, `openssh`, `rclone` |
 
 If you are extending this image or running an interactive session where additional software is required, you should almost certainly create a new environment first. See below for guidance.
 
