@@ -17,6 +17,12 @@ if [[ ! $(ssh-keygen -l -f $ak_file) ]]; then
     exit 0
 fi
 
+# Dynamically check users - we might have a mounted /etc/passwd
+if ! id -u sshd > /dev/null 2>&1; then
+    groupadd -r sshd
+    useradd -r -g sshd -s /usr/sbin/nologin sshd
+fi
+
 printf "Starting SSH server...\n"
 micromamba -n ${MAMBA_BASE_ENV} run /opt/micromamba/envs/"${MAMBA_BASE_ENV}"/bin/ssh-keygen -A
 wait -n
