@@ -28,6 +28,7 @@ function main() {
     write_bashrc
     get_provisioning_script
     run_provisioning_script
+    debug_print
     
     # Killing supervisord will stop/force restart the container
     wait -n
@@ -59,19 +60,20 @@ function set_ssh_keys() {
     fi
     
     # Named to avoid conflict with the cloud providers below
+    
     if [[ -n $SSH_PUBKEY ]]; then
-        printf "%s\n" "$SSH_PUBKEY" >> /root/.ssh/authorized_keys
+        printf "\n%s\n" "$SSH_PUBKEY" >> /root/.ssh/authorized_keys
     fi
     
     # Alt names for $SSH_PUBKEY
     # runpod.io
     if [[ -n $PUBLIC_KEY ]]; then
-        printf "%s\n" "$PUBLIC_KEY" >> /root/.ssh/authorized_keys
+        printf "\n%s\n" "$PUBLIC_KEY" >> /root/.ssh/authorized_keys
     fi
     
     # vast.ai
     if [[ -n $SSH_PUBLIC_KEY ]]; then
-        printf "%s\n" "$SSH_PUBLIC_KEY" >> /root/.ssh/authorized_keys
+        printf "\n%s\n" "$SSH_PUBLIC_KEY" >> /root/.ssh/authorized_keys
     fi
 }
 
@@ -209,6 +211,21 @@ function run_provisioning_script() {
         printf "Not found\n"
     else
         provisioning.sh
+    fi
+}
+
+function debug_print() {
+    if [[ -n $DEBUG ]]; then
+        printf "\n\n\n---------- DEBUG INFO ----------\n\n"
+        printf "env output...\n\n"
+        env
+        printf "\n--------------------------------------------\n"
+        printf "authorized_keys...\n\n"
+        cat /root/.ssh/authorized_keys
+        printf "\n--------------------------------------------\n"
+        printf ".bashrc...\n\n"
+        cat /root/.bashrc
+        printf "\n---------- END DEBUG INFO---------- \n\n\n"
     fi
 }
 

@@ -33,8 +33,6 @@ mkdir -p /root/.ssh
 chmod 700 /root/.ssh
 touch /root/.ssh/authorized_keys
 chmod 600 /root/.ssh/authorized_keys
-#mkdir -p /run/sshd
-#chmod 700 /run/sshd
 
 # Remove less relevant parts of motd
 rm /etc/update-motd.d/10-help-text
