@@ -53,12 +53,14 @@ services:
     
     ports:
         # SSH available on host machine port 2222 to avoid conflict. Change to suit
-        - 2222:22
+        - ${SSH_PORT_HOST}:${SSH_PORT}
         # Rclone webserver for interactive configuration
-        - 53682:53682
+        - ${RCLONE_PORT_HOST}:53682
    
     environment:
         # Don't enclose values in quotes
+        # Allows running true SSH alongside provider proxy SSH
+        - SSH_PORT=${SSH_PORT}
         - WORKSPACE=/workspace/
         #- PROVISIONING_SCRIPT=https://raw.githubusercontent.com/ai-dock/base-image/main/demo/provisioning.sh
     

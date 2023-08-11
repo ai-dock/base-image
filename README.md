@@ -91,6 +91,7 @@ If you are unfamiliar with port forwarding then you should read the guides [here
 | `PROVISIONING_SCRIPT` | URL of a remote script to execute on init. See [note](#provisioning-script). |
 | `RCLONE_*`            | Rclone configuration - See [rclone documentation](https://rclone.org/docs/#config-file) |
 | `SKIP_ACL`            | Set `true` to skip modifying workspace ACL |
+| `SSH_PORT`            | Set a non-standard port for SSH (default 22) |
 | `SSH_PUBKEY`          | Your public key for SSH |
 | `WORKSPACE`           | A volume path. Defaults to `/workspace/` |
 
@@ -176,6 +177,8 @@ All processes are managed by [supervisord](https://supervisord.readthedocs.io/en
 ### SSHD
 
 A SSH server will be started if at least one valid public key is found inside the running container in the file `/root/.ssh/authorized_keys`
+
+The server will bind to `port 22` unless you specify variable `SSH_PORT`.
 
 There are several ways to get your keys to the container.
 

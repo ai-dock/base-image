@@ -17,6 +17,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       -
+        name: Free Space
+        run: |
+          df -h
+          rm -rf /usr/share/dotnet
+          rm -rf /opt/ghc
+          rm -rf /usr/local/share/boost
+          rm -rf "$AGENT_TOOLSDIRECTORY"
+          df -h
+      -
         name: Env Setter
         run: |
           echo "PACKAGE_NAME=${GITHUB_REPOSITORY,,}" >> ${GITHUB_ENV}
@@ -79,6 +88,15 @@ jobs:
             level: "cudnn8-devel" # Not yet available
     steps:
       -
+        name: Free Space
+        run: |
+          df -h
+          rm -rf /usr/share/dotnet
+          rm -rf /opt/ghc
+          rm -rf /usr/local/share/boost
+          rm -rf "$AGENT_TOOLSDIRECTORY"
+          df -h
+      -
         name: Env Setter
         run: |
           echo "PACKAGE_NAME=${GITHUB_REPOSITORY,,}" >> ${GITHUB_ENV}
@@ -132,6 +150,15 @@ jobs:
           - "runtime"
           - "devel"
     steps:
+      -
+        name: Free Space
+        run: |
+          df -h
+          rm -rf /usr/share/dotnet
+          rm -rf /opt/ghc
+          rm -rf /usr/local/share/boost
+          rm -rf "$AGENT_TOOLSDIRECTORY"
+          df -h
       -
         name: Env Setter
         run: |
