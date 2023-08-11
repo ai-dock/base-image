@@ -43,9 +43,9 @@ function set_envs() {
         fi
     done
     
-    # Replace ___ with a space; Issue fixed by vast but just in case
+    # Re-write envs; Strip quotes & replace ___ with a space;
     while IFS='=' read -r -d '' key val; do
-        export "${key}"="${val//___/' '}"
+        export "${key}"="$(strip_quotes "${val//___/' '}")"
     done < <(env -0)
     
     # TODO: branch init.sh into common,nvidia,amd,cpu
@@ -211,6 +211,14 @@ function run_provisioning_script() {
         printf "Not found\n"
     else
         provisioning.sh
+    fi
+}
+
+function strip_quotes() {
+    if [[ -z $1 ]]; then
+        printf ""
+    else
+       printf "%s" "$1" | tr -d '"'
     fi
 }
 
