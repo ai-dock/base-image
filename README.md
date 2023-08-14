@@ -79,19 +79,25 @@ This is fine if you are working locally but can be **dangerous for remote connec
 
 _**SSH Tunnel**_
 
-This is the preferred method. You will only need to expose `port 22` (SSH) which can then be used with port forwarding to allow **secure** connections to your services.
+You will only need to expose `port 22` (SSH) which can then be used with port forwarding to allow **secure** connections to your services.
 
 If you are unfamiliar with port forwarding then you should read the guides [here](https://link.ai-dock.org/guide-ssh-tunnel-do-a) and [here](https://link.ai-dock.org/guide-ssh-tunnel-do-b).
+
+_**Cloudflare Tunnel**_
+
+You can use the included `cloudflared` service to make secure connections without having to expose any ports to the public internet. See more below.
 
 ## Environment Variables
 
 | Variable              | Description |
 | --------------------- | ----------- |
+| `CF_TUNNEL_TOKEN`     | Cloudflare zero trust tunnel token - See [documentation](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/). |
+| `CF_QUICK_TUNNELS`    | Create ephemeral Cloudflare tunnels for web services (default `false`) |
 | `GPU_COUNT`           | Limit the number of available GPUs |
 | `PROVISIONING_SCRIPT` | URL of a remote script to execute on init. See [note](#provisioning-script). |
 | `RCLONE_*`            | Rclone configuration - See [rclone documentation](https://rclone.org/docs/#config-file) |
 | `SKIP_ACL`            | Set `true` to skip modifying workspace ACL |
-| `SSH_PORT`            | Set a non-standard port for SSH (default 22) |
+| `SSH_PORT`            | Set a non-standard port for SSH (default `22`) |
 | `SSH_PUBKEY`          | Your public key for SSH |
 | `WORKSPACE`           | A volume path. Defaults to `/workspace/` |
 
@@ -173,6 +179,24 @@ All processes are managed by [supervisord](https://supervisord.readthedocs.io/en
 
 >[!NOTE]  
 >*Some of the included services would not normally be found **inside** of a container. They are, however, necessary here as some cloud providers give no access to the host; Containers are deployed as if they were a virtual machine.*
+
+### Cloudflared
+
+The Cloudflare tunnel daemon will start if you have provided a token with the `CF_TUNNEL_TOKEN` environment variable.
+
+This service allows you to connect to your local services via https without exposing any ports.
+
+You can also create a private network to enable remote connecions to the container at its local address (`172.x.x.x`) if your local machine is running a Cloudflare WARP client.
+
+If you do not wish to provide a tunnel token, you could enable `CF_QUICK_TUNNELS` which will create a throwaway tunnel for your web services.
+
+Full documentation for Cloudflare tunnels is [here](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/).
+
+>[!NOTE]  
+>_Cloudflared is included so that secure networking is available in all cloud environments._
+
+>[!WARNING]  
+>You should only provide tunnel tokens in secure cloud environments.
 
 ### SSHD
 

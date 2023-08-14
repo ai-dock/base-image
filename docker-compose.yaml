@@ -62,6 +62,7 @@ services:
         # Allows running true SSH alongside provider proxy SSH
         - SSH_PORT=${SSH_PORT}
         - WORKSPACE=/workspace/
+        - CF_TUNNEL_TOKEN=${CF_TUNNEL_TOKEN}
         #- PROVISIONING_SCRIPT=https://raw.githubusercontent.com/ai-dock/base-image/main/demo/provisioning.sh
     
     env_file: config/env.conf

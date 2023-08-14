@@ -26,6 +26,11 @@ $APT_INSTALL \
     unzip \
     vim \
     zip
+    
+# Get Cloudflare daemon - No conda distribution
+curl -Lso cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+dpkg -i cloudflared.deb
+rm cloudflared.deb
 
 # Prepare environment for running SSHD
 chmod 700 /root
