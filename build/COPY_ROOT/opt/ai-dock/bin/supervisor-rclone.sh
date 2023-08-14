@@ -18,6 +18,7 @@ if [[ $? -ne 0 && ! -f /dev/fuse ]]; then
     # Not in container with sufficient privileges
     printf "Environment unsuitable for rclone mount...\n"
     printf "rclone remains available via CLI\n"
+    sleep 3
     exit 0
 else
     # As array
@@ -26,6 +27,7 @@ fi
 
 if [ ${#REMOTES[@]} -eq 0 ]; then
     printf "No remotes configured for rclone\n"
+    sleep 3
     exit 0
 fi
 
@@ -46,7 +48,7 @@ mkdir -p "$cache_dir"
 chown "$WORKSPACE_UID.$WORKSPACE_GID" "$cache_dir"
 mkdir -p "${local_path}"
 chown "$WORKSPACE_UID.$WORKSPACE_GID" "$local_path"
-wait -n
+
 $MABMA_BASE_RUN rclone mount \
     --allow-non-empty \
     --allow-other \
