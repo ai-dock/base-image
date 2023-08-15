@@ -214,11 +214,16 @@ function run_provisioning_script() {
     fi
 }
 
+# This could be much better...
 function strip_quotes() {
     if [[ -z $1 ]]; then
         printf ""
+    elif [[ ${1:0:1} = '"' && ${1:(-1)} = '"' ]]; then
+        sed -e 's/^.//' -e 's/.$//' <<< "$1"
+    elif [[ ${1:0:1} = "'" && ${1:(-1)} = "'" ]]; then
+        sed -e 's/^.//' -e 's/.$//' <<< "$1"
     else
-       printf "%s" "$1" | tr -d '"'
+        printf "%s" "$1"
     fi
 }
 
