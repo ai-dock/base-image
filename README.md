@@ -147,11 +147,11 @@ If you are extending this image or running an interactive session where addition
 | `micromamba deactivate`              | Close the active environment |
 | `micromamba run -n [name] [command]` | Run a command in the named environment without activating |
 
-All ai-dock images create micromamba environments using the `--experimental` flag to enable hardlinks which can save disk space where multiple environments are available.
+All ai-dock images create micromamba environments using the `--always-softlink` flag.
 
 To create an additional micromamba environment, eg for python, you can use the following:
 
-`micromamba --experimental create -y -c conda-forge -n [name] python=3.10`
+`micromamba create --always-softlink -y -c conda-forge -n [name] python=3.10`
 
 ## Volumes
 

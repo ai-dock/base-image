@@ -50,12 +50,12 @@ curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/mi
 micromamba shell init --shell bash --root-prefix=/opt/micromamba
 
 # Install the 'system' base micromamba environment
-$MAMBA_CREATE -n "${MAMBA_BASE_ENV}" python="${MAMBA_BASE_PYTHON_VERSION}"
-micromamba -n "${MAMBA_BASE_ENV}" install -y -c conda-forge \
+$MAMBA_CREATE -n "${MAMBA_BASE_ENV}" -c conda-forge python="${MAMBA_BASE_PYTHON_VERSION}"
+$MAMBA_INSTALL -n "${MAMBA_BASE_ENV}" -c conda-forge \
     supervisor \
     openssh \
     rclone
-        
+
 # We will use a config from /etc
 rm -rf /root/micromamba/envs/"${MAMBA_BASE_ENV}"/etc/supervisord*
 
