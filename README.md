@@ -8,7 +8,7 @@ This file should form the basis for the README.md for all extended images, with 
 
 ## Pre-built Images
 
-Docker images are built automatically through a GitHub Actions workflow and hosted at the GitHub Container Registry. 
+Docker images are built automatically through a GitHub Actions workflow and hosted at the GitHub Container Registry.
 
 #### Version Tags
 
@@ -32,7 +32,7 @@ You can also self-build from source by editing `.env` and running `docker compos
 
 ## Run Locally
 
-A 'feature-complete' docker-compose.yaml file is included for your convenience. All features of the image are included - Simply edit the environment variables, save and then type `docker compose up`.
+A 'feature-complete' `docker-compose.yaml` file is included for your convenience. All features of the image are included - Simply edit the environment variables in `.env`, save and then type `docker compose up`.
 
 If you prefer to use the standard `docker run` syntax, the command to pass is `init.sh`.
 
@@ -79,7 +79,7 @@ This is fine if you are working locally but can be **dangerous for remote connec
 
 _**SSH Tunnel**_
 
-You will only need to expose `port 22` (SSH) which can then be used with port forwarding to allow **secure** connections to your services.
+You will only need to expose port `22` (SSH) which can then be used with port forwarding to allow **secure** connections to your services.
 
 If you are unfamiliar with port forwarding then you should read the guides [here](https://link.ai-dock.org/guide-ssh-tunnel-do-a) and [here](https://link.ai-dock.org/guide-ssh-tunnel-do-b).
 
@@ -202,7 +202,7 @@ Full documentation for Cloudflare tunnels is [here](https://developers.cloudflar
 
 A SSH server will be started if at least one valid public key is found inside the running container in the file `/root/.ssh/authorized_keys`
 
-The server will bind to `port 22` unless you specify variable `SSH_PORT`.
+The server will bind to port `22` unless you specify variable `SSH_PORT`.
 
 There are several ways to get your keys to the container.
 
@@ -214,7 +214,7 @@ There are several ways to get your keys to the container.
 
 If you choose not to provide a public key then the SSH server will not be started.
 
-To make use of this service you should map `port 22` to a port of your choice on the host operating system.
+To make use of this service you should map port `22` to a port of your choice on the host operating system.
 
 See [this guide](https://link.ai-dock.org/guide-sshd-do) by DigitalOcean for an excellent introduction to working with SSH servers.
 
@@ -240,7 +240,7 @@ The provided docker-compose.yaml includes a working configuration (add your own 
 
 In the event that the conditions listed cannot be met, `rclone` will still be available to use via the CLI - only mounts will be unavailable.
 
-If you intend to use the `rclone create` command to interactively generate remote configurations you should ensure `port 53682` is accessible. See https://rclone.org/remote_setup/ for further details.
+If you intend to use the `rclone create` command to interactively generate remote configurations you should ensure port `53682` is accessible. See https://rclone.org/remote_setup/ for further details.
 
 >[!NOTE]  
 >_Rclone is included to give the end-user an opportunity to easily transfer files between the instance and their cloud storage provider._
@@ -265,7 +265,7 @@ Some ports need to be open for the services to run or for certain features of th
 
 ## Pre-Configured Templates
 
-There are no templates for the base image.
+There are no templates for the base image. 
 
 ## Compatible VM Providers
 

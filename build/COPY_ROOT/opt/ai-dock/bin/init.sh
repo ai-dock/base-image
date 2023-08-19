@@ -10,7 +10,6 @@ trap cleanup EXIT
 function cleanup() {
     printf "Cleaning up...\n"
     # Each running process should have its own cleanup routine
-    wait -n
     $MAMBA_BASE_RUN supervisorctl stop all
     kill -9 $(cat /var/run/supervisord.pid) > /dev/null 2>&1
     rm /var/run/supervisord.pid
@@ -31,7 +30,6 @@ function main() {
     debug_print
     
     # Killing supervisord will stop/force restart the container
-    wait -n
     $MAMBA_BASE_RUN supervisord -c /etc/supervisor/supervisord.conf
 }
 
