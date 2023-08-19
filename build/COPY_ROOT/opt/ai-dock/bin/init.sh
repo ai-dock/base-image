@@ -1,10 +1,5 @@
 #!/bin/bash
 
-# Allows passing environment vars through cmd args for when we don't have full control over `docker run...` and cannot pass -e
-# docker run ... supervisord-env.sh SOME_VAR="some value"...
-# Also allows killing the container from inside.
-
-
 trap cleanup EXIT
 
 function cleanup() {
