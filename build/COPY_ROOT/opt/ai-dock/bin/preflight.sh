@@ -1,13 +1,13 @@
-#!/bin/bash
+#!/bin/false
 
-# Extended image should have preflight.sh in $PATH before this one to modify startup behavior
+# This file will be sourced in init.sh
 
-function main() {
-    do_something
+function preflight_main() {
+    preflight_do_something
 }
 
-function do_something() {
+function preflight_do_something() {
     printf "Empty preflight.sh...\n"
 }
 
-main "$@"; exit
+preflight_main "$@"

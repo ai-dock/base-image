@@ -113,7 +113,7 @@ It can be useful to perform certain actions when starting a container, such as c
 
 You can use the environment variable `PROVISIONING_SCRIPT` to specify the URL of a script you'd like to run.
 
-If you are running locally you may instead opt to mount an executable script at `/opt/ai-dock/bin/provisioning.sh`.
+If you are running locally you may instead opt to mount a script at `/opt/ai-dock/bin/provisioning.sh`.
 
 >[!NOTE]  
 >`supervisord` will not spawn any processes until the provisioning script has completed.

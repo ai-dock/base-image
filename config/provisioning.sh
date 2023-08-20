@@ -1,6 +1,7 @@
-#!/bin/bash
+#!/bin/false
 
-# You can edit this file and make it do something useful
+# This file will be sourced in init.sh
+# You can edit below here and make it do something useful
 
 printf "Hello world!\n"
 

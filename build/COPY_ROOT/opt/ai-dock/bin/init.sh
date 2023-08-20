@@ -1,8 +1,8 @@
 #!/bin/bash
 
-trap cleanup EXIT
+trap init_cleanup EXIT
 
-function cleanup() {
+function init_cleanup() {
     printf "Cleaning up...\n"
     # Each running process should have its own cleanup routine
     $MAMBA_BASE_RUN supervisorctl stop all
@@ -11,24 +11,24 @@ function cleanup() {
     rm /var/run/supervisor.sock
 }
 
-function main() {
-    set_envs "$@"
-    set_ssh_keys
-    count_gpus
-    set_workspace
-    mount_rclone_remotes
-    cloud_fixes
-    run_preflight_script
-    write_bashrc
-    get_provisioning_script
-    run_provisioning_script
-    debug_print
+function init_main() {
+    init_set_envs "$@"
+    init_set_ssh_keys
+    init_count_gpus
+    init_set_workspace
+    init_mount_rclone_remotes
+    init_cloud_fixes
+    init_source_preflight_script
+    init_get_provisioning_script
+    init_source_provisioning_script
+    init_write_bashrc
+    init_debug_print
     
     # Killing supervisord will stop/force restart the container
     $MAMBA_BASE_RUN supervisord -c /etc/supervisor/supervisord.conf
 }
 
-function set_envs() {
+function init_set_envs() {
     for i in "$@"; do
         IFS="=" read -r key val <<< "$i"
         if [[ -n $key && -n $val ]]; then
@@ -36,9 +36,9 @@ function set_envs() {
         fi
     done
     
-    # Re-write envs; Strip quotes & replace ___ with a space;
+    # Re-write envs; Strip quotes & replace ___ with a space
     while IFS='=' read -r -d '' key val; do
-        export "${key}"="$(strip_quotes "${val//___/' '}")"
+        export "${key}"="$(init_strip_quotes "${val//___/' '}")"
     done < <(env -0)
     
     # TODO: branch init.sh into common,nvidia,amd,cpu
@@ -47,7 +47,7 @@ function set_envs() {
     fi
 }
 
-function set_ssh_keys() {
+function init_set_ssh_keys() {
     if [[ -f "/root/.ssh/authorized_keys_mount" ]]; then
         cat /root/.ssh/authorized_keys_mount > /root/.ssh/authorized_keys
     fi
@@ -70,7 +70,7 @@ function set_ssh_keys() {
     fi
 }
 
-function count_gpus() {
+function init_count_gpus() {
     nvidia_dir="/proc/driver/nvidia/gpus/"
     if [[ -z $GPU_COUNT ]]; then
         if [[ "$XPU_TARGET" == "NVIDIA_GPU" && -d "$nvidia_dir" ]]; then
@@ -85,7 +85,7 @@ function count_gpus() {
     fi
 }
 
-function set_workspace() {
+function init_set_workspace() {
     if [[ -z $WORKSPACE ]]; then
         export WORKSPACE="/workspace/"
     else
@@ -118,7 +118,7 @@ function set_workspace() {
     fi
 }
 
-function mount_rclone_remotes() {
+function init_mount_rclone_remotes() {
     # Determine if rclone mount will be possible
     mount_env_warning_file="${WORKSPACE}remote/WARNING-CANNOT-MOUNT-REMOTES.txt"
     no_remotes_warning_file="${WORKSPACE}remote/WARNING-NO-REMOTES-CONFIGURED.txt"
@@ -144,24 +144,24 @@ function mount_rclone_remotes() {
     fi
 }
 
-function cloud_fixes() {
+function init_cloud_fixes() {
     # Don't run tmux automatically on vast.ai
     if [[ -n $VAST_NO_TMUX ]]; then
         touch /root/.no_auto_tmux
     fi
 }
 
-function run_preflight_script() {
+function init_source_preflight_script() {
     # Child images can provide in their PATH
     printf "Looking for preflight.sh...\n"
-    if ! which preflight.sh; then
+    if [[ ! -f /opt/ai-dock/bin/preflight.sh ]]; then
         printf "Not found\n"
     else
-        preflight.sh
+        source /opt/ai-dock/bin/preflight.sh
     fi
 }
 
-function write_bashrc() {
+function init_write_bashrc() {
     # Ensure all variables available for interactive sessions
     env > /etc/environment
     while IFS='=' read -r -d '' key val; do
@@ -182,14 +182,13 @@ function write_bashrc() {
     printf "cd %s\n" "$WORKSPACE" >> /root/.bashrc
 }
 
-function get_provisioning_script() {
+function init_get_provisioning_script() {
     if [[ -n  $PROVISIONING_SCRIPT ]]; then
         file="/opt/ai-dock/bin/provisioning.sh"
         set +e
         curl -L -o ${file} ${PROVISIONING_SCRIPT}
         if [[ "$?" -eq 0 ]]; then
             printf "Successfully created %s from %s\n" "$file" "$PROVISIONING_SCRIPT"
-            chmod +x $file
         else
             printf "Failed to fetch %s\n" "$PROVISIONING_SCRIPT"
             rm $file > /dev/null 2>&1
@@ -197,18 +196,18 @@ function get_provisioning_script() {
     fi
 }
 
-function run_provisioning_script() {
+function init_source_provisioning_script() {
     # Child images can provide in their PATH
     printf "Looking for provisioning.sh...\n"
-    if ! which provisioning.sh; then
+    if [[ ! -f /opt/ai-dock/bin/provisioning.sh ]]; then
         printf "Not found\n"
     else
-        provisioning.sh
+        source /opt/ai-dock/bin/provisioning.sh
     fi
 }
 
 # This could be much better...
-function strip_quotes() {
+function init_strip_quotes() {
     if [[ -z $1 ]]; then
         printf ""
     elif [[ ${1:0:1} = '"' && ${1:(-1)} = '"' ]]; then
@@ -220,7 +219,7 @@ function strip_quotes() {
     fi
 }
 
-function debug_print() {
+function init_debug_print() {
     if [[ -n $DEBUG ]]; then
         printf "\n\n\n---------- DEBUG INFO ----------\n\n"
         printf "env output...\n\n"
@@ -235,4 +234,4 @@ function debug_print() {
     fi
 }
 
-main "$@"; exit
+init_main "$@"; exit
