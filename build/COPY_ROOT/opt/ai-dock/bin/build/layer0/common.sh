@@ -19,12 +19,14 @@ $APT_INSTALL \
     less \
     libcap2-bin \
     libelf1 \
+    libglib2.0-0 \
     lsb-release \
     nano \
     screen \
     tmux \
     unzip \
     vim \
+    wget \
     zip
     
 # Get Cloudflare daemon - No conda distribution

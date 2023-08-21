@@ -17,8 +17,9 @@ ENV LANG C.UTF-8
 ENV SHELL=/bin/bash
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PATH=/opt/ai-dock/bin:/opt/micromamba/bin:$PATH
+ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
 ENV APT_INSTALL="apt-get install -y --no-install-recommends"
-ENV PIP_INSTALL="pip install --no-cache-dir install"
+ENV PIP_INSTALL="pip install --no-cache-dir"
 ENV MAMBA_CREATE="micromamba create --always-softlink -y"
 ENV MAMBA_INSTALL="micromamba install --always-softlink -y"
 ENV MAMBA_ROOT_PREFIX=/opt/micromamba
