@@ -113,10 +113,12 @@ It can be useful to perform certain actions when starting a container, such as c
 
 You can use the environment variable `PROVISIONING_SCRIPT` to specify the URL of a script you'd like to run.
 
+The URL must point to a plain text file - GitHub Gists/Pastebin (raw) are suitable options.
+
 If you are running locally you may instead opt to mount a script at `/opt/ai-dock/bin/provisioning.sh`.
 
 >[!NOTE]  
->`supervisord` will spawn, if configured, `sshd`, `rclone`, `jupyter` & `logtail` before provisioning; Any other processes will launch after.
+>If configured, `sshd`, `cloudflared`, `rclone` & `logtail` will be launched before provisioning; Any other processes will launch after.
 
 >[!WARNING]  
 >Only use scripts that you trust and which cannot be changed without your consent.
