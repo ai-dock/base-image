@@ -16,16 +16,19 @@ function init_main() {
     init_set_ssh_keys
     init_count_gpus
     init_set_workspace
+    init_set_cf_tunnel_wanted
     init_mount_rclone_remotes
     init_cloud_fixes
+    # Allow autostart processes to run early
+    $MAMBA_BASE_RUN supervisord -c /etc/supervisor/supervisord.conf &
     init_source_preflight_script
-    init_get_provisioning_script
-    init_source_provisioning_script
     init_write_bashrc
     init_debug_print
-    
-    # Killing supervisord will stop/force restart the container
-    $MAMBA_BASE_RUN supervisord -c /etc/supervisor/supervisord.conf
+    init_get_provisioning_script
+    init_source_provisioning_script
+    supervisor-start-late.sh
+    # Don't exit unless supervisord is killed
+    wait
 }
 
 function init_set_envs() {
@@ -118,6 +121,14 @@ function init_set_workspace() {
     fi
 }
 
+function init_set_cf_tunnel_wanted() {
+    if [[ -n $CF_TUNNEL_TOKEN ]]; then
+        export SUPERVISOR_START_CLOUDFLARED=1 
+    else
+        export SUPERVISOR_START_CLOUDFLARED=0
+    fi
+}
+
 function init_mount_rclone_remotes() {
     # Determine if rclone mount will be possible
     mount_env_warning_file="${WORKSPACE}remote/WARNING-CANNOT-MOUNT-REMOTES.txt"
@@ -185,9 +196,9 @@ function init_write_bashrc() {
 function init_get_provisioning_script() {
     if [[ -n  $PROVISIONING_SCRIPT ]]; then
         file="/opt/ai-dock/bin/provisioning.sh"
-        set +e
         curl -L -o ${file} ${PROVISIONING_SCRIPT}
         if [[ "$?" -eq 0 ]]; then
+            dos2unix ${file}
             printf "Successfully created %s from %s\n" "$file" "$PROVISIONING_SCRIPT"
         else
             printf "Failed to fetch %s\n" "$PROVISIONING_SCRIPT"

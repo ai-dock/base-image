@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Must exit and fail to build if any command fails
-set -e
+set -e -o pipefail
 
 apt-get update
 apt-get upgrade -y --no-install-recommends
@@ -13,6 +13,7 @@ $APT_INSTALL \
     bzip2 \
     ca-certificates \
     curl \
+    dos2unix \
     fuse3 \
     git \
     gpg \

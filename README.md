@@ -116,7 +116,7 @@ You can use the environment variable `PROVISIONING_SCRIPT` to specify the URL of
 If you are running locally you may instead opt to mount a script at `/opt/ai-dock/bin/provisioning.sh`.
 
 >[!NOTE]  
->`supervisord` will not spawn any processes until the provisioning script has completed.
+>`supervisord` will spawn, if configured, `sshd`, `rclone`, `jupyter` & `logtail` before provisioning; Any other processes will launch after.
 
 >[!WARNING]  
 >Only use scripts that you trust and which cannot be changed without your consent.
