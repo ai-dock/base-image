@@ -14,21 +14,23 @@ LABEL maintainer="Rob Ballantyne <rob@dynamedia.uk>"
 
 # Set ENV variables
 ENV LANG C.UTF-8
-ENV SHELL=/bin/bash
+SHELL ["/bin/bash", "-c"]
+ENV SHELL="/bin/bash"
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PATH=/opt/ai-dock/bin:/opt/micromamba/bin:$PATH
 ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
 ENV PYTHONUNBUFFERED=true
 ENV APT_INSTALL="apt-get install -y --no-install-recommends"
 ENV PIP_INSTALL="pip install --no-cache-dir"
-ENV MAMBA_CREATE="micromamba create --always-softlink -y"
-ENV MAMBA_INSTALL="micromamba install --always-softlink -y"
+ENV MAMBA_CREATE="micromamba create --strict-channel-priority --always-softlink -y"
+ENV MAMBA_INSTALL="micromamba install --strict-channel-priority --always-softlink -y"
 ENV MAMBA_ROOT_PREFIX=/opt/micromamba
 ENV MAMBA_EXE="/opt/micromamba/bin/micromamba"
 ENV MAMBA_BASE_ENV="system"
 ENV MAMBA_BASE_RUN="micromamba run -n $MAMBA_BASE_ENV"
 ARG MAMBA_DEFAULT_ENV="system"
 ENV MAMBA_DEFAULT_ENV=${MAMBA_DEFAULT_ENV}
+ENV MAMBA_DEFAULT_RUN="micromamba run -n $MAMBA_DEFAULT_ENV"
 ARG MAMBA_BASE_PYTHON_VERSION=3.10
 ENV MAMBA_BASE_PYTHON_VERSION=${MAMBA_BASE_PYTHON_VERSION}
 ENV RCLONE_CONFIG="/etc/rclone/rclone.conf"
@@ -49,7 +51,7 @@ ENV ROCM_LEVEL=${ROCM_LEVEL}
 
 # Use build scripts to ensure we can build all targets from one Dockerfile in a single layer.
 # Don't put anything heavy in here - We can use multi-stage building above if necessary.
-RUN bash -c /opt/ai-dock/bin/build/layer0/init.sh
+RUN /opt/ai-dock/bin/build/layer0/init.sh
 
 # Keep init.sh as-is and place additional logic in /opt/ai-dock/bin/preflight.sh
 CMD ["init.sh"]

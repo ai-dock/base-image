@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Must exit and fail to build if any command fails
-set -e -o pipefail
+set -eo pipefail
 
 if [[ -z $ROCM_VERSION ]]; then
     printf "No valid ROCM_VERSION specified\n" >&2
