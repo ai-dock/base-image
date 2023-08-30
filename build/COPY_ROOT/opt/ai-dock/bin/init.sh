@@ -19,13 +19,17 @@ function init_main() {
     init_set_cf_tunnel_wanted
     init_mount_rclone_remotes
     init_cloud_fixes
+    init_create_logfiles
     # Allow autostart processes to run early
     $MAMBA_BASE_RUN supervisord -c /etc/supervisor/supervisord.conf &
-    init_source_preflight_script
+    # Redirect output to files - Logtail will now handle
+    init_source_preflight_script > /var/log/supervisor/preflight.log 2>&1
     init_write_bashrc
-    init_debug_print
-    init_get_provisioning_script
-    init_source_provisioning_script
+    init_debug_print > /var/log/supervisor/debug.log 2>&1
+    init_get_provisioning_script > /var/log/supervisor/provisioning.log 2>&1
+    touch /run/provisioning_script
+    init_source_provisioning_script >> /var/log/supervisor/provisioning.log 2>&1
+    rm /run/provisioning_script
     supervisor-start-late.sh
     # Don't exit unless supervisord is killed
     wait
@@ -160,6 +164,11 @@ function init_cloud_fixes() {
     if [[ -n $VAST_NO_TMUX ]]; then
         touch /root/.no_auto_tmux
     fi
+}
+
+# Ensure the files logtail needs to display during init
+function init_create_logfiles() {
+    touch /var/log/supervisor/{debug.log,preflight.log,provisioning.log}
 }
 
 function init_source_preflight_script() {
