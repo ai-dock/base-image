@@ -6,13 +6,20 @@ function cleanup() {
     kill $(jobs -p) >/dev/null 2>&1
 }
 
+while getopts s flag
+do
+    case "${flag}" in
+        s) sys_mode="true";;
+    esac
+done
+
 # Tail and print logs for all of our services
 # Needed for 'docker logs' and ssh users
 
-# Ensure the log files we need are present, then tail
-
-for file in /var/log/supervisor/*.log; do 
-    tail -F "$file" &
-done
+if [[ $sys_mode = "true" ]]; then
+    tail -fn512 /var/log/supervisor/*.log | tee -a /var/log/logtail.log
+else
+    tail -fn512 /var/log/supervisor/*.log
+fi
 
 wait

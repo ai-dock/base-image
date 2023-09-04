@@ -20,6 +20,7 @@ function init_main() {
     init_mount_rclone_remotes
     init_cloud_fixes
     init_create_logfiles
+    touch /run/provisioning_script
     # Allow autostart processes to run early
     $MAMBA_BASE_RUN supervisord -c /etc/supervisor/supervisord.conf &
     # Redirect output to files - Logtail will now handle
@@ -27,10 +28,9 @@ function init_main() {
     init_write_bashrc
     init_debug_print > /var/log/supervisor/debug.log 2>&1
     init_get_provisioning_script > /var/log/supervisor/provisioning.log 2>&1
-    touch /run/provisioning_script
     init_source_provisioning_script >> /var/log/supervisor/provisioning.log 2>&1
+    # Removal of this file will trigger fastapi shutdown and service start
     rm /run/provisioning_script
-    supervisor-start-late.sh
     # Don't exit unless supervisord is killed
     wait
 }

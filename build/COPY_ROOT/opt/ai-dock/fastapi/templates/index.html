@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/modern-css-reset/dist/reset.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik&family=Ubuntu+Mono&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-size: 16px;
+            font-family: 'Rubik', sans-serif;
+            padding: 0;
+        }
+        
+        .one-col {
+            display: grid;
+            max-width: 90%;
+            grid-template-columns: 1fr;
+            justify-items: center;
+            margin: 5px auto;
+            padding: 5px;
+        }
+  
+        img#logo {
+            height: 50px;
+            width: 150px;
+            object-fit: contain;
+        }
+        
+        h1 {
+            justify-self: left;
+            font-size: 1rem;
+            font-style: italic;
+            padding: 0;
+            margin: 10px 0;
+        }
+        a, a:visited {
+            color: #0096FF;
+            font-style: italic;
+            text-decoration: none;
+        }
+        
+        main#terminal {
+            position: relative;
+            box-sizing: border-box;
+            justify-self: left;
+            margin: 5px 0;
+            padding: 10px 10px 20px 10px;
+            width: 100%;
+            height: 500px;
+            min-height: 50vh;
+            max-height: 80vh;
+            background: #000;
+            font-family: 'Ubuntu Mono', monospace;
+            font-size: 0.8rem;
+            color: #fff;
+            line-height: 1.5;
+            overflow-y: scroll;
+            border-radius: 5px;
+        }
+        main#terminal .error {
+            color: #ED4337;
+        }
+        main#terminal .warning {
+            color: #FFBF00;
+        }
+        main#terminal .tail-header {
+            color: #888888;
+        }
+        
+        main#terminal * {
+            overflow-anchor: none;
+        }
+        
+        main#terminal #anchor {
+            overflow-anchor: auto;
+            height: 1px;
+        }
+        section#about {
+            justify-self: left;
+            font-size: 1rem;
+            width: 100%;
+            padding-bottom: 25px;
+            border-bottom: 1px solid #eee;
+        }
+        section#about p {
+            margin: 10px 0 10px 0;
+            font-size: 0.8rem;
+        }
+        
+        footer {
+            justify-self: center;
+            font-family: 'Rubik', sans-serif;
+            font-size: 1rem;
+            padding-top: 10px;
+        }
+        footer p {
+            margin: 10px 0;
+            font-size: 0.8rem;
+        }
+        footer ul#social-buttons {
+            list-style: none;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        footer ul#social-buttons li {
+            display: inline-block;
+            margin: 0 5px;
+        }
+        footer ul#social-buttons li img {
+            height: 30px;
+            width: 30px;
+        }
+        
+    </style>
+    <title>{{context.title}}</title>
+  </head>
+
+  <body>
+      <div class="one-col">
+            <a href="https://github.com/ai-dock" target="_blank">
+                <img
+                    id="logo"
+                    alt="ai-dock logo"
+                    src="{{url_for('static', path='ai-dock-logo.png')}}"
+                />
+            </a>
+
+        <h1 id="status">{{context.title}}</h1>
+        
+        <main id="terminal">
+            <div id="logs">
+                reading {{ context.log_file }}...
+            </div>
+            <div id="anchor">root@ai-dock:/# logtail.sh</div>
+        </main>
+        
+        <section id="about">
+            <p>This container is running image <a href="https://github.com/ai-dock/{{ context.urlslug }}" target="_blank">github.com/ai-dock/{{ context.urlslug }}</a>.</p>
+            <p>For help, or to leave feedback, please click the GitHub link above - It opens in a new browser tab.</p>
+        </section>
+        
+        <footer>
+            <p>By Rob Ballantyne @ ai-dock</p>
+            <ul id="social-buttons">
+                <li>
+                    <a href="https://github.com/ai-dock" target="_blank">
+                        <img 
+                            src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjxzdmcgZmlsbD0ibm9uZSIgaGVpZ2h0PSIyNSIgdmlld0JveD0iMCAwIDI1IDI1IiB3aWR0aD0iMjUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggY2xpcC1ydWxlPSJldmVub2RkIiBkPSJNMTUuNzQ4MSAyNC45NDcxQzI0LjA5MDEgMjQuNzA2MSAyNC45MTExIDIyLjk1MDEgMjQuOTExMSAxMi45ODExQzI0LjkxMTEgMS45ODEwOCAyMy45MTExIDAuOTgxMDc5IDEyLjkxMTEgMC45ODEwNzlDMS45MTExMyAwLjk4MTA3OSAwLjkxMTEzMyAxLjk4MTA4IDAuOTExMTMzIDEyLjk4MTFDMC45MTExMzMgMjIuOTc2MSAxLjczNzEzIDI0LjcxNTEgMTAuMTM5MSAyNC45NDkxQzEwLjIxMjEgMjQuODU4MSAxMC4yMzkxIDI0Ljc0NDEgMTAuMjM5MSAyNC42MjgxQzEwLjIzOTEgMjQuMzc4MSAxMC4yMjkxIDIxLjgxMjEgMTAuMjI0MSAyMC45MjkxQzcuMTg3MTMgMjEuNTY4MSA2LjU0NjEzIDE5LjUxMDEgNi41NDYxMyAxOS41MTAxQzYuMDQ5MTMgMTguMjg4MSA1LjMzMzEzIDE3Ljk2MjEgNS4zMzMxMyAxNy45NjIxQzQuMzQyMTMgMTcuMzA2MSA1LjQwODEzIDE3LjMxOTEgNS40MDgxMyAxNy4zMTkxQzYuNTA0MTMgMTcuMzk0MSA3LjA4MTEzIDE4LjQxMDEgNy4wODExMyAxOC40MTAxQzguMDU1MTMgMjAuMDI3MSA5LjYzNzEzIDE5LjU2MDEgMTAuMjU5MSAxOS4yODkxQzEwLjM1ODEgMTguNjA2MSAxMC42NDAxIDE4LjEzOTEgMTAuOTUyMSAxNy44NzUxQzguNTI3MTMgMTcuNjA4MSA1Ljk3ODEzIDE2LjcwMDEgNS45NzgxMyAxMi42NDUxQzUuOTc4MTMgMTEuNDkwMSA2LjQwNDEzIDEwLjU0NjEgNy4xMDIxMyA5LjgwNjA4QzYuOTg5MTMgOS41MzgwOCA2LjYxNTEzIDguNDYyMDggNy4yMDkxMyA3LjAwNjA4QzcuMjA5MTMgNy4wMDYwOCA4LjEyNjEzIDYuNzIxMDggMTAuMjEyMSA4LjA5MDA4QzExLjA4MzEgNy44NTUwOCAxMi4wMTcxIDcuNzM4MDggMTIuOTQ2MSA3LjczNDA4QzEzLjg3MzEgNy43MzgwOCAxNC44MDcxIDcuODU1MDggMTUuNjgwMSA4LjA5MDA4QzE3Ljc2NTEgNi43MjEwOCAxOC42ODAxIDcuMDA2MDggMTguNjgwMSA3LjAwNjA4QzE5LjI3NjEgOC40NjIwOCAxOC45MDExIDkuNTM4MDggMTguNzg4MSA5LjgwNjA4QzE5LjQ4ODEgMTAuNTQ2MSAxOS45MTExIDExLjQ5MDEgMTkuOTExMSAxMi42NDUxQzE5LjkxMTEgMTYuNzEwMSAxNy4zNTgxIDE3LjYwNTEgMTQuOTI1MSAxNy44NjYxQzE1LjMxNzEgMTguMTkzMSAxNS42NjYxIDE4LjgzOTEgMTUuNjY2MSAxOS44MjYxQzE1LjY2NjEgMjAuNzcyMSAxNS42NjAxIDIyLjQ0NTEgMTUuNjU2MSAyMy41NTQxQzE1LjY1NDEgMjQuMTAzMSAxNS42NTMxIDI0LjUxMzEgMTUuNjUzMSAyNC42MjgxQzE1LjY1MzEgMjQuNzM3MSAxNS42ODIxIDI0Ljg1MjEgMTUuNzQ4MSAyNC45NDcxVjI0Ljk0NzFaIiBmaWxsPSJibGFjayIgZmlsbC1ydWxlPSJldmVub2RkIi8+PC9zdmc+"
+                            alt="GitHub logo"
+                        />
+                    </a>
+                </li>
+                
+                <li>
+                    <a href="https://twitter.com/robballantyne" target="_blank">
+                        <img 
+                            src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjwhRE9DVFlQRSBzdmcgIFBVQkxJQyAnLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4nICAnaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkJz48c3ZnIGhlaWdodD0iMTAwJSIgc3R5bGU9ImZpbGwtcnVsZTpldmVub2RkO2NsaXAtcnVsZTpldmVub2RkO3N0cm9rZS1saW5lam9pbjpyb3VuZDtzdHJva2UtbWl0ZXJsaW1pdDoyOyIgdmVyc2lvbj0iMS4xIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiIgd2lkdGg9IjEwMCUiIHhtbDpzcGFjZT0icHJlc2VydmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6c2VyaWY9Imh0dHA6Ly93d3cuc2VyaWYuY29tLyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiPjxwYXRoIGQ9Ik00NDkuNDQ2LDBjMzQuNTI1LDAgNjIuNTU0LDI4LjAzIDYyLjU1NCw2Mi41NTRsMCwzODYuODkyYzAsMzQuNTI0IC0yOC4wMyw2Mi41NTQgLTYyLjU1NCw2Mi41NTRsLTM4Ni44OTIsMGMtMzQuNTI0LDAgLTYyLjU1NCwtMjguMDMgLTYyLjU1NCwtNjIuNTU0bDAsLTM4Ni44OTJjMCwtMzQuNTI0IDI4LjAyOSwtNjIuNTU0IDYyLjU1NCwtNjIuNTU0bDM4Ni44OTIsMFptLTI1My45MjcsNDI0LjU0NGMxMzUuOTM5LDAgMjEwLjI2OCwtMTEyLjY0MyAyMTAuMjY4LC0yMTAuMjY4YzAsLTMuMjE4IDAsLTYuNDM3IC0wLjE1MywtOS41MDJjMTQuNDA2LC0xMC40MjEgMjYuOTczLC0yMy40NDggMzYuOTM1LC0zOC4zMTRjLTEzLjE4LDUuODI0IC0yNy40MzMsOS44MDkgLTQyLjQ1MiwxMS42NDhjMTUuMzI2LC05LjE5NiAyNi45NzMsLTIzLjYwMiAzMi40OSwtNDAuOTJjLTE0LjI1Miw4LjQyOSAtMzAuMDM4LDE0LjU2IC00Ni44OTYsMTcuOTMxYy0xMy40ODcsLTE0LjQwNiAtMzIuNjQ0LC0yMy4yOTUgLTUzLjk0NiwtMjMuMjk1Yy00MC43NjcsMCAtNzMuODcsMzMuMTA0IC03My44Nyw3My44N2MwLDUuODI0IDAuNjEzLDExLjQ5NCAxLjk5MiwxNi44NThjLTYxLjQ1NiwtMy4wNjUgLTExNS44NjIsLTMyLjQ5IC0xNTIuMzM3LC03Ny4yNDFjLTYuMjg0LDEwLjg4MSAtOS45NjIsMjMuNjAxIC05Ljk2MiwzNy4wODhjMCwyNS41OTQgMTMuMDI3LDQ4LjI3NiAzMi45NSw2MS40NTZjLTEyLjEwNywtMC4zMDcgLTIzLjQ0OCwtMy42NzggLTMzLjQxLC05LjE5NmwwLDAuOTJjMCwzNS44NjIgMjUuNDQxLDY1LjU5NCA1OS4zMTEsNzIuNDljLTYuMTMsMS42ODYgLTEyLjcyLDIuNjA2IC0xOS40NjQsMi42MDZjLTQuNzUxLDAgLTkuMzQ4LC0wLjQ2IC0xMy45NDYsLTEuMzhjOS4zNDksMjkuNDI2IDM2LjYyOCw1MC43MjggNjguOTY1LDUxLjM0MWMtMjUuMjg3LDE5Ljc3MSAtNTcuMTY0LDMxLjU3MSAtOTEuOCwzMS41NzFjLTUuOTc3LDAgLTExLjgwMSwtMC4zMDYgLTE3LjYyNSwtMS4wNzNjMzIuMzM3LDIxLjE1IDcxLjI2NCwzMy40MSAxMTIuOTUsMzMuNDFaIi8+PC9zdmc+"
+                            alt="Twitter logo"
+                        />
+                    </a>
+                </li>
+                
+                <li>
+                    <a href="https://linkedin.com/in/reballantyne" target="_blank">
+                        <img 
+                            src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjwhRE9DVFlQRSBzdmcgIFBVQkxJQyAnLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4nICAnaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkJz48c3ZnIGhlaWdodD0iMTAwJSIgc3R5bGU9ImZpbGwtcnVsZTpldmVub2RkO2NsaXAtcnVsZTpldmVub2RkO3N0cm9rZS1saW5lam9pbjpyb3VuZDtzdHJva2UtbWl0ZXJsaW1pdDoyOyIgdmVyc2lvbj0iMS4xIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiIgd2lkdGg9IjEwMCUiIHhtbDpzcGFjZT0icHJlc2VydmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6c2VyaWY9Imh0dHA6Ly93d3cuc2VyaWYuY29tLyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiPjxwYXRoIGQ9Ik00NDkuNDQ2LDBjMzQuNTI1LDAgNjIuNTU0LDI4LjAzIDYyLjU1NCw2Mi41NTRsMCwzODYuODkyYzAsMzQuNTI0IC0yOC4wMyw2Mi41NTQgLTYyLjU1NCw2Mi41NTRsLTM4Ni44OTIsMGMtMzQuNTI0LDAgLTYyLjU1NCwtMjguMDMgLTYyLjU1NCwtNjIuNTU0bDAsLTM4Ni44OTJjMCwtMzQuNTI0IDI4LjAyOSwtNjIuNTU0IDYyLjU1NCwtNjIuNTU0bDM4Ni44OTIsMFptLTI4OC45ODUsNDIzLjI3OGwwLC0yMjUuNzE3bC03NS4wNCwwbDAsMjI1LjcxN2w3NS4wNCwwWm0yNzAuNTM5LDBsMCwtMTI5LjQzOWMwLC02OS4zMzMgLTM3LjAxOCwtMTAxLjU4NiAtODYuMzgxLC0xMDEuNTg2Yy0zOS44MDQsMCAtNTcuNjM0LDIxLjg5MSAtNjcuNjE3LDM3LjI2NmwwLC0zMS45NThsLTc1LjAyMSwwYzAuOTk1LDIxLjE4MSAwLDIyNS43MTcgMCwyMjUuNzE3bDc1LjAyLDBsMCwtMTI2LjA1NmMwLC02Ljc0OCAwLjQ4NiwtMTMuNDkyIDIuNDc0LC0xOC4zMTVjNS40MTQsLTEzLjQ3NSAxNy43NjcsLTI3LjQzNCAzOC40OTQsLTI3LjQzNGMyNy4xMzUsMCAzOC4wMDcsMjAuNzA3IDM4LjAwNyw1MS4wMzdsMCwxMjAuNzY4bDc1LjAyNCwwWm0tMzA3LjU1MiwtMzM0LjU1NmMtMjUuNjc0LDAgLTQyLjQ0OCwxNi44NzkgLTQyLjQ0OCwzOS4wMDJjMCwyMS42NTggMTYuMjY0LDM5LjAwMiA0MS40NTUsMzkuMDAybDAuNDg0LDBjMjYuMTY1LDAgNDIuNDUyLC0xNy4zNDQgNDIuNDUyLC0zOS4wMDJjLTAuNDg1LC0yMi4wOTIgLTE2LjI0MSwtMzguOTU0IC00MS45NDMsLTM5LjAwMloiLz48L3N2Zz4="
+                            alt="LinkedIn logo"
+                        />
+                    </a>
+                </li>
+                
+            </ul>
+        </footer>
+    </div>
+    
+    <script>
+        const ws_log = new WebSocket("ws://" + location.host + "/ai-dock/logtail.sh");
+        const status = document.getElementById("status");
+        const terminal = document.getElementById("terminal");
+        const anchor = document.getElementById("anchor");
+        let has_scrolled = false;
+        
+        let refresh_page_in = function(secs) {
+            setTimeout(function(){
+                location.reload();
+            }, secs * 1000);
+        }
+        
+        ws_log.onmessage = function (event) {
+            const logs = document.getElementById("logs");
+            let log_data = event.data;
+            logs.innerHTML = log_data;
+            if ((logs.offsetHeight > terminal.offsetHeight) && has_scrolled == false) {
+                has_scrolled = true;
+                anchor.scrollIntoView(
+                    { 
+                        behavior: "smooth", block: "start", inline: "nearest"
+                    }
+                );
+            }
+        };
+        ws_log.onclose = function (event) {
+            status.innerHTML = "Checking container state..."
+            refresh_page_in(7);
+        }
+        ws_log.onerror = function (event) {
+            status.innerHTML = "Checking container state..."
+            refresh_page_in(7);
+        }
+    </script>
+  </body>
+</html>

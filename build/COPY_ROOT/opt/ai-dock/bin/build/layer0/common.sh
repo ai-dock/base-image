@@ -59,6 +59,14 @@ $MAMBA_INSTALL -n "${MAMBA_BASE_ENV}" -c conda-forge \
     openssh \
     rclone
 
+$MAMBA_CREATE -n fastapi -c conda-forge python="${MAMBA_BASE_PYTHON_VERSION}"
+$MAMBA_INSTALL -n fastapi -c conda-forge \
+    uvicorn=0.23 \
+    fastapi=0.103 \
+    jinja2=3.1 \
+    websockets
+
+
 # We will use a config from /etc
 rm -rf /root/micromamba/envs/"${MAMBA_BASE_ENV}"/etc/supervisord*
 
