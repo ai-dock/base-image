@@ -18,7 +18,7 @@ function init_main() {
     init_set_workspace
     init_set_cf_tunnel_wanted
     init_mount_rclone_remotes
-    init_cloud_fixes
+    init_cloud_context
     init_create_logfiles
     touch /run/provisioning_script
     # Allow autostart processes to run early
@@ -159,10 +159,18 @@ function init_mount_rclone_remotes() {
     fi
 }
 
-function init_cloud_fixes() {
+function init_cloud_context() {
     # Don't run tmux automatically on vast.ai
     if [[ -n $VAST_NO_TMUX ]]; then
         touch /root/.no_auto_tmux
+    fi
+    
+    if env | grep 'VAST' > /dev/null 2>&1; then
+        export CLOUD_PROVIDER="vast.ai"
+    elif env | grep 'RUNPOD' > /dev/null 2>&1; then
+       export CLOUD_PROVIDER="runpod.io"
+    elif env | grep 'PAPERSPACE' > /dev/null 2>&1; then
+       export CLOUD_PROVIDER="paperspace.com"
     fi
 }
 

@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
   <head>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/modern-css-reset/dist/reset.min.css" />
@@ -13,22 +12,20 @@
             font-family: 'Rubik', sans-serif;
             padding: 0;
         }
-        
         .one-col {
             display: grid;
-            max-width: 90%;
+            width: 1920px;
+            max-width: 94vw;
             grid-template-columns: 1fr;
             justify-items: center;
             margin: 5px auto;
             padding: 5px;
         }
-  
         img#logo {
             height: 50px;
             width: 150px;
             object-fit: contain;
         }
-        
         h1 {
             justify-self: left;
             font-size: 1rem;
@@ -41,7 +38,6 @@
             font-style: italic;
             text-decoration: none;
         }
-        
         main#terminal {
             position: relative;
             box-sizing: border-box;
@@ -69,11 +65,9 @@
         main#terminal .tail-header {
             color: #888888;
         }
-        
         main#terminal * {
             overflow-anchor: none;
         }
-        
         main#terminal #anchor {
             overflow-anchor: auto;
             height: 1px;
@@ -89,7 +83,6 @@
             margin: 10px 0 10px 0;
             font-size: 0.8rem;
         }
-        
         footer {
             justify-self: center;
             font-family: 'Rubik', sans-serif;
@@ -114,9 +107,8 @@
             height: 30px;
             width: 30px;
         }
-        
     </style>
-    <title>{{context.title}}</title>
+    <title>{{  context.title  }}</title>
   </head>
 
   <body>
@@ -205,11 +197,11 @@
         };
         ws_log.onclose = function (event) {
             status.innerHTML = "Checking container state..."
-            refresh_page_in(7);
+            refresh_page_in({{ context.refresh }});
         }
         ws_log.onerror = function (event) {
             status.innerHTML = "Checking container state..."
-            refresh_page_in(7);
+            refresh_page_in({{ context.refresh }});
         }
     </script>
   </body>
