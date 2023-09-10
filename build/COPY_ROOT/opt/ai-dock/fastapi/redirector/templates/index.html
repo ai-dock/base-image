@@ -4,11 +4,13 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/modern-css-reset/dist/reset.min.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Rubik&family=Ubuntu+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rubik&display=swap" rel="stylesheet">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body {
+        :root {
             font-size: 16px;
+        }
+        body {
             font-family: 'Rubik', sans-serif;
             padding: 0;
         }
@@ -28,7 +30,7 @@
         }
         h1 {
             justify-self: left;
-            font-size: 1rem;
+            font-size: 1.1rem;
             font-style: italic;
             padding: 0;
             margin: 10px 0;
@@ -38,60 +40,55 @@
             font-style: italic;
             text-decoration: none;
         }
-        main#terminal {
-            position: relative;
-            box-sizing: border-box;
-            justify-self: left;
-            margin: 5px 0;
-            padding: 10px 10px 20px 10px;
+        
+        main {
+            display: grid;
             width: 100%;
-            height: 500px;
-            min-height: 50vh;
-            max-height: 80vh;
-            background: #000;
-            font-family: 'Ubuntu Mono', monospace;
-            font-size: 0.8rem;
-            color: #fff;
-            line-height: 1.5;
-            overflow-y: scroll;
-            border-radius: 5px;
+            grid-template-columns: 1fr;
         }
-        main#terminal .error {
-            color: #ED4337;
+        main div.row {
+            display: grid;
+            width: 100%;
+            grid-template-columns: 1fr 1fr;
+            justify-items: left;
+            align-items: center;
         }
-        main#terminal .warning {
-            color: #FFBF00;
+        main div.row:nth-of-type(odd) {
+            background: #eaeaea;
         }
-        main#terminal .tail-header {
-            color: #888888;
+        main div.row div {
+            padding: 5px;
         }
-        main#terminal * {
-            overflow-anchor: none;
+        
+        main div.heading {
+            font-weight: bold;
+            padding-bottom: 10px;
+            
         }
-        main#terminal #anchor {
-            overflow-anchor: auto;
-            height: 1px;
+        main ul {
+            margin: 0;
+            padding: 0;
+        }
+        main ul li {
+            list-style: none;
+            padding-bottom: 5px;
         }
         section#about {
             justify-self: left;
-            font-size: 1rem;
             width: 100%;
             padding-bottom: 25px;
             border-bottom: 1px solid #eee;
         }
         section#about p {
-            margin: 10px 0 10px 0;
-            font-size: 0.8rem;
+            margin: 20px 0 10px 0;
         }
         footer {
             justify-self: center;
             font-family: 'Rubik', sans-serif;
-            font-size: 1rem;
             padding-top: 10px;
         }
         footer p {
             margin: 10px 0;
-            font-size: 0.8rem;
         }
         footer ul#social-buttons {
             list-style: none;
@@ -108,7 +105,7 @@
             width: 30px;
         }
     </style>
-    <title>{{  context.title  }}</title>
+    <title>Port Redirector</title>
   </head>
 
   <body>
@@ -120,14 +117,24 @@
                     src="{{url_for('static', path='ai-dock-logo.png')}}"
                 />
             </a>
-
-        <h1 id="status">{{context.title}}</h1>
-        
-        <main id="terminal">
-            <div id="logs">
-                reading {{ context.log_file }}...
+        <div class="message">{{ context.message }}</div>
+        <h1 id="status">Service List</h1>
+        <main id="links">
+            <div class="row">
+                <div class="heading">Service Interface</div>
+                <div class="heading">Access Links</div>
             </div>
-            <div id="anchor">root@ai-dock:/# logtail.sh</div>
+            {% for key, service in context.services.items() %}
+                <div class="row">
+                    <div>{{ service["service_name"] }}</div>
+                    <div>
+                        <ul>
+                        <li><a href="/cloudflare/{{ service["port"] }}">Cloudflare Tunnel</a></li>
+                        <li><a href="/direct/{{ service["port"] }}">Direct/Default</a></li>
+                        </ul>
+                    </div>
+                </div>
+            {% endfor %}
         </main>
         
         <section id="about">
@@ -168,41 +175,5 @@
             </ul>
         </footer>
     </div>
-    
-    <script>
-        const ws_log = new WebSocket("ws://" + location.host + "/ai-dock/logtail.sh");
-        const status = document.getElementById("status");
-        const terminal = document.getElementById("terminal");
-        const anchor = document.getElementById("anchor");
-        let has_scrolled = false;
-        
-        let refresh_page_in = function(secs) {
-            setTimeout(function(){
-                location.reload();
-            }, secs * 1000);
-        }
-        
-        ws_log.onmessage = function (event) {
-            const logs = document.getElementById("logs");
-            let log_data = event.data;
-            logs.innerHTML = log_data;
-            if ((logs.offsetHeight > terminal.offsetHeight) && has_scrolled == false) {
-                has_scrolled = true;
-                anchor.scrollIntoView(
-                    { 
-                        behavior: "smooth", block: "start", inline: "nearest"
-                    }
-                );
-            }
-        };
-        ws_log.onclose = function (event) {
-            status.innerHTML = "Checking container state..."
-            refresh_page_in({{ context.refresh }});
-        }
-        ws_log.onerror = function (event) {
-            status.innerHTML = "Checking container state..."
-            refresh_page_in({{ context.refresh }});
-        }
-    </script>
   </body>
 </html>

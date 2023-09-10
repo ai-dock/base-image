@@ -15,6 +15,7 @@ function init_main() {
     init_set_envs "$@"
     init_set_ssh_keys
     init_count_gpus
+    init_count_quicktunnels
     init_set_workspace
     init_set_cf_tunnel_wanted
     init_mount_rclone_remotes
@@ -89,6 +90,15 @@ function init_count_gpus() {
         else
             export GPU_COUNT=0
         fi
+    fi
+}
+
+function init_count_quicktunnels() {
+    mkdir -p /run/http_ports
+    if [[ ! $CF_QUICK_TUNNELS = "true" ]]; then
+        export CF_QUICK_TUNNELS_COUNT=0
+    else
+        export CF_QUICK_TUNNELS_COUNT=$(grep -l "METRICS_PORT" /opt/ai-dock/bin/supervisor-*.sh | wc -l)
     fi
 }
 

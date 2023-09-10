@@ -17,6 +17,7 @@ $APT_INSTALL \
     fuse3 \
     git \
     gpg \
+    jq \
     less \
     libcap2-bin \
     libelf1 \
@@ -64,7 +65,8 @@ $MAMBA_INSTALL -n fastapi -c conda-forge \
     uvicorn=0.23 \
     fastapi=0.103 \
     jinja2=3.1 \
-    websockets
+    websockets \
+    requests
 
 
 # We will use a config from /etc

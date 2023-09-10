@@ -3,6 +3,7 @@ Evolved from https://github.com/h3xagn/streaming-log-viewer-websocket
 """
 
 # import libraries
+import os
 from pathlib import Path
 from fastapi import FastAPI, WebSocket, Request
 from fastapi.staticfiles import StaticFiles
@@ -20,11 +21,11 @@ parser.add_argument("-p", "--port", action="store", help="listen port", required
 parser.add_argument("-r", "--refresh", action="store", help="time to wait in seconds before refreshing", type=int, default=5)
 parser.add_argument("-s", "--service", action="store", help="service name", type=str, default="service")
 parser.add_argument("-t", "--title", action="store", help="page title", type=str, default="Preparing your container...")
-parser.add_argument("-u", "--urlslug", action="store", help="image slug", type=str, default="base-image")
+parser.add_argument("-u", "--urlslug", action="store", help="image slug", type=str, default=os.environ.get('IMAGE_SLUG'))
 args = parser.parse_args()
 
 # set path and log file name
-base_dir = "/opt/ai-dock/fastapi/"
+base_dir = "/opt/ai-dock/fastapi/logviewer/"
 
 # create fastapi instance
 app = FastAPI()
@@ -65,7 +66,6 @@ async def websocket_endpoint_log(websocket: WebSocket) -> None:
         await websocket.close()
         
 @app.api_route("/{path_name:path}", methods=["GET"])
-@app.get("/")
 async def get(request: Request):
     context = {
         "title": args.title,

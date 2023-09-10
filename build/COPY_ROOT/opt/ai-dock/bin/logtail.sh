@@ -17,6 +17,9 @@ done
 # Needed for 'docker logs' and ssh users
 
 if [[ $sys_mode = "true" ]]; then
+    printf "Gathering logs..."
+    # Give processes time to create their logs
+    sleep 4
     tail -fn512 /var/log/supervisor/*.log | tee -a /var/log/logtail.log
 else
     tail -fn512 /var/log/supervisor/*.log

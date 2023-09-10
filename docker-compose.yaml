@@ -55,6 +55,10 @@ services:
     ports:
         # SSH available on host machine port 2222 to avoid conflict. Change to suit
         - ${SSH_PORT_HOST}:${SSH_PORT}
+        # redirect to Cloudflare quick tunnel
+        - ${REDIRECTOR_PORT_HOST}:1111
+        # Websocket log viewer
+        - ${LOG_VIEWER_PORT_HOST}:1122
         # Rclone webserver for interactive configuration
         - ${RCLONE_PORT_HOST}:53682
    
@@ -64,4 +68,5 @@ services:
         - SSH_PORT=${SSH_PORT}
         - WORKSPACE=${WORKSPACE}
         - CF_TUNNEL_TOKEN=${CF_TUNNEL_TOKEN}
+        - CF_QUICK_TUNNELS=${CF_QUICK_TUNNELS}
         #- PROVISIONING_SCRIPT=https://raw.githubusercontent.com/ai-dock/base-image/main/config/provisioning/default.sh
