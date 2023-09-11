@@ -18,5 +18,5 @@ printf "Starting log service...\n"
 logtail.sh -s &
 micromamba -n fastapi run python /opt/ai-dock/fastapi/logviewer/main.py \
     -p $PORT \
-    -r 1 \
+    -r 0 \
     -t "Container Logs"
