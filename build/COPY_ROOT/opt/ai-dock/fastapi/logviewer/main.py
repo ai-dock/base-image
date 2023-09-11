@@ -72,7 +72,8 @@ async def get(request: Request):
         "urlslug": args.urlslug,
         "service": args.service,
         "refresh": args.refresh,
-        "log_file": args.file
+        "log_file": args.file,
+        "cloud": os.environ.get('CLOUD_PROVIDER')
     }
     return templates.TemplateResponse("index.html", {
         "request": request, 

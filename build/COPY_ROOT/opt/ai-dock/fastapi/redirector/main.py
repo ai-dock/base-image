@@ -58,7 +58,8 @@ def load_index(request: Request, message: str = "", status_code: int = 200):
     context = {
                 "message": message,
                 "services": services,
-                "urlslug": os.environ.get('IMAGE_SLUG')
+                "urlslug": os.environ.get('IMAGE_SLUG'),
+                "cloud": os.environ.get('CLOUD_PROVIDER')
             }
     return templates.TemplateResponse("index.html", {
         "request": request, 

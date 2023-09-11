@@ -28,16 +28,18 @@
             width: 150px;
             object-fit: contain;
         }
-        h1 {
+        div.message {
+            border: 2px solid #ED4337;
+            padding: 5px;
+        }
+        h1,h2 {
             justify-self: left;
             font-size: 1.1rem;
-            font-style: italic;
             padding: 0;
             margin: 10px 0;
         }
         a, a:visited {
             color: #0096FF;
-            font-style: italic;
             text-decoration: none;
         }
         
@@ -45,16 +47,19 @@
             display: grid;
             width: 100%;
             grid-template-columns: 1fr;
+            margin: 10px 0 20px 0;
+            border-radius: 5px;
+            overflow: hidden;
         }
         main div.row {
             display: grid;
             width: 100%;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr 2fr 2fr;
             justify-items: left;
             align-items: center;
         }
         main div.row:nth-of-type(odd) {
-            background: #eaeaea;
+            background: #F2F2F2;
         }
         main div.row div {
             padding: 5px;
@@ -80,7 +85,10 @@
             border-bottom: 1px solid #eee;
         }
         section#about p {
-            margin: 20px 0 10px 0;
+            margin: 0 0 10px 0;
+        }
+        section#about a, section#about a:visited {
+            font-style: italic;
         }
         footer {
             justify-self: center;
@@ -114,23 +122,29 @@
                 <img
                     id="logo"
                     alt="ai-dock logo"
-                    src="{{url_for('static', path='ai-dock-logo.png')}}"
+                    src="https://res.cloudinary.com/dnijlgpto/image/upload/f_auto,q_auto/v1/ai-dock/ic9zjqumz0cnakr6zzey?utm_content={{context.urlslug}}&utm_source={{context.cloud}}"
                 />
             </a>
-        <div class="message">{{ context.message }}</div>
+        {% if context.message %}
+            <div class="message">{{ context.message }}</div>
+        {% endif %}
         <h1 id="status">Service List</h1>
         <main id="links">
             <div class="row">
-                <div class="heading">Service Interface</div>
+                <div class="heading">Port</div>
+                <div class="heading">Service Name</div>
                 <div class="heading">Access Links</div>
             </div>
             {% for key, service in context.services.items() %}
                 <div class="row">
+                    <div>{{ service["port"] }}</div>
                     <div>{{ service["service_name"] }}</div>
                     <div>
                         <ul>
                         <li><a href="/cloudflare/{{ service["port"] }}">Cloudflare Tunnel</a></li>
-                        <li><a href="/direct/{{ service["port"] }}">Direct/Default</a></li>
+                        {% if context.cloud != "paperspace.com" %}
+                            <li><a href="/direct/{{ service["port"] }}">Direct/Default</a></li>
+                        {% endif %}
                         </ul>
                     </div>
                 </div>
@@ -138,8 +152,9 @@
         </main>
         
         <section id="about">
+            <h2>Information</h2>
             <p>This container is running image <a href="https://github.com/ai-dock/{{ context.urlslug }}" target="_blank">github.com/ai-dock/{{ context.urlslug }}</a>.</p>
-            <p>For help, or to leave feedback, please click the GitHub link above - It opens in a new browser tab.</p>
+            <p>For documentation, help, or to leave feedback, please click the GitHub link above - It opens in a new browser tab.</p>
         </section>
         
         <footer>
@@ -148,7 +163,7 @@
                 <li>
                     <a href="https://github.com/ai-dock" target="_blank">
                         <img 
-                            src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjxzdmcgZmlsbD0ibm9uZSIgaGVpZ2h0PSIyNSIgdmlld0JveD0iMCAwIDI1IDI1IiB3aWR0aD0iMjUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggY2xpcC1ydWxlPSJldmVub2RkIiBkPSJNMTUuNzQ4MSAyNC45NDcxQzI0LjA5MDEgMjQuNzA2MSAyNC45MTExIDIyLjk1MDEgMjQuOTExMSAxMi45ODExQzI0LjkxMTEgMS45ODEwOCAyMy45MTExIDAuOTgxMDc5IDEyLjkxMTEgMC45ODEwNzlDMS45MTExMyAwLjk4MTA3OSAwLjkxMTEzMyAxLjk4MTA4IDAuOTExMTMzIDEyLjk4MTFDMC45MTExMzMgMjIuOTc2MSAxLjczNzEzIDI0LjcxNTEgMTAuMTM5MSAyNC45NDkxQzEwLjIxMjEgMjQuODU4MSAxMC4yMzkxIDI0Ljc0NDEgMTAuMjM5MSAyNC42MjgxQzEwLjIzOTEgMjQuMzc4MSAxMC4yMjkxIDIxLjgxMjEgMTAuMjI0MSAyMC45MjkxQzcuMTg3MTMgMjEuNTY4MSA2LjU0NjEzIDE5LjUxMDEgNi41NDYxMyAxOS41MTAxQzYuMDQ5MTMgMTguMjg4MSA1LjMzMzEzIDE3Ljk2MjEgNS4zMzMxMyAxNy45NjIxQzQuMzQyMTMgMTcuMzA2MSA1LjQwODEzIDE3LjMxOTEgNS40MDgxMyAxNy4zMTkxQzYuNTA0MTMgMTcuMzk0MSA3LjA4MTEzIDE4LjQxMDEgNy4wODExMyAxOC40MTAxQzguMDU1MTMgMjAuMDI3MSA5LjYzNzEzIDE5LjU2MDEgMTAuMjU5MSAxOS4yODkxQzEwLjM1ODEgMTguNjA2MSAxMC42NDAxIDE4LjEzOTEgMTAuOTUyMSAxNy44NzUxQzguNTI3MTMgMTcuNjA4MSA1Ljk3ODEzIDE2LjcwMDEgNS45NzgxMyAxMi42NDUxQzUuOTc4MTMgMTEuNDkwMSA2LjQwNDEzIDEwLjU0NjEgNy4xMDIxMyA5LjgwNjA4QzYuOTg5MTMgOS41MzgwOCA2LjYxNTEzIDguNDYyMDggNy4yMDkxMyA3LjAwNjA4QzcuMjA5MTMgNy4wMDYwOCA4LjEyNjEzIDYuNzIxMDggMTAuMjEyMSA4LjA5MDA4QzExLjA4MzEgNy44NTUwOCAxMi4wMTcxIDcuNzM4MDggMTIuOTQ2MSA3LjczNDA4QzEzLjg3MzEgNy43MzgwOCAxNC44MDcxIDcuODU1MDggMTUuNjgwMSA4LjA5MDA4QzE3Ljc2NTEgNi43MjEwOCAxOC42ODAxIDcuMDA2MDggMTguNjgwMSA3LjAwNjA4QzE5LjI3NjEgOC40NjIwOCAxOC45MDExIDkuNTM4MDggMTguNzg4MSA5LjgwNjA4QzE5LjQ4ODEgMTAuNTQ2MSAxOS45MTExIDExLjQ5MDEgMTkuOTExMSAxMi42NDUxQzE5LjkxMTEgMTYuNzEwMSAxNy4zNTgxIDE3LjYwNTEgMTQuOTI1MSAxNy44NjYxQzE1LjMxNzEgMTguMTkzMSAxNS42NjYxIDE4LjgzOTEgMTUuNjY2MSAxOS44MjYxQzE1LjY2NjEgMjAuNzcyMSAxNS42NjAxIDIyLjQ0NTEgMTUuNjU2MSAyMy41NTQxQzE1LjY1NDEgMjQuMTAzMSAxNS42NTMxIDI0LjUxMzEgMTUuNjUzMSAyNC42MjgxQzE1LjY1MzEgMjQuNzM3MSAxNS42ODIxIDI0Ljg1MjEgMTUuNzQ4MSAyNC45NDcxVjI0Ljk0NzFaIiBmaWxsPSJibGFjayIgZmlsbC1ydWxlPSJldmVub2RkIi8+PC9zdmc+"
+                            src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjwhRE9DVFlQRSBzdmcgIFBVQkxJQyAnLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4nICAnaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkJz48c3ZnIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDUwIDUwIiBpZD0iTGF5ZXJfMSIgdmVyc2lvbj0iMS4xIiB2aWV3Qm94PSIwIDAgNTAgNTAiIHhtbDpzcGFjZT0icHJlc2VydmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiPjxwYXRoIGQ9Ik00NSwxSDVDMi44LDEsMSwyLjgsMSw1djQwYzAsMi4yLDEuOCw0LDQsNGg0MGMyLjIsMCw0LTEuOCw0LTRWNUM0OSwyLjgsNDcuMiwxLDQ1LDF6IiBmaWxsPSIjMjgyODI4Ii8+PHBhdGggZD0iTTMwLjQsNDBoLTRoLTRjMCwwLDAtMi40LDAtNGMtNS41LDEuMi03LTMtNy0zYy0xLTItMi0zLTItM2MtMi0xLjIsMC0xLDAtMWMyLDAsMywyLDMsMiAgYzEuOCwzLDQuOSwyLjUsNiwyYzAtMSwwLjQtMi41LDEtM2MtNC40LTAuNS04LTMtOC04czEtNiwyLTdjLTAuMi0wLjUtMS0yLjMsMC01YzAsMCwyLDAsNCwzYzEtMSw0LTEsNS0xYzEsMCw0LDAsNSwxYzItMyw0LTMsNC0zICBjMS4xLDIuNywwLjIsNC41LDAsNWMxLDEsMiwyLDIsN3MtMy42LDcuNS04LDhjMC42LDAuNSwxLDIuMiwxLDNMMzAuNCw0MEwzMC40LDQweiIgZmlsbD0iI0ZGRkZGRiIgaWQ9IkNhdF8yXyIvPjwvc3ZnPg=="
                             alt="GitHub logo"
                         />
                     </a>
