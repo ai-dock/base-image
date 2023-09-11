@@ -137,6 +137,7 @@ Micromamba environments are particularly useful where several software packages 
 | -------------- | ----------------------------------------- |
 | `base`         | micromamba's base environment |
 | `system`       | `supervisord`, `openssh`, `rclone` |
+| `fastapi`      | `logtail web UI`, `port redirector web UI` |
 
 If you are extending this image or running an interactive session where additional software is required, you should almost certainly create a new environment first. See below for guidance.
 
@@ -181,6 +182,25 @@ All processes are managed by [supervisord](https://supervisord.readthedocs.io/en
 
 >[!NOTE]  
 >*Some of the included services would not normally be found **inside** of a container. They are, however, necessary here as some cloud providers give no access to the host; Containers are deployed as if they were a virtual machine.*
+
+### Port Redirector
+
+This is a simple list of links to the web services available inside the container.
+
+The service will bind to port `1111`.
+
+For each service, you will find a direct link and, if you have set `CF_QUICK_TUNNELS=true`, a link to the service via a fast and secure Cloudflare tunnel.
+
+>[!NOTE]  
+>*This service will not show links to any pre-configured Cloudflare tunnels as the domains are static and already known to the user.*
+
+### Log Viewer
+
+The web based log viewer will start on port `1122`.
+
+It's a very lightweight websocket based stream of the latest updates in `/var/log/logtail.log`.
+
+This service will also be accessible on any other exposed ports until the program designated to that port is ready to use.
 
 ### Cloudflared
 
@@ -260,9 +280,11 @@ If you are logged into the container you can follow the logs by running `logtail
 
 Some ports need to be open for the services to run or for certain features of the provided software to function
 
-| Open Port             | Service / Description |
-| --------------------- | --------------------- |
-| `22`                  | SSH server            |
+| Open Port             | Service / Description     |
+| --------------------- | ------------------------- |
+| `22`                  | SSH server                |
+| `1111`                | Port redirector web UI    |
+| `1122`                | Log viewer web UI         |
 | `53682`               | Rclone interactive config |
 
 ## Pre-Configured Templates

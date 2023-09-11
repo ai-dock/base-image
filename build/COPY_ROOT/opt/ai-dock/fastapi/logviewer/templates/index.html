@@ -179,6 +179,7 @@
         const terminal = document.getElementById("terminal");
         const anchor = document.getElementById("anchor");
         let has_scrolled = false;
+        let indicator = ".";
         
         let refresh_page_in = function(secs) {
             setTimeout(function(){
@@ -186,10 +187,18 @@
             }, secs * 1000);
         }
         
+        let count = -1;
         ws_log.onmessage = function (event) {
+            count++;
+            if (count >= 4) {
+                 count = 0
+            }
             const logs = document.getElementById("logs");
             let log_data = event.data;
-            logs.innerHTML = log_data;
+            status.innerHTML = "{{context.title}}" + indicator.repeat(count);
+            if (log_data !== "") {
+                logs.innerHTML = log_data;
+            }
             if ((logs.offsetHeight > terminal.offsetHeight) && has_scrolled == false) {
                 has_scrolled = true;
                 anchor.scrollIntoView(
@@ -200,12 +209,16 @@
             }
         };
         ws_log.onclose = function (event) {
-            status.innerHTML = "Checking container state..."
-            refresh_page_in({{ context.refresh }});
+            status.innerHTML = "Checking container state...";
+            if ({{ context.refresh }} > 0) {
+                refresh_page_in({{ context.refresh }});
+            }
         }
         ws_log.onerror = function (event) {
-            status.innerHTML = "Checking container state..."
-            refresh_page_in({{ context.refresh }});
+            status.innerHTML = "Checking container state...";
+            if ({{ context.refresh }} > 0) {
+                refresh_page_in({{ context.refresh }});
+            }
         }
     </script>
   </body>
