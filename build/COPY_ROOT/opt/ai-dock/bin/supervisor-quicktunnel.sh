@@ -12,7 +12,7 @@ if [[ -z $PROC_NUM ]]; then
 fi
 
 # Give processes time to register their ports
-sleep 2
+sleep 3
 port_files=(/run/http_ports/*)
 port=${port_files[$PROC_NUM]##*/}
 mport=$(jq -r .metrics_port ${port_files[$PROC_NUM]})

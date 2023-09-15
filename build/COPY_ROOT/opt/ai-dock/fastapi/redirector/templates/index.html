@@ -141,7 +141,9 @@
                     <div>{{ service["service_name"] }}</div>
                     <div>
                         <ul>
-                        <li><a href="/cloudflare/{{ service["port"] }}">Cloudflare Tunnel</a></li>
+                        {% if context.tunnels == "true" %}
+                            <li><a href="/cloudflare/{{ service["port"] }}">Cloudflare Tunnel</a></li>
+                        {% endif %}
                         {% if context.cloud != "paperspace.com" %}
                             <li><a href="/direct/{{ service["port"] }}">Direct/Default</a></li>
                         {% endif %}

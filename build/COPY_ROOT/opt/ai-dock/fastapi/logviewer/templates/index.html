@@ -181,17 +181,42 @@
         let has_scrolled = false;
         let indicator = ".";
         
-        let refresh_page_in = function(secs) {
-            setTimeout(function(){
-                location.reload();
-            }, secs * 1000);
+        let sleep = function(s) {
+            return new Promise(resolve => setTimeout(resolve, s*1000));
+        }
+        
+        let refresh_page = async function(timer = 3) {
+            let alive = false;
+            let response;
+            let randomNum;
+            
+            //  wait until the page is available
+            while (!alive) {
+                try {
+                    status.innerHTML = "Checking container state...";
+                    await sleep(1);
+                    randomNum = Math.round(Math.random() * 10000);
+                    response = await fetch(document.location + '?rand=' + randomNum);
+                    if (!response.ok) {
+                        throw new Error('Bad response');
+                    } else {
+                        alive = true;
+                        document.location.reload();
+                    }
+                } catch (error) {
+                    status.innerHTML = "Checking container state... Awaiting service launch.";
+                    console.log('Container not ready. Retry in ' + timer + ' seconds');
+                    await sleep(timer-1);
+                }
+            }
+            document.location.reload();
         }
         
         let count = -1;
         ws_log.onmessage = function (event) {
             count++;
             if (count >= 4) {
-                 count = 0
+                 count = 0;
             }
             const logs = document.getElementById("logs");
             let log_data = event.data;
@@ -211,13 +236,13 @@
         ws_log.onclose = function (event) {
             status.innerHTML = "Checking container state...";
             if ({{ context.refresh }} > 0) {
-                refresh_page_in({{ context.refresh }});
+                refresh_page({{ context.refresh }});
             }
         }
         ws_log.onerror = function (event) {
             status.innerHTML = "Checking container state...";
-            if ({{ context.refresh }} > 0) {
-                refresh_page_in({{ context.refresh }});
+            if ({{ context.refresh }}) {
+                refresh_page({{ context.refresh }});
             }
         }
     </script>

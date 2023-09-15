@@ -65,8 +65,7 @@ $MAMBA_INSTALL -n fastapi -c conda-forge \
     uvicorn=0.23 \
     fastapi=0.103 \
     jinja2=3.1 \
-    websockets \
-    requests
+    websockets
 
 
 # We will use a config from /etc
