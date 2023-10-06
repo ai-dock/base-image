@@ -120,7 +120,7 @@ You can set your credentials by passing environment variables as shown above.
 
 The password is stored as a bcrypt hash. If you prefer not to pass a plain text password to the container you can pre-hash and use the variable `WEB_PASSWORD_HASH`.
 
-If you are running the image locally on a trusted metwork, you may disable authentication by setting the environment variable `WEB_ENABLE_AUTH=false`.
+If you are running the image locally on a trusted network, you may disable authentication by setting the environment variable `WEB_ENABLE_AUTH=false`.
 
 ## Provisioning script
 
