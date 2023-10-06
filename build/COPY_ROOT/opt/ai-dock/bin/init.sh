@@ -17,9 +17,9 @@ function init_main() {
     init_set_web_credentials
     init_count_gpus
     init_count_quicktunnels
+    init_count_rclone_remotes
     init_set_workspace
     init_set_cf_tunnel_wanted
-    init_mount_rclone_remotes
     init_cloud_context
     init_create_logfiles
     touch /run/provisioning_script
@@ -29,6 +29,7 @@ function init_main() {
     # Redirect output to files - Logtail will now handle
     init_move_mamba_envs
     init_move_apps
+    init_set_workspace_permissions
     rm /run/workspace_moving
     init_source_preflight_script > /var/log/supervisor/preflight.log 2>&1
     init_write_bashrc
@@ -117,7 +118,7 @@ function init_count_quicktunnels() {
     if [[ ! $CF_QUICK_TUNNELS = "true" ]]; then
         export CF_QUICK_TUNNELS_COUNT=0
     else
-        export CF_QUICK_TUNNELS_COUNT=$(($(grep -l "METRICS_PORT" /opt/ai-dock/bin/supervisor-*.sh | wc -l)+1))
+        export CF_QUICK_TUNNELS_COUNT=$(grep -l "METRICS_PORT" /opt/ai-dock/bin/supervisor-*.sh | wc -l)
     fi
 }
 
@@ -141,16 +142,6 @@ function init_set_workspace() {
         printf "%b" "${no_mount_warning}"
         touch "${no_mount_warning_file}"
         printf "%b" "${no_mount_warning}" > "${no_mount_warning_file}"
-    fi
-    
-    # Ensure the workspace owner can access files from outside of the container
-    WORKSPACE_UID=$(stat -c '%u' "$WORKSPACE")
-    export WORKSPACE_UID
-    WORKSPACE_GID=$(stat -c '%g' "$WORKSPACE")
-    export WORKSPACE_GID
-    if [[ -z $SKIP_ACL ]]; then
-        setfacl -d -m u:"${WORKSPACE_UID}":rwx "${WORKSPACE}"
-        setfacl -d -m m:rwx "${WORKSPACE}"
     fi
 }
 
@@ -212,6 +203,19 @@ init_move_apps() {
 done
 }
 
+init_set_workspace_permissions() {
+    # Ensure the workspace owner can access files from outside of the container
+    WORKSPACE_UID=$(stat -c '%u' "$WORKSPACE")
+    export WORKSPACE_UID
+    WORKSPACE_GID=$(stat -c '%g' "$WORKSPACE")
+    export WORKSPACE_GID
+    if [[ ${SKIP_ACL,,} != 'false' && $WORKSPACE_UID -gt 0 ]]; then
+        setfacl -R -d -m u:"${WORKSPACE_UID}":rwx "${WORKSPACE}"
+        setfacl -R -d -m m:rwx "${WORKSPACE}"
+        chown -R ${WORKSPACE_UID}.${WORKSPACE_GID} "${WORKSPACE}"
+    fi
+}
+
 
 function init_set_cf_tunnel_wanted() {
     if [[ -n $CF_TUNNEL_TOKEN ]]; then
@@ -221,7 +225,7 @@ function init_set_cf_tunnel_wanted() {
     fi
 }
 
-function init_mount_rclone_remotes() {
+function init_count_rclone_remotes() {
     # Determine if rclone mount will be possible
     mount_env_warning_file="${WORKSPACE}remote/WARNING-CANNOT-MOUNT-REMOTES.txt"
     no_remotes_warning_file="${WORKSPACE}remote/WARNING-NO-REMOTES-CONFIGURED.txt"
