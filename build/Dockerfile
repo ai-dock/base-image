@@ -17,7 +17,7 @@ ENV LANG C.UTF-8
 SHELL ["/bin/bash", "-c"]
 ENV SHELL="/bin/bash"
 ENV DEBIAN_FRONTEND=noninteractive
-ENV PATH=/opt/ai-dock/bin:/opt/micromamba/bin:$PATH
+ENV PATH=/opt/ai-dock/bin:/opt/micromamba/bin:/opt/caddy/bin:$PATH
 ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
 ENV PYTHONUNBUFFERED=true
 ENV APT_INSTALL="apt-get install -y --no-install-recommends"
@@ -26,13 +26,6 @@ ENV MAMBA_CREATE="micromamba create --always-softlink -y"
 ENV MAMBA_INSTALL="micromamba install --always-softlink -y"
 ENV MAMBA_ROOT_PREFIX=/opt/micromamba
 ENV MAMBA_EXE="/opt/micromamba/bin/micromamba"
-ENV MAMBA_BASE_ENV="system"
-ENV MAMBA_BASE_RUN="micromamba run -n $MAMBA_BASE_ENV"
-ARG MAMBA_DEFAULT_ENV="system"
-ENV MAMBA_DEFAULT_ENV=${MAMBA_DEFAULT_ENV}
-ENV MAMBA_DEFAULT_RUN="micromamba run -n $MAMBA_DEFAULT_ENV"
-ARG MAMBA_BASE_PYTHON_VERSION=3.10
-ENV MAMBA_BASE_PYTHON_VERSION=${MAMBA_BASE_PYTHON_VERSION}
 ENV RCLONE_CONFIG="/etc/rclone/rclone.conf"
 # Copy early so we can use scripts in the build - Changes to these files will invalidate the cache and cause a rebuild.
 COPY ./COPY_ROOT/ /

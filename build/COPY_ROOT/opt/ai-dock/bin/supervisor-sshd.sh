@@ -25,6 +25,5 @@ if ! id -u sshd > /dev/null 2>&1; then
 fi
 
 printf "Starting SSH server...\n"
-micromamba -n ${MAMBA_BASE_ENV} run /opt/micromamba/envs/"${MAMBA_BASE_ENV}"/bin/ssh-keygen -A
-
-micromamba -n ${MAMBA_BASE_ENV} run /opt/micromamba/envs/"${MAMBA_BASE_ENV}"/bin/sshd -D -p $SSH_PORT
+/usr/bin/ssh-keygen -A
+/usr/sbin/sshd -D -p $SSH_PORT

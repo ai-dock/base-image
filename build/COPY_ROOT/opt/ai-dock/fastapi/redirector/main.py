@@ -125,15 +125,15 @@ def get_services():
     for file in get_service_files():
         with open(file) as dataFile:
             data = json.load(dataFile)
-        services[data["port"]] = data
+        services[data["proxy_port"]] = data
     return services
         
 # set parameters to run uvicorn
 if __name__ == "__main__":
     uvicorn.run(
         "main:app",
-        host="0.0.0.0",
-        port=1111,
+        host="127.0.0.1",
+        port=1811,
         log_level="info",
         reload=False,
         workers=1,

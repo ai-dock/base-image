@@ -22,7 +22,7 @@ if [[ $? -ne 0 && ! -f /dev/fuse ]]; then
     exit 0
 else
     # As array
-    readarray -t REMOTES < <($MABMA_BASE_RUN rclone listremotes)
+    readarray -t REMOTES < <(rclone listremotes)
 fi
 
 if [ ${#REMOTES[@]} -eq 0 ]; then
@@ -49,7 +49,7 @@ chown "$WORKSPACE_UID.$WORKSPACE_GID" "$cache_dir"
 mkdir -p "${local_path}"
 chown "$WORKSPACE_UID.$WORKSPACE_GID" "$local_path"
 
-$MABMA_BASE_RUN rclone mount \
+rclone mount \
     --allow-non-empty \
     --allow-other \
     --uid "$WORKSPACE_UID" \

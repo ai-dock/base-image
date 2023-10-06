@@ -137,15 +137,15 @@
             </div>
             {% for key, service in context.services.items() %}
                 <div class="row">
-                    <div>{{ service["port"] }}</div>
+                    <div>{{ service["proxy_port"] }}</div>
                     <div>{{ service["service_name"] }}</div>
                     <div>
                         <ul>
                         {% if context.tunnels == "true" %}
-                            <li><a href="/cloudflare/{{ service["port"] }}">Cloudflare Tunnel</a></li>
+                            <li><a href="/cloudflare/{{ service["proxy_port"] }}">Cloudflare Tunnel</a></li>
                         {% endif %}
                         {% if context.cloud != "paperspace.com" %}
-                            <li><a href="/direct/{{ service["port"] }}">Direct/Default</a></li>
+                            <li><a href="/direct/{{ service["proxy_port"] }}">Direct/Default</a></li>
                         {% endif %}
                         </ul>
                     </div>

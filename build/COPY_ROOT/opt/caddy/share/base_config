@@ -1,0 +1,19 @@
+{
+    auto_https off
+}
+
+(fwauth) {
+  forward_auth :88 {
+		uri /
+		copy_headers Remote-User Remote-Groups Remote-Name Remote-Email
+	}
+}
+
+:88 {
+  basicauth * {
+		{$WEB_USER} {$WEB_PASSWORD_HASH}
+	}
+}
+
+# Auto-generated below this line
+

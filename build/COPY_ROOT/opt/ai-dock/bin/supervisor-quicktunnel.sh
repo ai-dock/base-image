@@ -14,16 +14,16 @@ fi
 # Give processes time to register their ports
 sleep 3
 port_files=(/run/http_ports/*)
-port=${port_files[$PROC_NUM]##*/}
-mport=$(jq -r .metrics_port ${port_files[$PROC_NUM]})
+proxy_port=$(jq -r .proxy_port ${port_files[$PROC_NUM]})
+metrics_port=$(jq -r .metrics_port ${port_files[$PROC_NUM]})
 
-
-if [[ -z $port || -z $mport ]]; then
+if [[ -z $proxy_port || -z $metrics_port ]]; then
     printf "port not configured\n"
     exit 1
 else
-    tunnel="--url localhost:${port}"
-    metrics="--metrics localhost:${mport}"
+    # Tunnel the proxy port so we get authentication
+    tunnel="--url localhost:${proxy_port}"
+    metrics="--metrics localhost:${metrics_port}"
 fi
 
 cloudflared tunnel ${metrics} ${tunnel}
