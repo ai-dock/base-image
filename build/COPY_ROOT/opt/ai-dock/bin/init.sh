@@ -167,7 +167,7 @@ function init_move_mamba_envs() {
 init_move_apps() {
   for item in /opt/*; do
     dir="$(basename $item)"
-    if [[ ! -d $item || $dir = "ai-dock" || $dir = "caddy" || $dir = "micromamba" ]]; then
+    if [[ ! -d $item || $dir = "ai-dock" || $dir = "caddy" || $dir = "micromamba" || $dir = "nvidia" ]]; then
         continue
     fi
     

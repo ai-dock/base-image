@@ -103,6 +103,7 @@ You can use the included `cloudflared` service to make secure connections withou
 | `WEB_USER`            | Username for web services (default `user`) |
 | `WEB_PASSWORD`        | Password for web services (default `password`) |
 | `WORKSPACE`           | A volume path. Defaults to `/workspace/` |
+| `WORKSPACE_SYNC`      | Move mamba environments and services to workspace if mounted (default `true`) |
 
 Environment variables can be specified by using any of the standard methods (`docker-compose.yaml`, `docker run -e...`). Additionally, environment variables can also be passed as parameters of `init.sh`.
 

@@ -59,7 +59,6 @@ jobs:
           build-args: |
             IMAGE_BASE=ubuntu:${{ env.UBUNTU_VERSION }}
             XPU_TARGET=CPU
-            MAMBA_DEFAULT_ENV=system
           push: true
           # Avoids unknown/unknown architecture and extra metadata
           provenance: false
@@ -132,7 +131,6 @@ jobs:
             XPU_TARGET=NVIDIA_GPU
             CUDA_VERSION=${{ matrix.cuda }}
             CUDA_LEVEL=${{ matrix.level }}
-            MAMBA_DEFAULT_ENV=system
           push: true
           provenance: false
           tags: ${{ env.TAGS }}
@@ -143,8 +141,8 @@ jobs:
       fail-fast: false
       matrix:
         rocm:
-          - 5.4.2
-          - 5.6
+          - "5.4.2"
+          - "5.6"
         level:
           - "core"
           - "runtime"
@@ -196,7 +194,6 @@ jobs:
             XPU_TARGET=AMD_GPU
             ROCM_VERSION=${{ matrix.rocm }}
             ROCM_LEVEL=${{ matrix.level }}
-            MAMBA_DEFAULT_ENV=system
           push: true
           provenance: false
           tags: ${{ env.TAGS }}
