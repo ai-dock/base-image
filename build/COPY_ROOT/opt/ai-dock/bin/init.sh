@@ -27,9 +27,9 @@ function init_main() {
     # Allow autostart processes to run early
     supervisord -c /etc/supervisor/supervisord.conf &
     # Redirect output to files - Logtail will now handle
-    init_move_mamba_envs
-    init_move_apps
-    init_set_workspace_permissions
+    init_move_mamba_envs >> /var/log/supervisor/sync.log 2>&1
+    init_move_apps >> /var/log/supervisor/sync.log 2>&1
+    init_set_workspace_permissions >> /var/log/supervisor/sync.log 2>&1
     rm /run/workspace_moving
     init_source_preflight_script > /var/log/supervisor/preflight.log 2>&1
     init_write_bashrc
@@ -157,7 +157,7 @@ function init_move_mamba_envs() {
   else
       printf "Moving mamba environments to ${WORKSPACE}...\n"
       rm -rf ${WORKSPACE}micromamba
-      rsync -az /opt/micromamba ${WORKSPACE} && \
+      rsync -az --info=progress2 /opt/micromamba ${WORKSPACE} && \
         rm -rf /opt/micromamba/* && \
         echo 1 > ${WORKSPACE}micromamba/.move_complete && \
         link-mamba-envs.sh
@@ -187,7 +187,7 @@ init_move_apps() {
                 fi
             else
                 printf "Moving %s to %s\n" $opt_dir $ws_dir
-                rsync -az $opt_dir $ws_dir
+                rsync -az --info=progress2 $opt_dir $ws_dir
                 rm -rf $opt_dir
             fi
             printf "Creating symlink from %s to %s\n" $ws_dir $opt_dir
@@ -268,7 +268,7 @@ function init_cloud_context() {
 
 # Ensure the files logtail needs to display during init
 function init_create_logfiles() {
-    touch /var/log/supervisor/{debug.log,preflight.log,provisioning.log}
+    touch /var/log/supervisor/{debug.log,preflight.log,provisioning.log,sync.log}
 }
 
 function init_source_preflight_script() {
