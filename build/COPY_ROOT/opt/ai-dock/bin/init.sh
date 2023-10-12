@@ -187,7 +187,7 @@ init_move_apps() {
                 fi
             else
                 printf "Moving %s to %s\n" $opt_dir $ws_dir
-                rsync -az --info=progress2 $opt_dir $ws_dir
+                rsync -az --info=progress2 $opt_dir $WORKSPACE
                 rm -rf $opt_dir
             fi
             printf "Creating symlink from %s to %s\n" $ws_dir $opt_dir

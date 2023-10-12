@@ -23,6 +23,7 @@ $APT_INSTALL \
     libelf1 \
     libglib2.0-0 \
     lsb-release \
+    lsof \
     nano \
     openssh-server \
     python3-pip \
