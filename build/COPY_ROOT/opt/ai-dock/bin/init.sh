@@ -15,10 +15,10 @@ function init_main() {
     init_set_envs "$@"
     init_set_ssh_keys
     init_set_web_credentials
+    init_set_workspace
     init_count_gpus
     init_count_quicktunnels
     init_count_rclone_remotes
-    init_set_workspace
     init_set_cf_tunnel_wanted
     init_cloud_context
     init_create_logfiles

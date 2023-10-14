@@ -80,3 +80,7 @@ mkdir -p /run/sshd
 mkdir -p /var/empty
 mkdir -p /etc/rclone
 touch /etc/rclone/rclone.conf
+
+# Git config
+
+git config --global --add safe.directory "*"

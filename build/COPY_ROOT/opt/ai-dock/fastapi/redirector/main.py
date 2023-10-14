@@ -9,6 +9,12 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 import uvicorn
+import argparse
+ 
+parser = argparse.ArgumentParser(description="Require port and service name",
+                                 formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser.add_argument("-p", "--port", action="store", help="listen port", required="True", type=int)
+args = parser.parse_args()
 
 base_dir = "/opt/ai-dock/fastapi/redirector/"
 
@@ -133,7 +139,7 @@ if __name__ == "__main__":
     uvicorn.run(
         "main:app",
         host="127.0.0.1",
-        port=1811,
+        port=args.port,
         log_level="info",
         reload=False,
         workers=1,

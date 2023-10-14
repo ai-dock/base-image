@@ -142,7 +142,7 @@
                     <div>
                         <ul>
                         {% if context.tunnels == "true" %}
-                            <li><a href="/cloudflare/{{ service["proxy_port"] }}">Cloudflare Tunnel</a></li>
+                            <li><a href="/cloudflare/{{ service["proxy_port"] }}">Cloudflare Secured</a></li>
                         {% endif %}
                         {% if context.cloud != "paperspace.com" %}
                             <li><a href="/direct/{{ service["proxy_port"] }}">Direct/Default</a></li>
