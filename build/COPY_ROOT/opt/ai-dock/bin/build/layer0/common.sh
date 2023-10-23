@@ -6,10 +6,18 @@ set -eo pipefail
 apt-get update
 apt-get upgrade -y --no-install-recommends
 
+function download() {
+  set +e
+  while ! wget -c -O $1 $2
+  do echo "will retry in 2 seconds"; sleep 2; done
+  set -e
+}
+
 # System packages
 $APT_INSTALL \
     acl \
     bc \
+    build-essential \
     bzip2 \
     ca-certificates \
     curl \
@@ -48,11 +56,13 @@ $APT_INSTALL \
 
 # Get caddy server
 mkdir -p /opt/caddy/bin
-curl -Ls https://github.com/caddyserver/caddy/releases/download/v2.7.4/caddy_2.7.4_linux_amd64.tar.gz | tar -xz -C /opt/caddy
+download caddy.tar.gz https://github.com/caddyserver/caddy/releases/download/v2.7.5/caddy_2.7.5_linux_amd64.tar.gz 
+tar -xf caddy.tar.gz -C /opt/caddy
+rm caddy.tar.gz
 mv /opt/caddy/caddy /opt/caddy/bin
 
 # Get Cloudflare daemon
-curl -Lso cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+download cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
 dpkg -i cloudflared.deb
 rm cloudflared.deb
 
@@ -72,6 +82,14 @@ mkdir -p /opt/micromamba
 cd /opt/micromamba
 curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba
 micromamba shell init --shell bash --root-prefix=/opt/micromamba
+
+# Cloud helpers - Serverless support
+$MAMBA_CREATE -n vast -c conda-forge python=3.10
+
+$MAMBA_CREATE -n runpod -c conda-forge python=3.10
+micromamba run -n runpod $PIP_INSTALL \
+  runpod
+
 
 # Ensure critical paths/files are present
 mkdir -p --mode=0755 /etc/apt/keyrings

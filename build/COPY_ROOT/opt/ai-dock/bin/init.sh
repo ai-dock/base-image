@@ -13,6 +13,7 @@ function init_cleanup() {
 
 function init_main() {
     init_set_envs "$@"
+    init_cloud_context
     init_set_ssh_keys
     init_set_web_credentials
     init_set_workspace
@@ -20,26 +21,44 @@ function init_main() {
     init_count_quicktunnels
     init_count_rclone_remotes
     init_set_cf_tunnel_wanted
-    init_cloud_context
     init_create_logfiles
     touch /run/provisioning_script
-    touch /run/workspace_moving
+    touch /run/workspace_syncing
+    # Opportunity to process & manipulate config before supervisor
+    init_source_config_script
     # Allow autostart processes to run early
     supervisord -c /etc/supervisor/supervisord.conf &
     # Redirect output to files - Logtail will now handle
-    init_move_mamba_envs >> /var/log/supervisor/sync.log 2>&1
-    init_move_apps >> /var/log/supervisor/sync.log 2>&1
-    init_set_workspace_permissions >> /var/log/supervisor/sync.log 2>&1
-    rm /run/workspace_moving
-    init_source_preflight_script > /var/log/supervisor/preflight.log 2>&1
+    init_sync_mamba_envs >> /var/log/sync.log 2>&1
+    init_sync_opt >> /var/log/sync.log 2>&1
+    init_set_workspace_permissions >> /var/log/sync.log 2>&1
+    rm /run/workspace_syncing
+    init_source_preflight_script > /var/log/preflight.log 2>&1
     init_write_bashrc
-    init_debug_print > /var/log/supervisor/debug.log 2>&1
-    init_get_provisioning_script > /var/log/supervisor/provisioning.log 2>&1
-    init_source_provisioning_script >> /var/log/supervisor/provisioning.log 2>&1
+    init_debug_print > /var/log/debug.log 2>&1
+    init_get_provisioning_script > /var/log/provisioning.log 2>&1
+    init_source_provisioning_script >> /var/log/provisioning.log 2>&1
     # Removal of this file will trigger fastapi shutdown and service start
     rm /run/provisioning_script
     # Don't exit unless supervisord is killed
     wait
+}
+
+# A trimmed down init suitable for serverless infrastructure
+init_serverless() {
+  init_set_envs "$@"
+  export CF_QUICK_TUNNELS_COUNT=0
+  export RCLONE_MOUNT_COUNT=0
+  export SUPERVISOR_START_CLOUDFLARED=0
+  init_cloud_context
+  init_set_workspace
+  init_count_gpus
+  init_create_logfiles
+  init_sync_mamba_envs >> /var/log/sync.log 2>&1
+  init_sync_opt >> /var/log/sync.log 2>&1
+  init_source_preflight_script > /var/log/preflight.log 2>&1
+  init_write_bashrc
+  supervisord -c /etc/supervisor/supervisord.conf
 }
 
 function init_set_envs() {
@@ -115,7 +134,7 @@ function init_count_gpus() {
 
 function init_count_quicktunnels() {
     mkdir -p /run/http_ports
-    if [[ ! $CF_QUICK_TUNNELS = "true" ]]; then
+    if [[ ! ${CF_QUICK_TUNNELS,,} = "true" ]]; then
         export CF_QUICK_TUNNELS_COUNT=0
     else
         export CF_QUICK_TUNNELS_COUNT=$(grep -l "METRICS_PORT" /opt/ai-dock/bin/supervisor-*.sh | wc -l)
@@ -145,7 +164,7 @@ function init_set_workspace() {
     fi
 }
 
-function init_move_mamba_envs() {
+function init_sync_mamba_envs() {
   if [[ $WORKSPACE_MOUNTED = "false" ]]; then
       printf "No mount: Mamba environments remain in /opt\n"
   elif [[ ${WORKSPACE_SYNC,,} = "false" ]]; then
@@ -155,52 +174,82 @@ function init_move_mamba_envs() {
       rm -rf /opt/micromamba/*
       link-mamba-envs.sh
   else
-      printf "Moving mamba environments to ${WORKSPACE}...\n"
-      rm -rf ${WORKSPACE}micromamba
-      rsync -az --info=progress2 /opt/micromamba ${WORKSPACE} && \
-        rm -rf /opt/micromamba/* && \
-        echo 1 > ${WORKSPACE}micromamba/.move_complete && \
-        link-mamba-envs.sh
+      # Complete the copy if not serverless
+      if [[ ${SERVERLESS,,} != 'true' ]]; then
+          printf "Moving mamba environments to ${WORKSPACE}...\n"
+          rm -rf ${WORKSPACE}micromamba
+          rsync -az --info=progress2 /opt/micromamba ${WORKSPACE} && \
+            rm -rf /opt/micromamba/* && \
+            printf 1 > ${WORKSPACE}micromamba/.move_complete && \
+            link-mamba-envs.sh
+      fi
   fi
 }
 
-init_move_apps() {
-  for item in /opt/*; do
+init_sync_opt() {
+  IFS=: read -r -d '' -a path_array < <(printf '/opt/%s:\0' "$OPT_SYNC")
+  for item in "${path_array[@]}"; do
     dir="$(basename $item)"
-    if [[ ! -d $item || $dir = "ai-dock" || $dir = "caddy" || $dir = "micromamba" || $dir = "nvidia" ]]; then
+    if [[ ! -d $item || $dir = 'opt' ]]; then
         continue
     fi
     
     ws_dir=${WORKSPACE}${dir}
+    ws_backup_link=${ws_dir}-link
     opt_dir="/opt/${dir}"
     
+    # Restarting stopped container
+    if [[ -d $ws_dir && -L $opt_dir && ${WORKSPACE_SYNC,,} != "false" ]]; then
+        printf "%s already symlinked to %s\n" $opt_dir $ws_dir
+        continue
+    fi
+    
+    # Reset symlinks first
+    if [[ -L $opt_dir ]]; then rm $opt_dir; fi
+    if [[ -L $ws_dir ]]; then rm $ws_dir ${ws_dir}-link; fi
+    
+    # Sanity check
+    # User broke something - Container requires tear-down & restart
+    if [[ ! -d $opt_dir && ! -d $ws_dir ]]; then
+        printf "Critical directory ${opt_dir} is missing without a backup!\n"
+        continue
+    fi
+    
+    # Copy & delete directories
     if [[ $WORKSPACE_MOUNTED = "true" && ${WORKSPACE_SYNC,,} != "false" ]]; then
-        if [[ -d $ws_dir && -L $opt_dir ]]; then
-            printf "%s already symlinked to %s\n" $opt_dir $ws_dir
-        else
-            if [[ -L $ws_dir ]]; then
-                rm $ws_dir
+        # Found a Successfully copied directory
+        if [[ -d $ws_dir && -f $ws_dir/.move_complete ]]; then
+            # Delete the container copy
+            if [[ -d $opt_dir && ! -L $opt_dir ]]; then
+                rm -rf ${opt_dir}
             fi
-            if [[ -d $ws_dir ]]; then
-                if [[ -d $opt_dir && ! -L $opt_dir ]]; then
-                    rm -rf ${opt_dir}
-                fi
-            else
+        # No/incomplete workspace copy
+        else
+            # Complete the copy if not serverless
+            if [[ ${SERVERLESS,,} != 'true' ]]; then
                 printf "Moving %s to %s\n" $opt_dir $ws_dir
-                rsync -az --info=progress2 $opt_dir $WORKSPACE
+                rsync -az --info=progress2 $opt_dir $WORKSPACE && \
+                printf 1 > $ws_dir/.move_complete && \
                 rm -rf $opt_dir
             fi
-            printf "Creating symlink from %s to %s\n" $ws_dir $opt_dir
-            ln -s $ws_dir $opt_dir
-        fi
-    else 
-        # Should be a symlink unless user has moved things - We can't handle that
-        if [[ ! -e $ws_dir ]]; then
-            printf "Creating symlink from %s to %s\n" $opt_dir $ws_dir
-            ln -sf $opt_dir $ws_dir
         fi
     fi
-done
+    
+    # Create symlinks
+    # Use container version over existing workspace version
+    if [[ -d $opt_dir && -d $ws_dir ]]; then
+        printf "Ignoring %s and creating symlink to %s at %s\n" $ws_dir $opt_dir $ws_backup_link
+        ln -s $opt_dir $ws_backup_link
+    # Use container version
+    elif [[ -d $opt_dir ]]; then
+        printf "Creating symlink to %s at %s\n" $opt_dir $ws_dir
+        ln -s $opt_dir $ws_dir
+    # Use workspace version
+    elif [[ -d $ws_dir ]]; then
+        printf "Creating symlink to %s at %s\n" $ws_dir $opt_dir
+        ln -s $ws_dir $opt_dir
+    fi
+  done
 }
 
 init_set_workspace_permissions() {
@@ -209,7 +258,7 @@ init_set_workspace_permissions() {
     export WORKSPACE_UID
     WORKSPACE_GID=$(stat -c '%g' "$WORKSPACE")
     export WORKSPACE_GID
-    if [[ ${SKIP_ACL,,} != 'false' && $WORKSPACE_UID -gt 0 ]]; then
+    if [[ ${WORKSPACE_SYNC,,} != 'false' && ${SKIP_ACL,,} != 'false' && $WORKSPACE_UID -gt 0 ]]; then
         setfacl -R -d -m u:"${WORKSPACE_UID}":rwx "${WORKSPACE}"
         setfacl -R -d -m m:rwx "${WORKSPACE}"
         chown -R ${WORKSPACE_UID}.${WORKSPACE_GID} "${WORKSPACE}"
@@ -268,7 +317,17 @@ function init_cloud_context() {
 
 # Ensure the files logtail needs to display during init
 function init_create_logfiles() {
-    touch /var/log/supervisor/{debug.log,preflight.log,provisioning.log,sync.log}
+    touch /var/log/{logtail.log,config.log,debug.log,preflight.log,provisioning.log,sync.log}
+}
+
+function init_source_config_script() {
+    # Child images can provide in their PATH
+    printf "Looking for config.sh...\n"
+    if [[ ! -f /opt/ai-dock/bin/config.sh ]]; then
+        printf "Not found\n"
+    else
+        source /opt/ai-dock/bin/config.sh
+    fi
 }
 
 function init_source_preflight_script() {
@@ -347,4 +406,8 @@ function init_debug_print() {
     fi
 }
 
-init_main "$@"; exit
+if [[ ${SERVERLESS,,} != 'true' ]]; then
+    init_main "$@"; exit
+else
+    init_serverless "$@"; exit
+fi

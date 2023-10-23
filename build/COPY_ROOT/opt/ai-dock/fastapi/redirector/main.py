@@ -28,18 +28,32 @@ app.mount("/static", StaticFiles(directory=str(Path(base_dir, "static"))), name=
 async def get(request: Request):
     return load_index(request)
 
-@app.get("/cloudflare/{port}")
+@app.get("/namedtunnel/{port}")
 async def get(request: Request, port: str):
     try:
         if not is_valid_port(int(port)):
             return load_index(request, "Port not valid", 400)
-        url = get_cf_url(port)
+        url = get_cfnt_url(port)
         if url:
             return RedirectResponse(url)
     except:
         return load_index(request, "Port not valid", 400)
     
     return load_index(request, "Unable to load Cloudflare tunnel for port " + port, 404)
+
+@app.get("/quicktunnel/{port}")
+async def get(request: Request, port: str):
+    try:
+        if not is_valid_port(int(port)):
+            return load_index(request, "Port not valid", 400)
+        url = get_cfqt_url(port)
+        if url:
+            return RedirectResponse(url)
+    except:
+        return load_index(request, "Port not valid", 400)
+    
+    return load_index(request, "Unable to load Cloudflare quick tunnel for port " + port, 404)
+
     
 @app.get("/direct/{port}")
 async def get(request: Request, port: str):
@@ -66,7 +80,8 @@ def load_index(request: Request, message: str = "", status_code: int = 200):
                 "services": services,
                 "urlslug": os.environ.get('IMAGE_SLUG'),
                 "cloud": os.environ.get('CLOUD_PROVIDER'),
-                'tunnels': os.environ.get('CF_QUICK_TUNNELS')
+                'quicktunnels': True if os.environ.get('CF_QUICK_TUNNELS') == "true" else False,
+                'namedtunnels': True if os.environ.get('SUPERVISOR_START_CLOUDFLARED') == "1" else False
             }
     return templates.TemplateResponse("index.html", {
         "request": request, 
@@ -74,7 +89,17 @@ def load_index(request: Request, message: str = "", status_code: int = 200):
         "status": status_code
         })
 
-def get_cf_url(port):
+def get_cfnt_url(port):
+    process = subprocess.run(['cfnt-url.sh', '-p', port], 
+                         stdout=subprocess.PIPE, 
+                         universal_newlines=True)
+    output = process.stdout.strip()
+    scheme = urlparse(output).scheme
+    if scheme:
+        return output
+    return False
+
+def get_cfqt_url(port):
     process = subprocess.run(['cfqt-url.sh', '-p', port], 
                          stdout=subprocess.PIPE, 
                          universal_newlines=True)

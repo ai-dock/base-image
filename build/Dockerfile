@@ -19,6 +19,7 @@ ENV SHELL="/bin/bash"
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PATH=/opt/ai-dock/bin:/opt/micromamba/bin:/opt/caddy/bin:$PATH
 ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+ENV OPT_SYNC=serverless
 ENV PYTHONUNBUFFERED=true
 ENV APT_INSTALL="apt-get install -y --no-install-recommends"
 ENV PIP_INSTALL="pip install --no-cache-dir"

@@ -18,11 +18,16 @@ done
 
 if [[ $sys_mode = "true" ]]; then
     printf "Gathering logs..."
-    # Give processes time to create their logs
-    sleep 4
-    tail -fn512 /var/log/supervisor/*.log | tee -a /var/log/logtail.log
+    # Give processes time to create their logs before start
+    sleep 1
+    tail -fn512 /var/log/config.log \
+                /var/log/sync.log \
+                /var/log/preflight.log \
+                /var/log/debug.log \
+                /var/log/provisioning.log \
+                /var/log/supervisor/*.log | tee -a /var/log/logtail.log
 else
-    tail -fn512 /var/log/supervisor/*.log
+    tail -fn512 /var/log/logtail.log
 fi
 
 wait

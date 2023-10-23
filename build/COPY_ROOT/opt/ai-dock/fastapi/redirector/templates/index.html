@@ -5,6 +5,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Rubik&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.4.2/css/all.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         :root {
@@ -12,7 +13,36 @@
         }
         body {
             font-family: 'Rubik', sans-serif;
+            color: #333333;
             padding: 0;
+        }
+        #stripe {
+          position: fixed;
+          z-index: 1000;
+          display: grid;
+          justify-items: center;
+          align-items: center;
+          top: 0;
+          width: 100%;
+          background: #000;
+        }
+        .one-row {
+          position: relative;
+          width: 1920px;
+          max-width: 94vw;
+          display: grid;
+          align-items: center;
+          justify-items: center;
+          padding: 8px 5px 0 5px;
+        }
+        ul#github-buttons {
+          margin: 0;
+          padding: 0;
+        }
+        ul#github-buttons li {
+          list-style: none;
+          margin-right: 10px;
+          display: inline-block;
         }
         .one-col {
             display: grid;
@@ -21,7 +51,7 @@
             grid-template-columns: 1fr;
             justify-items: center;
             margin: 5px auto;
-            padding: 5px;
+            padding: 40px 5px 5px 5px;
         }
         img#logo {
             height: 50px;
@@ -29,8 +59,12 @@
             object-fit: contain;
         }
         div.message {
-            border: 2px solid #ED4337;
             padding: 5px;
+            text-align: center;
+        }
+        .fa-triangle-exclamation {
+          margin: 10px 0;
+          color: #D0342C;
         }
         h1,h2 {
             justify-self: left;
@@ -38,8 +72,12 @@
             padding: 0;
             margin: 10px 0;
         }
+        .fa-link {
+            color: #485e82;
+            margin-right: 3px;
+        }
         a, a:visited {
-            color: #0096FF;
+            color: inherit;
             text-decoration: none;
         }
         
@@ -113,10 +151,21 @@
             width: 30px;
         }
     </style>
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
     <title>Port Redirector</title>
   </head>
 
   <body>
+      <div id="stripe">
+        <div class="one-row">
+          <ul id=github-buttons>
+          <li><a class="github-button" href="https://github.com/ai-dock/{{ context.urlslug }}" data-icon="octicon-star" data-show-count="true" aria-label="Star ai-dock/{{ context.urlslug }} on GitHub">Star</a></li>
+          <li><a class="github-button" href="https://github.com/ai-dock/{{ context.urlslug }}/issues" data-icon="octicon-issue-opened" data-show-count="true" aria-label="Issue ai-dock/{{ context.urlslug }} on GitHub">Issues</a></li>
+          <li><a class="github-button" href="https://github.com/orgs/ai-dock/discussions" data-icon="octicon-comment-discussion" aria-label="Discuss ai-dock on GitHub">Discuss</a></li>
+          <li><a class="github-button" href="https://github.com/sponsors/ai-dock" data-icon="octicon-heart" aria-label="Sponsor @ai-dock on GitHub">Sponsor</a></li>
+          </ul>
+        </div>
+      </div>
       <div class="one-col">
             <a href="https://github.com/ai-dock" target="_blank">
                 <img
@@ -126,7 +175,9 @@
                 />
             </a>
         {% if context.message %}
-            <div class="message">{{ context.message }}</div>
+            <div class="message"><i class="fa-solid fa-triangle-exclamation fa-2xl"></i> 
+                <p>{{ context.message }}</p>
+            </div>
         {% endif %}
         <h1 id="status">Service List</h1>
         <main id="links">
@@ -141,11 +192,14 @@
                     <div>{{ service["service_name"] }}</div>
                     <div>
                         <ul>
-                        {% if context.tunnels == "true" %}
-                            <li><a href="/cloudflare/{{ service["proxy_port"] }}">Cloudflare Secured</a></li>
+                        {% if context.namedtunnels == True %}
+                            <li><i class="fa-solid fa-fw fa-link"></i> <a href="/namedtunnel/{{ service["proxy_port"] }}">Cloudflare Named Tunnel</a></li>
+                        {% endif %}
+                        {% if context.quicktunnels == True %}
+                            <li><i class="fa-solid fa-fw fa-link"></i> <a href="/quicktunnel/{{ service["proxy_port"] }}">Cloudflare Quick Tunnel</a></li>
                         {% endif %}
                         {% if context.cloud != "paperspace.com" %}
-                            <li><a href="/direct/{{ service["proxy_port"] }}">Direct/Default</a></li>
+                            <li><i class="fa-solid fa-fw fa-link"></i> <a href="/direct/{{ service["proxy_port"] }}">Direct/Default</a></li>
                         {% endif %}
                         </ul>
                     </div>

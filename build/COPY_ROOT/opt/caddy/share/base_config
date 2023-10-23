@@ -1,5 +1,8 @@
 {
     auto_https off
+	log {
+        level warn
+    }
 }
 
 (fwauth) {

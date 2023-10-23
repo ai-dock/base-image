@@ -12,7 +12,36 @@
         }
         body {
             font-family: 'Rubik', sans-serif;
+            color: #333333;
             padding: 0;
+        }
+        #stripe {
+          position: fixed;
+          z-index: 1000;
+          display: grid;
+          justify-items: center;
+          align-items: center;
+          top: 0;
+          width: 100%;
+          background: #000;
+        }
+        .one-row {
+          position: relative;
+          width: 1920px;
+          max-width: 94vw;
+          display: grid;
+          align-items: center;
+          justify-items: center;
+          padding: 8px 5px 0 5px;
+        }
+        ul#github-buttons {
+          margin: 0;
+          padding: 0;
+        }
+        ul#github-buttons li {
+          list-style: none;
+          margin-right: 10px;
+          display: inline-block;
         }
         .one-col {
             display: grid;
@@ -21,7 +50,7 @@
             grid-template-columns: 1fr;
             justify-items: center;
             margin: 5px auto;
-            padding: 5px;
+            padding: 40px 5px 5px 5px;
         }
         img#logo {
             height: 50px;
@@ -38,8 +67,8 @@
             margin: 10px 0;
         }
         a, a:visited {
-            color: #0096FF;
             font-style: italic;
+            color: inherit;
             text-decoration: none;
         }
         main#terminal {
@@ -54,7 +83,8 @@
             max-height: 80vh;
             background: #000;
             font-family: 'Ubuntu Mono', monospace;
-            color: #fff;
+            word-break: break-all;
+            color: #fafafa;
             line-height: 1.5;
             overflow-y: scroll;
             border-radius: 5px;
@@ -107,10 +137,21 @@
             width: 30px;
         }
     </style>
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
     <title>{{  context.title  }}</title>
   </head>
 
   <body>
+    <div id="stripe">
+        <div class="one-row">
+          <ul id=github-buttons>
+          <li><a class="github-button" href="https://github.com/ai-dock/{{ context.urlslug }}" data-icon="octicon-star" data-show-count="true" aria-label="Star ai-dock/{{ context.urlslug }} on GitHub">Star</a></li>
+          <li><a class="github-button" href="https://github.com/ai-dock/{{ context.urlslug }}/issues" data-icon="octicon-issue-opened" data-show-count="true" aria-label="Issue ai-dock/{{ context.urlslug }} on GitHub">Issues</a></li>
+          <li><a class="github-button" href="https://github.com/orgs/ai-dock/discussions" data-icon="octicon-comment-discussion" aria-label="Discuss ai-dock on GitHub">Discuss</a></li>
+          <li><a class="github-button" href="https://github.com/sponsors/ai-dock" data-icon="octicon-heart" aria-label="Sponsor @ai-dock on GitHub">Sponsor</a></li>
+          </ul>
+        </div>
+      </div>
       <div class="one-col">
             <a href="https://github.com/ai-dock" target="_blank">
                 <img

@@ -46,7 +46,7 @@ services:
       - /etc/group:/etc/group:ro
       - ./config/rclone:/etc/rclone
       # Workspace
-      - ./workspace:${WORKSPACE}:rshared
+      - ./workspace:${WORKSPACE:-/workspace}:rshared
       # Will echo to root-owned authorized_keys file;
       # Avoids changing local file owner
       - ./config/authorized_keys:/root/.ssh/authorized_keys_mount
@@ -54,24 +54,23 @@ services:
       
     ports:
         # SSH available on host machine port 2222 to avoid conflict. Change to suit
-        - ${SSH_PORT_HOST}:${SSH_PORT}
+        - ${SSH_PORT_HOST:-2222}:${SSH_PORT:-22}
         # Redirect to Cloudflare quick tunnel
-        - ${REDIRECTOR_PORT_HOST}:1111
+        - ${REDIRECTOR_PORT_HOST:-1111}:1111
         # Websocket log viewer
-        - ${LOG_VIEWER_PORT_HOST}:1122
+        - ${LOG_VIEWER_PORT_HOST:-1122}:1122
         # Rclone webserver for interactive configuration
-        - ${RCLONE_PORT_HOST}:53682
+        - ${RCLONE_PORT_HOST:-53682}:53682
    
     environment:
         # Don't enclose values in quotes
         # Allows running true SSH alongside provider proxy SSH
-        - SSH_PORT=${SSH_PORT}
-        - WORKSPACE=${WORKSPACE}
-        - WORKSPACE_SYNC=${WORKSPACE_SYNC}
-        - CF_TUNNEL_TOKEN=${CF_TUNNEL_TOKEN}
-        - CF_QUICK_TUNNELS=${CF_QUICK_TUNNELS}
-        - WEB_ENABLE_AUTH=${WEB_ENABLE_AUTH}
-        - WEB_USER=${WEB_USER}
-        - WEB_PASSWORD=${WEB_PASSWORD}
-        
+        - WORKSPACE=${WORKSPACE:-/workspace}
+        - WORKSPACE_SYNC=${WORKSPACE_SYNC:-true}
+        - CF_TUNNEL_TOKEN=${CF_TUNNEL_TOKEN:-}
+        - CF_QUICK_TUNNELS=${CF_QUICK_TUNNELS:-true}
+        - WEB_ENABLE_AUTH=${WEB_ENABLE_AUTH:-true}
+        - WEB_USER=${WEB_USER:-user}
+        - WEB_PASSWORD=${WEB_PASSWORD:-password}
+        - SERVERLESS=${SERVERLESS:-false}
         #- PROVISIONING_SCRIPT=https://raw.githubusercontent.com/ai-dock/base-image/main/config/provisioning/default.sh
