@@ -24,7 +24,7 @@ function start() {
     
     if [[ ${CLOUD_PROVIDER} = "runpod.io" ]]; then
         micromamba -n runpod run \
-            python -u /opt/ai-dock/serverless/providers/runpod/worker.py
+            python -u /opt/serverless/providers/runpod/worker.py
     else
         printf "No serverless worker available in this environment"
     fi

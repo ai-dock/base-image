@@ -5,7 +5,7 @@ from importlib.machinery import SourceFileLoader
 def get_handler(payload):
     try:
         name = payload["handler"]
-        handler = SourceFileLoader(name,f"/opt/ai-dock/serverless/handlers/{name}.py").load_module()
+        handler = SourceFileLoader(name,f"/opt/serverless/handlers/{name}.py").load_module()
     except:
         raise IndexError("Handler not found")
     
