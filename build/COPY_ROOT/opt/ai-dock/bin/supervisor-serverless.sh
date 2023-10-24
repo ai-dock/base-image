@@ -14,8 +14,8 @@ function start() {
     
     # Delay launch until workspace is ready
     # This should never happen - Don't sync on serverless!
-    if [[ -f /run/workspace_moving || -f /run/provisioning_script ]]; then
-        while [[ -f /run/workspace_moving || -f /run/provisioning_script ]]; do
+    if [[ -f /run/workspace_sync || -f /run/container_config ]]; then
+        while [[ -f /run/workspace_sync || -f /run/container_config ]]; do
             sleep 1
         done
     fi

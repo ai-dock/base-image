@@ -16,30 +16,31 @@ function init_main() {
     init_cloud_context
     init_set_ssh_keys
     init_set_web_credentials
+    init_create_directories
+    init_create_logfiles
     init_set_workspace
     init_count_gpus
     init_count_quicktunnels
     init_count_rclone_remotes
     init_set_cf_tunnel_wanted
-    init_create_logfiles
-    touch /run/provisioning_script
-    touch /run/workspace_syncing
+    touch /run/container_config
+    touch /run/workspace_sync
     # Opportunity to process & manipulate config before supervisor
     init_source_config_script
+    init_write_environment
     # Allow autostart processes to run early
     supervisord -c /etc/supervisor/supervisord.conf &
     # Redirect output to files - Logtail will now handle
     init_sync_mamba_envs >> /var/log/sync.log 2>&1
     init_sync_opt >> /var/log/sync.log 2>&1
     init_set_workspace_permissions >> /var/log/sync.log 2>&1
-    rm /run/workspace_syncing
+    rm /run/workspace_sync
     init_source_preflight_script > /var/log/preflight.log 2>&1
-    init_write_bashrc
     init_debug_print > /var/log/debug.log 2>&1
     init_get_provisioning_script > /var/log/provisioning.log 2>&1
     init_source_provisioning_script >> /var/log/provisioning.log 2>&1
     # Removal of this file will trigger fastapi shutdown and service start
-    rm /run/provisioning_script
+    rm /run/container_config
     # Don't exit unless supervisord is killed
     wait
 }
@@ -47,17 +48,24 @@ function init_main() {
 # A trimmed down init suitable for serverless infrastructure
 init_serverless() {
   init_set_envs "$@"
+  touch "${WORKSPACE}.serverless_lock"
   export CF_QUICK_TUNNELS_COUNT=0
   export RCLONE_MOUNT_COUNT=0
   export SUPERVISOR_START_CLOUDFLARED=0
   init_cloud_context
   init_set_workspace
   init_count_gpus
+  init_create_directories
   init_create_logfiles
+  touch /run/container_config
+  touch /run/workspace_sync
+  init_source_config_script
+  init_write_environment
   init_sync_mamba_envs >> /var/log/sync.log 2>&1
   init_sync_opt >> /var/log/sync.log 2>&1
+  rm /run/workspace_sync
   init_source_preflight_script > /var/log/preflight.log 2>&1
-  init_write_bashrc
+  rm /run/container_config
   supervisord -c /etc/supervisor/supervisord.conf
 }
 
@@ -76,7 +84,7 @@ function init_set_envs() {
     
     # TODO: branch init.sh into common,nvidia,amd,cpu
     if [[ $XPU_TARGET == "AMD_GPU" ]]; then
-            export PATH=$PATH:/opt/rocm/bin
+        export PATH=$PATH:/opt/rocm/bin
     fi
 }
 
@@ -133,7 +141,6 @@ function init_count_gpus() {
 }
 
 function init_count_quicktunnels() {
-    mkdir -p /run/http_ports
     if [[ ! ${CF_QUICK_TUNNELS,,} = "true" ]]; then
         export CF_QUICK_TUNNELS_COUNT=0
     else
@@ -147,6 +154,10 @@ function init_set_workspace() {
     else
         ws_tmp="/$WORKSPACE/"
         export WORKSPACE=${ws_tmp//\/\//\/}
+    fi
+    
+    if [[ -f "${WORKSPACE}".serverless_lock ]]; then
+        export AUTO_UPDATE=false
     fi
 
     mkdir -p "${WORKSPACE}"remote/.cache
@@ -315,6 +326,10 @@ function init_cloud_context() {
     fi
 }
 
+function init_create_directories() {
+  mkdir -p /run/http_ports
+}
+
 # Ensure the files logtail needs to display during init
 function init_create_logfiles() {
     touch /var/log/{logtail.log,config.log,debug.log,preflight.log,provisioning.log,sync.log}
@@ -340,7 +355,7 @@ function init_source_preflight_script() {
     fi
 }
 
-function init_write_bashrc() {
+function init_write_environment() {
     # Ensure all variables available for interactive sessions
     env > /etc/environment
     while IFS='=' read -r -d '' key val; do
