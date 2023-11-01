@@ -31,7 +31,7 @@ function init_main() {
     # Allow autostart processes to run early
     supervisord -c /etc/supervisor/supervisord.conf &
     # Redirect output to files - Logtail will now handle
-    init_sync_mamba_envs >> /var/log/sync.log 2>&1
+    init_sync_mamba_envs > /var/log/sync.log 2>&1
     init_sync_opt >> /var/log/sync.log 2>&1
     init_set_workspace_permissions >> /var/log/sync.log 2>&1
     rm /run/workspace_sync
@@ -61,8 +61,8 @@ init_serverless() {
   touch /run/workspace_sync
   init_source_config_script
   init_write_environment
-  init_sync_mamba_envs > /var/log/sync.log | awk '{$1=$1};1' 2>&1
-  init_sync_opt > /var/log/sync.log | awk '{$1=$1};1' 2>&1
+  init_sync_mamba_envs > /var/log/sync.log 2>&1
+  init_sync_opt >> /var/log/sync.log 2>&1
   rm /run/workspace_sync
   init_source_preflight_script > /var/log/preflight.log 2>&1
   rm /run/container_config
@@ -194,7 +194,7 @@ function init_sync_mamba_envs() {
       if [[ ${SERVERLESS,,} != 'true' ]]; then
           printf "Moving mamba environments to ${WORKSPACE}...\n"
           rm -rf ${WORKSPACE}micromamba
-          rsync -az --info=progress2 --stats /opt/micromamba "${WORKSPACE}" && \
+          rsync -azh --info=progress2 --stats /opt/micromamba "${WORKSPACE}" | awk '{$1=$1};1' | sed 's/\r/\n/g' | uniq > "/var/log/sync_micromamba.log" 2>&1 && \
             rm -rf /opt/micromamba/* && \
             printf 1 > ${WORKSPACE}micromamba/.move_complete && \
             link-mamba-envs.sh
@@ -243,7 +243,7 @@ init_sync_opt() {
             # Complete the copy if not serverless
             if [[ ${SERVERLESS,,} != 'true' ]]; then
                 printf "Moving %s to %s\n" $opt_dir $ws_dir
-                rsync -az --info=progress2 --stats "$opt_dir" "$WORKSPACE" && \
+                rsync -azh --info=progress2 --stats "$opt_dir" "$WORKSPACE" | awk '{$1=$1};1' | sed 's/\r/\n/g' | uniq > "/var/log/sync_${item}.log" 2>&1 && \
                 printf 1 > $ws_dir/.move_complete && \
                 rm -rf "$opt_dir"
             fi
@@ -336,7 +336,16 @@ function init_create_directories() {
 
 # Ensure the files logtail needs to display during init
 function init_create_logfiles() {
-    touch /var/log/{logtail.log,config.log,debug.log,preflight.log,provisioning.log,sync.log}
+    touch /var/log/{logtail.log,config.log,debug.log,preflight.log,provisioning.log,sync.log,sync_micromamba.log}
+    IFS=: read -r -d '' -a path_array < <(printf '%s:\0' "$OPT_SYNC")
+    for item in "${path_array[@]}"; do
+        opt_dir="/opt/${item}"
+        if [[ ! -d $opt_dir || $opt_dir = "/opt/"  ]]; then
+            continue
+        fi
+        logfile="/var/log/sync_${item}.log"
+        touch "$logfile"
+    done
 }
 
 function init_source_config_script() {
