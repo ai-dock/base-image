@@ -61,8 +61,8 @@ init_serverless() {
   touch /run/workspace_sync
   init_source_config_script
   init_write_environment
-  init_sync_mamba_envs >> /var/log/sync.log 2>&1
-  init_sync_opt >> /var/log/sync.log 2>&1
+  init_sync_mamba_envs > /var/log/sync.log | awk '{$1=$1};1' 2>&1
+  init_sync_opt > /var/log/sync.log | awk '{$1=$1};1' 2>&1
   rm /run/workspace_sync
   init_source_preflight_script > /var/log/preflight.log 2>&1
   rm /run/container_config
@@ -194,7 +194,7 @@ function init_sync_mamba_envs() {
       if [[ ${SERVERLESS,,} != 'true' ]]; then
           printf "Moving mamba environments to ${WORKSPACE}...\n"
           rm -rf ${WORKSPACE}micromamba
-          rsync -az --info=progress2 /opt/micromamba "${WORKSPACE}" >> /var/log/sync.log 2>&1 && \
+          rsync -az --info=progress2 --stats /opt/micromamba "${WORKSPACE}" && \
             rm -rf /opt/micromamba/* && \
             printf 1 > ${WORKSPACE}micromamba/.move_complete && \
             link-mamba-envs.sh
@@ -243,7 +243,7 @@ init_sync_opt() {
             # Complete the copy if not serverless
             if [[ ${SERVERLESS,,} != 'true' ]]; then
                 printf "Moving %s to %s\n" $opt_dir $ws_dir
-                rsync -az --info=progress2 "$opt_dir" "$WORKSPACE"  >> /var/log/sync.log 2>&1 && \
+                rsync -az --info=progress2 --stats "$opt_dir" "$WORKSPACE" && \
                 printf 1 > $ws_dir/.move_complete && \
                 rm -rf "$opt_dir"
             fi
