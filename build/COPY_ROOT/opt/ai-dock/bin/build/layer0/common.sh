@@ -24,6 +24,7 @@ $APT_INSTALL \
     dos2unix \
     fuse3 \
     git \
+    git-lfs \
     gpg \
     jq \
     less \

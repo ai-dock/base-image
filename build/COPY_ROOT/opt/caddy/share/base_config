@@ -1,5 +1,5 @@
 {
-    auto_https off
+  auto_https off
 	log {
         level warn
     }
@@ -14,7 +14,7 @@
 
 :88 {
   basicauth * {
-		{$WEB_USER} {$WEB_PASSWORD_HASH}
+		import /opt/caddy/etc/basicauth
 	}
 }
 

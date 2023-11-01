@@ -13,11 +13,11 @@ function init_cleanup() {
 
 function init_main() {
     init_set_envs "$@"
-    init_cloud_context
-    init_set_ssh_keys
-    init_set_web_credentials
     init_create_directories
     init_create_logfiles
+    init_set_ssh_keys
+    init_set_web_credentials
+    init_cloud_context
     init_set_workspace
     init_count_gpus
     init_count_quicktunnels
@@ -113,16 +113,21 @@ function init_set_ssh_keys() {
 
 init_set_web_credentials() {
   if [[ -z $WEB_USER ]]; then
-     export WEB_USER=user
+      WEB_USER=user
+  fi
+
+  if [[ -z $WEB_PASSWORD && -z $WEB_PASSWORD_HASH ]]; then
+      WEB_PASSWORD=password
+  elif [[ -z $WEB_PASSWORD ]]; then
+      WEB_PASSWORD="********"
+  fi
+
+  if [[ $WEB_PASSWORD != "********" ]]; then
+      WEB_PASSWORD_HASH=$(hash-password.sh -p $WEB_PASSWORD -r 15)
+      export WEB_PASSWORD="********"
   fi
   
-  if [[ -z $WEB_PASSWORD_HASH ]]; then
-      if [[ -z $WEB_PASSWORD ]]; then
-          WEB_PASSWORD=password
-      fi
-      export WEB_PASSWORD_HASH=$(hash-password.sh -p $WEB_PASSWORD -r 15)
-      export WEB_PASSWORD="******"
-  fi
+  printf "%s %s" "$WEB_USER" "$WEB_PASSWORD_HASH" > /opt/caddy/etc/basicauth
 }
 
 function init_count_gpus() {
@@ -189,7 +194,7 @@ function init_sync_mamba_envs() {
       if [[ ${SERVERLESS,,} != 'true' ]]; then
           printf "Moving mamba environments to ${WORKSPACE}...\n"
           rm -rf ${WORKSPACE}micromamba
-          rsync -az --info=progress2 /opt/micromamba ${WORKSPACE} && \
+          rsync -az --info=progress2 /opt/micromamba "${WORKSPACE}" >> /var/log/sync.log 2>&1 && \
             rm -rf /opt/micromamba/* && \
             printf 1 > ${WORKSPACE}micromamba/.move_complete && \
             link-mamba-envs.sh
@@ -198,16 +203,15 @@ function init_sync_mamba_envs() {
 }
 
 init_sync_opt() {
-  IFS=: read -r -d '' -a path_array < <(printf '/opt/%s:\0' "$OPT_SYNC")
+  IFS=: read -r -d '' -a path_array < <(printf '%s:\0' "$OPT_SYNC")
   for item in "${path_array[@]}"; do
-    dir="$(basename $item)"
-    if [[ ! -d $item || $dir = 'opt' ]]; then
+    opt_dir="/opt/${item}"
+    if [[ ! -d $opt_dir || $opt_dir = "/opt/"  ]]; then
         continue
     fi
     
-    ws_dir=${WORKSPACE}${dir}
+    ws_dir=${WORKSPACE}${item}
     ws_backup_link=${ws_dir}-link
-    opt_dir="/opt/${dir}"
     
     # Restarting stopped container
     if [[ -d $ws_dir && -L $opt_dir && ${WORKSPACE_SYNC,,} != "false" ]]; then
@@ -216,8 +220,8 @@ init_sync_opt() {
     fi
     
     # Reset symlinks first
-    if [[ -L $opt_dir ]]; then rm $opt_dir; fi
-    if [[ -L $ws_dir ]]; then rm $ws_dir ${ws_dir}-link; fi
+    if [[ -L $opt_dir ]]; then rm "$opt_dir"; fi
+    if [[ -L $ws_dir ]]; then rm "$ws_dir" "${ws_dir}-link"; fi
     
     # Sanity check
     # User broke something - Container requires tear-down & restart
@@ -232,16 +236,16 @@ init_sync_opt() {
         if [[ -d $ws_dir && -f $ws_dir/.move_complete ]]; then
             # Delete the container copy
             if [[ -d $opt_dir && ! -L $opt_dir ]]; then
-                rm -rf ${opt_dir}
+                rm -rf "$opt_dir"
             fi
         # No/incomplete workspace copy
         else
             # Complete the copy if not serverless
             if [[ ${SERVERLESS,,} != 'true' ]]; then
                 printf "Moving %s to %s\n" $opt_dir $ws_dir
-                rsync -az --info=progress2 $opt_dir $WORKSPACE && \
+                rsync -az --info=progress2 "$opt_dir" "$WORKSPACE"  >> /var/log/sync.log 2>&1 && \
                 printf 1 > $ws_dir/.move_complete && \
-                rm -rf $opt_dir
+                rm -rf "$opt_dir"
             fi
         fi
     fi
@@ -250,15 +254,15 @@ init_sync_opt() {
     # Use container version over existing workspace version
     if [[ -d $opt_dir && -d $ws_dir ]]; then
         printf "Ignoring %s and creating symlink to %s at %s\n" $ws_dir $opt_dir $ws_backup_link
-        ln -s $opt_dir $ws_backup_link
+        ln -s "$opt_dir" "$ws_backup_link"
     # Use container version
     elif [[ -d $opt_dir ]]; then
         printf "Creating symlink to %s at %s\n" $opt_dir $ws_dir
-        ln -s $opt_dir $ws_dir
+        ln -s "$opt_dir" "$ws_dir"
     # Use workspace version
     elif [[ -d $ws_dir ]]; then
         printf "Creating symlink to %s at %s\n" $ws_dir $opt_dir
-        ln -s $ws_dir $opt_dir
+        ln -s "$ws_dir" "$opt_dir"
     fi
   done
 }
@@ -275,7 +279,6 @@ init_set_workspace_permissions() {
         chown -R ${WORKSPACE_UID}.${WORKSPACE_GID} "${WORKSPACE}"
     fi
 }
-
 
 function init_set_cf_tunnel_wanted() {
     if [[ -n $CF_TUNNEL_TOKEN ]]; then
@@ -328,6 +331,7 @@ function init_cloud_context() {
 
 function init_create_directories() {
   mkdir -p /run/http_ports
+  mkdir -p /opt/caddy/etc
 }
 
 # Ensure the files logtail needs to display during init

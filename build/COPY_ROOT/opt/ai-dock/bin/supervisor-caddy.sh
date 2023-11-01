@@ -17,7 +17,6 @@ function start() {
     sleep 2
     port_files="/run/http_ports/*"
     
-    mkdir -p /opt/caddy/etc/
     cp -f /opt/caddy/share/base_config /opt/caddy/etc/Caddyfile
     
     for service in $port_files; do
