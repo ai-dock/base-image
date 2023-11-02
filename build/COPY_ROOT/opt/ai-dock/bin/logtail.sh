@@ -22,7 +22,6 @@ if [[ $sys_mode = "true" ]]; then
     sleep 1
     tail -fn512 /var/log/config.log \
                 /var/log/sync.log \
-                /var/log/sync_*.log \
                 /var/log/preflight.log \
                 /var/log/debug.log \
                 /var/log/provisioning.log \

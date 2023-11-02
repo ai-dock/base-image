@@ -192,12 +192,16 @@ function init_sync_mamba_envs() {
   else
       # Complete the copy if not serverless
       if [[ ${SERVERLESS,,} != 'true' ]]; then
-          printf "Moving mamba environments to ${WORKSPACE}...\n"
           rm -rf ${WORKSPACE}micromamba
-          rsync -azh --info=progress2 --stats /opt/micromamba "${WORKSPACE}" | awk '{$1=$1};1' | sed 's/\r/\n/g' | uniq > "/var/log/sync_micromamba.log" 2>&1 && \
-            rm -rf /opt/micromamba/* && \
-            printf 1 > ${WORKSPACE}micromamba/.move_complete && \
-            link-mamba-envs.sh
+          printf "Moving mamba environments to %s...\n" "${WORKSPACE}"
+          while sleep 10; do printf "Waiting for workspace mamba sync...\n"; done &
+          rsync -azh --stats /opt/micromamba "${WORKSPACE}"
+          kill $!
+          wait $! 2>/dev/null
+          printf "Moved mamba environments to %s\n" "${WORKSPACE}"
+          rm -rf "/opt/micromamba/*"
+          printf 1 > ${WORKSPACE}micromamba/.move_complete
+          link-mamba-envs.sh
       fi
   fi
 }
@@ -226,7 +230,7 @@ init_sync_opt() {
     # Sanity check
     # User broke something - Container requires tear-down & restart
     if [[ ! -d $opt_dir && ! -d $ws_dir ]]; then
-        printf "Critical directory ${opt_dir} is missing without a backup!\n"
+        printf "\U274C Critical directory ${opt_dir} is missing without a backup!\n"
         continue
     fi
     
@@ -242,9 +246,13 @@ init_sync_opt() {
         else
             # Complete the copy if not serverless
             if [[ ${SERVERLESS,,} != 'true' ]]; then
-                printf "Moving %s to %s\n" $opt_dir $ws_dir
-                rsync -azh --info=progress2 --stats "$opt_dir" "$WORKSPACE" | awk '{$1=$1};1' | sed 's/\r/\n/g' | uniq > "/var/log/sync_${item}.log" 2>&1 && \
-                printf 1 > $ws_dir/.move_complete && \
+                printf "Moving %s to %s\n" "$opt_dir" "$ws_dir"
+                while sleep 10; do printf "Waiting for workspace application sync...\n"; done &
+                rsync -azh --stats "$opt_dir" "$WORKSPACE"
+                kill $!
+                wait $! 2>/dev/null
+                printf "Moved %s to %s\n" "$opt_dir" "$ws_dir"
+                printf 1 > $ws_dir/.move_complete
                 rm -rf "$opt_dir"
             fi
         fi
@@ -336,16 +344,7 @@ function init_create_directories() {
 
 # Ensure the files logtail needs to display during init
 function init_create_logfiles() {
-    touch /var/log/{logtail.log,config.log,debug.log,preflight.log,provisioning.log,sync.log,sync_micromamba.log}
-    IFS=: read -r -d '' -a path_array < <(printf '%s:\0' "$OPT_SYNC")
-    for item in "${path_array[@]}"; do
-        opt_dir="/opt/${item}"
-        if [[ ! -d $opt_dir || $opt_dir = "/opt/"  ]]; then
-            continue
-        fi
-        logfile="/var/log/sync_${item}.log"
-        touch "$logfile"
-    done
+    touch /var/log/{logtail.log,config.log,debug.log,preflight.log,provisioning.log,sync.log}
 }
 
 function init_source_config_script() {
