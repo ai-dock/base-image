@@ -19,8 +19,7 @@ function start() {
         # Not in container with sufficient privileges
         printf "Environment unsuitable for rclone mount...\n"
         printf "rclone remains available via CLI\n"
-        sleep 3
-        exit 0
+        exec sleep 10
     else
         # As array
         readarray -t REMOTES < <(rclone listremotes)
@@ -28,8 +27,7 @@ function start() {
     
     if [ ${#REMOTES[@]} -eq 0 ]; then
         printf "No remotes configured for rclone\n"
-        sleep 3
-        exit 0
+        exec sleep 10
     fi
     
     if [[ -z $PROC_NUM ]]; then
@@ -50,7 +48,7 @@ function start() {
     mkdir -p "${local_path}"
     chown "$WORKSPACE_UID.$WORKSPACE_GID" "$local_path"
     
-    rclone mount \
+    exec rclone mount \
         --allow-non-empty \
         --allow-other \
         --uid "$WORKSPACE_UID" \

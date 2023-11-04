@@ -16,7 +16,7 @@ parser = argparse.ArgumentParser(description="Require port and service name",
 parser.add_argument("-p", "--port", action="store", help="listen port", required="True", type=int)
 args = parser.parse_args()
 
-base_dir = "/opt/ai-dock/fastapi/redirector/"
+base_dir = "/opt/ai-dock/fastapi/serviceportal/"
 
 app = FastAPI()
 
@@ -36,6 +36,8 @@ async def get(request: Request, port: str):
         url = get_cfnt_url(port)
         if url:
             return RedirectResponse(url)
+        else:
+            return load_index(request, "Unable to load Cloudflare tunnel for port " + port, 404)
     except:
         return load_index(request, "Port not valid", 400)
     
@@ -49,6 +51,8 @@ async def get(request: Request, port: str):
         url = get_cfqt_url(port)
         if url:
             return RedirectResponse(url)
+        else:
+            return load_index(request, "Unable to load Cloudflare quick tunnel for port " + port, 404)
     except:
         return load_index(request, "Port not valid", 400)
     
@@ -90,24 +94,30 @@ def load_index(request: Request, message: str = "", status_code: int = 200):
         })
 
 def get_cfnt_url(port):
-    process = subprocess.run(['cfnt-url.sh', '-p', port], 
-                         stdout=subprocess.PIPE, 
-                         universal_newlines=True)
-    output = process.stdout.strip()
-    scheme = urlparse(output).scheme
-    if scheme:
-        return output
-    return False
+    try:
+        process = subprocess.run(['cfnt-url.sh', '-p', port], 
+                             stdout=subprocess.PIPE, 
+                             universal_newlines=True)
+        output = process.stdout.strip()
+        scheme = urlparse(output).scheme
+        if scheme:
+            return output
+        return False
+    except:
+        return False
 
 def get_cfqt_url(port):
-    process = subprocess.run(['cfqt-url.sh', '-p', port], 
-                         stdout=subprocess.PIPE, 
-                         universal_newlines=True)
-    output = process.stdout.strip()
-    scheme = urlparse(output).scheme
-    if scheme:
-        return output
-    return False
+    try:
+        process = subprocess.run(['cfqt-url.sh', '-p', port], 
+                             stdout=subprocess.PIPE, 
+                             universal_newlines=True)
+        output = process.stdout.strip()
+        scheme = urlparse(output).scheme
+        if scheme:
+            return output
+        return False
+    except:
+        return False
 
 def get_direct_url(host_ip, port):
     cloud = os.environ.get('CLOUD_PROVIDER')

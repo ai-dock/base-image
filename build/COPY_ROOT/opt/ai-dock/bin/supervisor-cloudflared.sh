@@ -10,13 +10,12 @@ function start() {
     if [[ -z $CF_TUNNEL_TOKEN ]]; then
         printf "Skipping Cloudflare daemon: No token\n"
         # No error - Supervisor will not atempt restart
-        sleep 2
-        exit 0
+        exec sleep 10
     fi
 
     printf "Starting Cloudflare daemon...\n"
 
-    cloudflared tunnel --metrics localhost:2999 run --token "${CF_TUNNEL_TOKEN}"
+    exec cloudflared tunnel --metrics localhost:2999 run --token "${CF_TUNNEL_TOKEN}"
 }
 
 start 2>&1

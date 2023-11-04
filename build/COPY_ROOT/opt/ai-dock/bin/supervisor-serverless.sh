@@ -8,8 +8,8 @@ function cleanup() {
 
 function start() {
     if [[ ${SERVERLESS,,} != true ]]; then
-        printf "Refusing to start serverless worker without \$SERVERLESS=true"
-        exit 0
+        printf "Refusing to start serverless worker without \$SERVERLESS=true\n"
+        exec sleep 10
     fi
     
     # Delay launch until workspace is ready
@@ -23,10 +23,11 @@ function start() {
     printf "Starting %s serverless worker...\n" ${CLOUD_PROVIDER}
     
     if [[ ${CLOUD_PROVIDER} = "runpod.io" ]]; then
-        micromamba -n runpod run \
+        exec micromamba -n serverless run \
             python -u /opt/serverless/providers/runpod/worker.py
     else
         printf "No serverless worker available in this environment"
+        exec sleep 10
     fi
 }
 

@@ -27,7 +27,7 @@ function start() {
         metrics="--metrics localhost:${metrics_port}"
     fi
     
-    cloudflared tunnel ${metrics} ${tunnel}
+    exec cloudflared tunnel ${metrics} ${tunnel}
 }
 
 start 2>&1

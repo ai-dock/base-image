@@ -48,7 +48,7 @@ function init_main() {
 # A trimmed down init suitable for serverless infrastructure
 init_serverless() {
   init_set_envs "$@"
-  touch "${WORKSPACE}.serverless_lock"
+  touch "${WORKSPACE}.update_lock"
   export CF_QUICK_TUNNELS_COUNT=0
   export RCLONE_MOUNT_COUNT=0
   export SUPERVISOR_START_CLOUDFLARED=0
@@ -161,7 +161,7 @@ function init_set_workspace() {
         export WORKSPACE=${ws_tmp//\/\//\/}
     fi
     
-    if [[ -f "${WORKSPACE}".serverless_lock ]]; then
+    if [[ -f "${WORKSPACE}".update_lock ]]; then
         export AUTO_UPDATE=false
     fi
 

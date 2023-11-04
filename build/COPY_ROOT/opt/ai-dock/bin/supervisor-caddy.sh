@@ -10,7 +10,7 @@ function cleanup() {
 function start() {
     if [[ ${SERVERLESS,,} = "true" ]]; then
         printf "Refusing to start Caddy service in serverless mode\n"
-        exit 0
+        exec sleep 10
     fi
     
     # Give processes time to register their ports
@@ -37,7 +37,7 @@ function start() {
     done
     
     caddy fmt --overwrite /opt/caddy/etc/Caddyfile
-    caddy run --config /opt/caddy/etc/Caddyfile
+    exec caddy run --config /opt/caddy/etc/Caddyfile
 }
 
 start 2>&1

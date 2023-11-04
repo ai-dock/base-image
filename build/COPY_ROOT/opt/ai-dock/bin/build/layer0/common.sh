@@ -85,10 +85,8 @@ curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/mi
 micromamba shell init --shell bash --root-prefix=/opt/micromamba
 
 # Cloud helpers - Serverless support
-$MAMBA_CREATE -n vast -c conda-forge python=3.10
-
-$MAMBA_CREATE -n runpod -c conda-forge python=3.10
-micromamba run -n runpod $PIP_INSTALL \
+$MAMBA_CREATE -n serverless -c conda-forge python=3.10
+micromamba run -n serverless $PIP_INSTALL \
   runpod
 
 

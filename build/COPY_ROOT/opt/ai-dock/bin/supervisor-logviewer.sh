@@ -2,11 +2,11 @@
 
 trap cleanup EXIT
 
-LISTEN_PORT=11111
-METRICS_PORT=21111
-PROXY_PORT=1111
-PROXY_SECURE=false
-SERVICE_NAME="Port Redirector"
+LISTEN_PORT=11122
+METRICS_PORT=21122
+PROXY_PORT=1122
+PROXY_SECURE=true
+SERVICE_NAME="Log Viewer"
 
 function cleanup() {
     kill $(jobs -p) > /dev/null 2>&1
@@ -14,11 +14,6 @@ function cleanup() {
 }
 
 function start() {
-    if [[ ${SERVERLESS,,} = "true" ]]; then
-        printf "Refusing to start $SERVICE_NAME service in serverless mode\n"
-        exit 0
-    fi
-    
     file_content="$(
       jq --null-input \
         --arg listen_port "${LISTEN_PORT}" \
@@ -31,11 +26,13 @@ function start() {
     
     printf "%s\n" "$file_content" > /run/http_ports/$PROXY_PORT
     
-    printf "Starting redirector server...\n"
-    kill -9 $(lsof -t -i:$LISTEN_PORT) > /dev/null 2>&1 &
+    printf "Starting log service...\n"
+    kill $(lsof -t -i:$LISTEN_PORT) > /dev/null 2>&1 &
     wait -n
-    /usr/bin/python3 /opt/ai-dock/fastapi/redirector/main.py \
-        -p $LISTEN_PORT
+    exec /usr/bin/python3 /opt/ai-dock/fastapi/logviewer/main.py \
+        -p $LISTEN_PORT \
+        -r 0 \
+        -t "Container Logs"
 }
 
 start 2>&1
