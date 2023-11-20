@@ -1,0 +1,3 @@
+:!PROXY_PORT {
+    reverse_proxy localhost:!LISTEN_PORT
+}

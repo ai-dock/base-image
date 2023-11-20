@@ -1,0 +1,30 @@
+<nav id="main-nav" class="Navbar__Items" hx-swap-oob="true">
+ <div class="Navbar__Link
+     {{ 'active' if context.page == 'index' }}
+     ">
+   <a hx-target="#page"
+       hx-post="/ajax/index"
+       hx-push-url="/"
+       hx-swap
+       href="/">Service List</a>
+ </div>
+ <div class="Navbar__Link
+     {{ 'active' if context.page == 'logs' }}
+     ">
+    <a hx-target="#page"
+       hx-post="/ajax/logs"
+       hx-push-url="/logs"
+       hx-swap
+       href="/logs">Log Viewer</a>
+ </div>
+ <div class="Navbar__Link
+     {{ 'active' if context.page == 'processes' }}
+     ">
+    <a hx-target="#page"
+       hx-post="/ajax/processes"
+       hx-vals='{"myVal": "{{ context.page }}"}'
+       hx-push-url="/processes"
+       hx-swap
+       href="/processes">Process Manager</a>
+ </div>
+</nav>

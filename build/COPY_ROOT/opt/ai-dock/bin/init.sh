@@ -17,7 +17,7 @@ function init_main() {
     init_create_logfiles
     init_set_ssh_keys
     init_set_web_credentials
-    init_cloud_context
+    init_direct_address
     init_set_workspace
     init_count_gpus
     init_count_quicktunnels
@@ -52,7 +52,7 @@ init_serverless() {
   export CF_QUICK_TUNNELS_COUNT=0
   export RCLONE_MOUNT_COUNT=0
   export SUPERVISOR_START_CLOUDFLARED=0
-  init_cloud_context
+  init_direct_address
   init_set_workspace
   init_count_gpus
   init_create_directories
@@ -170,6 +170,7 @@ function init_set_workspace() {
     # Determine workspace mount status
     if mountpoint "$WORKSPACE" > /dev/null 2>&1; then
         export WORKSPACE_MOUNTED=true
+        mkdir -p ${WORKSPACE}environments
     else
         export WORKSPACE_MOUNTED=false
         no_mount_warning_file="${WORKSPACE}WARNING-NO-MOUNT.txt"
@@ -181,29 +182,34 @@ function init_set_workspace() {
 }
 
 function init_sync_mamba_envs() {
-  if [[ $WORKSPACE_MOUNTED = "false" ]]; then
+    ws_mamba_target="${WORKSPACE}environments/micromamba-${IMAGE_SLUG}"
+    if [[ -d ${WORKSPACE}micromamba ]]; then
+        mv ${WORKSPACE}micromamba "$ws_mamba_target"
+    fi
+    
+    if [[ $WORKSPACE_MOUNTED = "false" ]]; then
       printf "No mount: Mamba environments remain in /opt\n"
-  elif [[ ${WORKSPACE_SYNC,,} = "false" ]]; then
+    elif [[ ${WORKSPACE_SYNC,,} = "false" ]]; then
       printf "Skipping workspace sync: Mamba environments remain in /opt\n"
-  elif [[ -f ${WORKSPACE}micromamba/.move_complete ]]; then
+    elif [[ -f ${ws_mamba_target}/.move_complete ]]; then
       printf "Mamba environments already present at ${WORKSPACE}\n"
       rm -rf /opt/micromamba/*
       link-mamba-envs.sh
-  else
+    else
       # Complete the copy if not serverless
       if [[ ${SERVERLESS,,} != 'true' ]]; then
           rm -rf ${WORKSPACE}micromamba
           printf "Moving mamba environments to %s...\n" "${WORKSPACE}"
           while sleep 10; do printf "Waiting for workspace mamba sync...\n"; done &
-          rsync -azh --stats /opt/micromamba "${WORKSPACE}"
+          rsync -azh --stats /opt/micromamba/ "${ws_mamba_target}"
           kill $!
           wait $! 2>/dev/null
           printf "Moved mamba environments to %s\n" "${WORKSPACE}"
           rm -rf "/opt/micromamba/*"
-          printf 1 > ${WORKSPACE}micromamba/.move_complete
+          printf 1 > ${ws_mamba_target}/.move_complete
           link-mamba-envs.sh
       fi
-  fi
+fi
 }
 
 init_sync_opt() {
@@ -322,18 +328,28 @@ function init_count_rclone_remotes() {
     fi
 }
 
-function init_cloud_context() {
-    # Don't run tmux automatically on vast.ai
-    if [[ -n $VAST_NO_TMUX ]]; then
-        touch /root/.no_auto_tmux
+function init_direct_address() {
+    # Ensure set
+    if [[ ! -v $DIRECT_ADDRESS ]]; then
+        $DIRECT_ADDRESS=""
     fi
     
-    if env | grep 'VAST' > /dev/null 2>&1; then
-        export CLOUD_PROVIDER="vast.ai"
-    elif env | grep 'RUNPOD' > /dev/null 2>&1; then
-       export CLOUD_PROVIDER="runpod.io"
-    elif env | grep 'PAPERSPACE' > /dev/null 2>&1; then
-       export CLOUD_PROVIDER="paperspace.com"
+    if [[ ${DIRECT_ADDRESS,,} == "false" ]]; then
+        export DIRECT_ADDRESS=""
+    elif [[ -z $DIRECT_ADDRESS || ${DIRECT_ADDRESS_GET_WAN,,} == 'true' ]]; then
+        if [[ ${DIRECT_ADDRESS_GET_WAN,,} == 'true' ]]; then
+            export DIRECT_ADDRESS="$(curl https://icanhazip.com)"
+        # Detected provider has direct connection method
+        elif env | grep 'VAST' > /dev/null 2>&1; then
+            export DIRECT_ADDRESS="auto#vast-ai"
+        elif env | grep 'RUNPOD' > /dev/null 2>&1; then
+           export DIRECT_ADDRESS="auto#runpod-io"
+        # Detected provider does not support direct connections
+        elif env | grep 'PAPERSPACE' > /dev/null 2>&1; then
+            export DIRECT_ADDRESS=""
+        else
+            export DIRECT_ADDRESS="localhost"
+        fi
     fi
 }
 

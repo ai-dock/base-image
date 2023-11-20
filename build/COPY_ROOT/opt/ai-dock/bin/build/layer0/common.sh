@@ -53,6 +53,8 @@ $APT_INSTALL \
     uvicorn==0.23 \
     fastapi==0.103 \
     jinja2==3.1 \
+    jinja_partials \
+    python-multipart \
     websockets
 
 # Get caddy server

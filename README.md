@@ -89,21 +89,23 @@ You can use the included `cloudflared` service to make secure connections withou
 
 ## Environment Variables
 
-| Variable              | Description |
-| --------------------- | ----------- |
-| `CF_TUNNEL_TOKEN`     | Cloudflare zero trust tunnel token - See [documentation](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/). |
-| `CF_QUICK_TUNNELS`    | Create ephemeral Cloudflare tunnels for web services (default `false`) |
-| `GPU_COUNT`           | Limit the number of available GPUs |
-| `PROVISIONING_SCRIPT` | URL of a remote script to execute on init. See [note](#provisioning-script). |
-| `RCLONE_*`            | Rclone configuration - See [rclone documentation](https://rclone.org/docs/#config-file) |
-| `SKIP_ACL`            | Set `true` to skip modifying workspace ACL |
-| `SSH_PORT`            | Set a non-standard port for SSH (default `22`) |
-| `SSH_PUBKEY`          | Your public key for SSH |
-| `WEB_ENABLE_AUTH`     | Enable password protection for web services (default `true`) |
-| `WEB_USER`            | Username for web services (default `user`) |
-| `WEB_PASSWORD`        | Password for web services (default `password`) |
-| `WORKSPACE`           | A volume path. Defaults to `/workspace/` |
-| `WORKSPACE_SYNC`      | Move mamba environments and services to workspace if mounted (default `true`) |
+| Variable                 | Description |
+| ------------------------ | ----------- |
+| `CF_TUNNEL_TOKEN`        | Cloudflare zero trust tunnel token - See [documentation](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/). |
+| `CF_QUICK_TUNNELS`       | Create ephemeral Cloudflare tunnels for web services (default `false`) |
+| `DIRECT_ADDRESS`         | IP/hostname for service portal direct links (default `localhost`) |
+| `DIRECT_ADDRESS_GET_WAN` | Use the internet facing interface for direct links (default `false`) |
+| `GPU_COUNT`              | Limit the number of available GPUs |
+| `PROVISIONING_SCRIPT`    | URL of a remote script to execute on init. See [note](#provisioning-script). |
+| `RCLONE_*`               | Rclone configuration - See [rclone documentation](https://rclone.org/docs/#config-file) |
+| `SKIP_ACL`               | Set `true` to skip modifying workspace ACL |
+| `SSH_PORT`               | Set a non-standard port for SSH (default `22`) |
+| `SSH_PUBKEY`             | Your public key for SSH |
+| `WEB_ENABLE_AUTH`        | Enable password protection for web services (default `true`) |
+| `WEB_USER`               | Username for web services (default `user`) |
+| `WEB_PASSWORD`           | Password for web services (default `password`) |
+| `WORKSPACE`              | A volume path. Defaults to `/workspace/` |
+| `WORKSPACE_SYNC`         | Move mamba environments and services to workspace if mounted (default `true`) |
 
 Environment variables can be specified by using any of the standard methods (`docker-compose.yaml`, `docker run -e...`). Additionally, environment variables can also be passed as parameters of `init.sh`.
 
@@ -134,7 +136,7 @@ The URL must point to a plain text file - GitHub Gists/Pastebin (raw) are suitab
 If you are running locally you may instead opt to mount a script at `/opt/ai-dock/bin/provisioning.sh`.
 
 >[!NOTE]  
->If configured, `sshd`, `caddy`, `cloudflared`, `rclone`, `port redirector` & `logtail` will be launched before provisioning; Any other processes will launch after.
+>If configured, `sshd`, `caddy`, `cloudflared`, `rclone`, `serviceportal` & `logtail` will be launched before provisioning; Any other processes will launch after.
 
 >[!WARNING]  
 >Only use scripts that you trust and which cannot be changed without your consent.
@@ -205,16 +207,13 @@ This is a simple webserver acting as a reverse proxy.
 
 Caddy is used to enable basic authentication for all sensitive web services.
 
-### Port Redirector
+### Service Portal
 
 This is a simple list of links to the web services available inside the container.
 
 The service will bind to port `1111`.
 
 For each service, you will find a direct link and, if you have set `CF_QUICK_TUNNELS=true`, a link to the service via a fast and secure Cloudflare tunnel.
-
->[!NOTE]  
->*This service will not show links to any pre-configured Cloudflare tunnels as the domains are static and already known to the user.*
 
 ### Log Viewer
 

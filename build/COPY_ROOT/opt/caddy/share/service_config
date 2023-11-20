@@ -1,4 +1,3 @@
 :!PROXY_PORT {
-  !FWAUTH
 	reverse_proxy localhost:!LISTEN_PORT
 }

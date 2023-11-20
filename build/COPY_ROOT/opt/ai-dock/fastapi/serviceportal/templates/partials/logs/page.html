@@ -1,0 +1,98 @@
+<h1 id="status">{{ context.title }}</h1>
+<main id="terminal">
+    <div id="logs">
+        reading {{ context.log_file }}...
+    </div>
+    <div id="anchor">root@ai-dock:/# logtail.sh</div>
+</main>
+
+<script>
+    logger = document.getElementById("terminal");
+    logger.start = function () {
+        if (location.protocol != "https:") {
+            ws_url = "ws://" + location.host + "/ai-dock/logtail.sh";
+        } else {
+            ws_url = "wss://" + location.host + "/ai-dock/logtail.sh";
+        }
+        let ws_log = new WebSocket(ws_url);
+        let status = document.getElementById("status");
+        let terminal = document.getElementById("terminal");
+        let anchor = document.getElementById("anchor");
+        let has_scrolled = false;
+        let indicator = ".";
+
+        let sleep = function(s) {
+            return new Promise(resolve => setTimeout(resolve, s*1000));
+        }
+
+        let refresh_page = async function(timer = 3) {
+            let alive = false;
+            let response;
+            let randomNum;
+            
+            //  wait until the page is available
+            while (!alive) {
+                try {
+                    status.innerHTML = "Checking container state...";
+                    await sleep(1);
+                    randomNum = Math.round(Math.random() * 10000);
+                    response = await fetch(document.location + '?rand=' + randomNum);
+                    if (!response.ok) {
+                        throw new Error('Bad response');
+                    } else {
+                        alive = true;
+                        document.location.reload();
+                    }
+                } catch (error) {
+                    status.innerHTML = "Checking container state... Awaiting service launch.";
+                    console.log('Container not ready. Retry in ' + timer + ' seconds');
+                    await sleep(timer-1);
+                }
+            }
+            document.location.reload();
+        }
+
+        let count = -1;
+        ws_log.onmessage = function (event) {
+            if (status.offsetParent !== null) {
+                count++;
+                if (count >= 4) {
+                    count = 0;
+                }
+                let logs = document.getElementById("logs");
+                let log_data = event.data;
+                status.innerHTML = "{{context.title}}" + indicator.repeat(count);
+                if (log_data !== "") {
+                    logs.innerHTML = log_data;
+                }
+                if ((logs.offsetHeight > terminal.offsetHeight) && has_scrolled == false) {
+                    has_scrolled = true;
+                    anchor.scrollIntoView(
+                        { 
+                            behavior: "smooth", block: "start", inline: "nearest"
+                        }
+                    );
+                }
+            } else {
+                count = -1;
+                has_scrolled = false;
+            }
+        }
+
+        ws_log.onclose = function (event) {
+        status.innerHTML = "Checking container state...";
+        if ("{{ context.refresh }}" > 0) {
+            refresh_page({{ context.refresh }});
+            }
+        }
+
+        ws_log.onerror = function (event) {
+            status.innerHTML = "Checking container state...";
+            if ({{ context.refresh }}) {
+                refresh_page({{ context.refresh }});
+            }
+        }
+    }
+
+    logger.start();
+</script>

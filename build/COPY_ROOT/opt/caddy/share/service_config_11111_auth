@@ -1,0 +1,15 @@
+# Only protecting sensitive routes - Prefer the landing page to have no auth
+:!PROXY_PORT {
+        basicauth /ajax* {
+            import /opt/caddy/etc/basicauth
+        }
+
+        basicauth /logs* {
+            import /opt/caddy/etc/basicauth
+        }
+    
+        basicauth /processes* {
+            import /opt/caddy/etc/basicauth
+        }
+	  reverse_proxy localhost:!LISTEN_PORT
+}

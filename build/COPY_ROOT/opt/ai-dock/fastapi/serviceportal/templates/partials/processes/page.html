@@ -1,0 +1,60 @@
+<h1 id="status">Process List</h1>
+<main id="process-list">
+    <div class="row">
+        <div class="heading">Process</div>
+        <div class="heading">Status</div>
+        <div class="heading">Control</div>
+    </div>
+    
+    {% for process in context.processes %}
+
+        {% if process.name != "serviceportal" and process.statename != "EXITED" %}
+            {% if process.group == process.name %}
+                {% set proc_identifier = process.group %}
+                {% set proc_friendly_name = process.group %}
+            {% else %}
+                {% set proc_identifier = process.group + "-" + process.name.split('_')[-1][:-1] %}
+                {% set proc_friendly_name = process.group + " " + process.name.split('_')[-1][:-1] %}
+            {% endif %}
+
+            <div class="row" id="process-{{ proc_identifier }}">
+                <div>
+                    {{ proc_friendly_name }}
+                </div>
+                <div>{{ process.statename }} 
+                    <img id="spinner-{{ proc_identifier }}" 
+                        class="htmx-indicator" 
+                        src="/static/bars.svg"/>
+                </div>
+                <div class="controls">
+                    {% set procname = process.group + ":" + process.name | urlencode %}
+                    {% if process.statename == "RUNNING" %}
+                        <a href="#"
+                        hx-post="/ajax/processes/stop"
+                        hx-target="#process-{{ proc_identifier }}"
+                        hx-indicator="#spinner-{{ proc_identifier }}"
+                        hx-swap="outerHTML"
+                        hx-vals='{"process": "{{ procname }}" }'
+                        >stop</a>
+                        <a href="#"
+                        hx-post="/ajax/processes/restart"
+                        hx-target="#process-{{ proc_identifier }}"
+                        hx-indicator="#spinner-{{ proc_identifier }}"
+                        hx-swap="outerHTML"
+                        hx-vals='{"process": "{{ procname }}" }'
+                        >restart</a>
+                    {% else %}
+                    <a href="#"
+                        hx-post="/ajax/processes/start"
+                        hx-target="#process-{{ proc_identifier }}"
+                        hx-indicator="#spinner-{{ proc_identifier }}"
+                        hx-swap="outerHTML"
+                        hx-vals='{"process": "{{ procname }}" }'
+                        >start</a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    {% endfor %}
+</main>
+

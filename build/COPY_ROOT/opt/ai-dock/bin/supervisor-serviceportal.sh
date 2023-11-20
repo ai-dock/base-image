@@ -4,8 +4,9 @@ trap cleanup EXIT
 
 LISTEN_PORT=11111
 METRICS_PORT=21111
-PROXY_PORT=1111
-PROXY_SECURE=false
+PROXY_PORT=${SERVICEPORTAL_PORT_HOST:-1111}
+# Auth is true for defined paths - See /opt/caddy/share/service_config_11111_auth
+PROXY_SECURE=true
 SERVICE_NAME="Service Portal"
 
 function cleanup() {

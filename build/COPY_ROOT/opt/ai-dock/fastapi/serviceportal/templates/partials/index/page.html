@@ -1,0 +1,27 @@
+<h1 id="status">Service List</h1>
+<main id="service-list">
+    <div class="row">
+        <div class="heading">Port</div>
+        <div class="heading">Service Name</div>
+        <div class="heading">Access Links</div>
+    </div>
+    {% for key, service in context.services.items() %}
+        <div class="row">
+            <div>{{ service["proxy_port"] }}</div>
+            <div>{{ service["service_name"] }}</div>
+            <div>
+                <ul>
+                {% if context.namedtunnels == True %}
+                    <li><i class="fa-solid fa-fw fa-link"></i> <a href="/namedtunnel/{{ service["proxy_port"] }}" target="_blank">Cloudflare Named Tunnel</a></li>
+                {% endif %}
+                {% if context.quicktunnels == True %}
+                    <li><i class="fa-solid fa-fw fa-link"></i> <a href="/quicktunnel/{{ service["proxy_port"] }}" target="_blank">Cloudflare Quick Tunnel</a></li>
+                {% endif %}
+                {% if context.direct_address %}
+                    <li><i class="fa-solid fa-fw fa-link"></i> <a href="/direct/{{ service["proxy_port"] }}" target="_blank">Direct/Default</a></li>
+                {% endif %}
+                </ul>
+            </div>
+        </div>
+    {% endfor %}
+</main>

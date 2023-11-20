@@ -1,0 +1,19 @@
+<a href="https://github.com/ai-dock" target="_blank">
+    <img
+        id="logo"
+        alt="ai-dock logo"
+        src="https://res.cloudinary.com/dnijlgpto/image/upload/f_auto,q_auto/v1/ai-dock/ic9zjqumz0cnakr6zzey?utm_content={{context.urlslug}}&utm_source={{context.cloud}}"
+    />
+</a>
+{% if context.message %}
+<div class="message"><i class="fa-solid fa-triangle-exclamation fa-2xl"></i> 
+    <p>{{ context.message }}</p>
+</div>
+{% endif %}
+
+<div class="Navbar">
+    <div class="Navbar__Link Navbar__Link-toggle">
+        <i class="fas fa-bars"></i>
+     </div>
+    {{ render_partial('partials/template/nav.html', context=context) }}
+</div>

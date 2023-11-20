@@ -18,6 +18,15 @@ services:
         
     image: ghcr.io/ai-dock/base-image:${IMAGE_TAG}
     
+    ## For Nvidia GPU's - You probably want to uncomment this
+    #deploy:
+    #  resources:
+    #    reservations:
+    #      devices:
+    #        - driver: nvidia
+    #          count: all
+    #          capabilities: [gpu]
+    
     security_opt:
       # For Rclone mount
       - apparmor:unconfined
@@ -56,15 +65,14 @@ services:
         # SSH available on host machine port 2222 to avoid conflict. Change to suit
         - ${SSH_PORT_HOST:-2222}:${SSH_PORT:-22}
         # Redirect to Cloudflare quick tunnel
-        - ${REDIRECTOR_PORT_HOST:-1111}:1111
-        # Websocket log viewer
-        - ${LOG_VIEWER_PORT_HOST:-1122}:1122
+        - ${SERVICEPORTAL_PORT_HOST:-1111}:1111
         # Rclone webserver for interactive configuration
         - ${RCLONE_PORT_HOST:-53682}:53682
    
     environment:
         # Don't enclose values in quotes
-        # Allows running true SSH alongside provider proxy SSH
+        - DIRECT_ADDRESS=${DIRECT_ADDRESS:-127.0.0.1}
+        - DIRECT_ADDRESS_GET_WAN=${DIRECT_ADDRESS_GET_WAN:-false}
         - WORKSPACE=${WORKSPACE:-/workspace}
         - WORKSPACE_SYNC=${WORKSPACE_SYNC:-true}
         - CF_TUNNEL_TOKEN=${CF_TUNNEL_TOKEN:-}

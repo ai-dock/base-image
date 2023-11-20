@@ -23,14 +23,19 @@ function start() {
         listen_port=$(jq -r .listen_port ${service})
         proxy_port=$(jq -r .proxy_port ${service})
         proxy_secure=$(jq -r .proxy_secure ${service})
-        if [[ ${WEB_ENABLE_AUTH,,} != 'false' && ${proxy_secure,,} != 'false' ]]; then
-            fwauth_string="import fwauth"
-        else fwauth_string=""
-        fi
         
-        cp /opt/caddy/share/service_config /tmp/caddy
+        if [[ -f /opt/caddy/share/service_config_${listen_port} ]]; then
+            template_file="/opt/caddy/share/service_config_${listen_port}"
+        else
+            template_file="/opt/caddy/share/service_config"
+        fi
+
+        if [[ ${WEB_ENABLE_AUTH,,} != 'false' && ${proxy_secure,,} != 'false' ]]; then
+            template_file="${template_file}_auth"
+        fi
+
+        cp "${template_file}" /tmp/caddy
         sed -i "s/!PROXY_PORT/${proxy_port}/g" /tmp/caddy
-        sed -i "s/!FWAUTH/${fwauth_string}/g" /tmp/caddy
         sed -i "s/!LISTEN_PORT/${listen_port}/g" /tmp/caddy
         cat /tmp/caddy >> /opt/caddy/etc/Caddyfile
         printf "\n" >> /opt/caddy/etc/Caddyfile

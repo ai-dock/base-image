@@ -1,15 +1,17 @@
 # import libraries
+import logs
+import helpers
 import os
-import subprocess
-import json
-from urllib.parse import urlparse
 from pathlib import Path
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI, Request, WebSocket, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
+import jinja_partials
 import uvicorn
 import argparse
+import asyncio
+import urllib.parse
  
 parser = argparse.ArgumentParser(description="Require port and service name",
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -22,50 +24,77 @@ app = FastAPI()
 
 # set template and static file directories for Jinja
 templates = Jinja2Templates(directory=str(Path(base_dir, "templates")))
+jinja_partials.register_starlette_extensions(templates)
+
 app.mount("/static", StaticFiles(directory=str(Path(base_dir, "static"))), name="static")
 
 @app.get("/")
 async def get(request: Request):
     return load_index(request)
 
+@app.post("/ajax/index")
+async def post(request: Request):
+    return templates.TemplateResponse("partials/index/ajax.html", {
+        "request": request, 
+        "context": get_index_context()
+        }
+    )
+
+def load_index(request: Request, message: str = "", status_code: int = 200):
+    context = get_index_context(message)
+    return templates.TemplateResponse("index.html", {
+        "request": request, 
+        "context": context,
+        "status": status_code
+        }
+    )
+
+def get_index_context(message=None):
+    services = helpers.get_services()
+    return {
+        "message": message,
+        "page": "index",
+        "services": services,
+        "urlslug": os.environ.get('IMAGE_SLUG'),
+        "direct_address": os.environ.get('DIRECT_ADDRESS'),
+        'quicktunnels': True if os.environ.get('CF_QUICK_TUNNELS') == "true" else False,
+        'namedtunnels': True if os.environ.get('SUPERVISOR_START_CLOUDFLARED') == "1" else False
+    }
+
 @app.get("/namedtunnel/{port}")
 async def get(request: Request, port: str):
     try:
-        if not is_valid_port(int(port)):
+        if not helpers.is_valid_port(int(port)):
             return load_index(request, "Port not valid", 400)
-        url = get_cfnt_url(port)
+        url = helpers.get_cfnt_url(port)
         if url:
             return RedirectResponse(url)
         else:
             return load_index(request, "Unable to load Cloudflare tunnel for port " + port, 404)
     except:
-        return load_index(request, "Port not valid", 400)
+        return load_index(request, "Unable to load Cloudflare tunnel for port " + port, 404)
     
-    return load_index(request, "Unable to load Cloudflare tunnel for port " + port, 404)
 
 @app.get("/quicktunnel/{port}")
 async def get(request: Request, port: str):
     try:
-        if not is_valid_port(int(port)):
+        if not helpers.is_valid_port(int(port)):
             return load_index(request, "Port not valid", 400)
-        url = get_cfqt_url(port)
+        url = helpers.get_cfqt_url(port)
         if url:
             return RedirectResponse(url)
         else:
             return load_index(request, "Unable to load Cloudflare quick tunnel for port " + port, 404)
     except:
-        return load_index(request, "Port not valid", 400)
+        return load_index(request, "Unable to load Cloudflare quick tunnel for port " + port, 404)
     
-    return load_index(request, "Unable to load Cloudflare quick tunnel for port " + port, 404)
-
     
 @app.get("/direct/{port}")
 async def get(request: Request, port: str):
     try:
-        if not is_valid_port(int(port)):
+        if not helpers.is_valid_port(int(port)):
             return load_index(request, "Port not valid", 400)
-        host_ip = request.headers['host'].split(':')[0]
-        url = get_direct_url(host_ip, port)
+        url = helpers.get_direct_url(port)
         if url:
             return RedirectResponse(url)
     except:
@@ -73,102 +102,115 @@ async def get(request: Request, port: str):
         
     return load_index(request, "Unable to complete redirect for port " + port, 400)
 
+@app.get("/logs")
+async def get(request: Request):
+    return templates.TemplateResponse("logs.html", {
+        "request": request, 
+        "context": get_logs_context()
+        }
+    )
+    
+@app.post("/ajax/logs")
+async def post(request: Request):
+    return templates.TemplateResponse("partials/logs/ajax.html", {
+        "request": request, 
+        "context": get_logs_context()
+        }
+    )
+
+def get_logs_context():
+    return {
+        "title": "Container Logs",
+        "page": "logs",
+        "urlslug": os.environ.get('IMAGE_SLUG'),
+        "log_file": "/var/log/logtail.log",
+        "refresh": 5,
+        "cloud": os.environ.get('CLOUD_PROVIDER')
+    }
+
+@app.websocket("/ai-dock/logtail.sh")
+async def websocket_endpoint_log(websocket: WebSocket) -> None:
+    last_logs = []
+    await websocket.accept()
+    try:
+        while True:
+            await asyncio.sleep(1)
+            logs = await helpers.log_reader(250)
+            if not logs == last_logs:
+                await websocket.send_text(logs)
+                last_logs = logs
+            else:
+                await websocket.send_text("")
+    except Exception as e:
+        print(e)
+    finally:
+        await websocket.close()
+        
+@app.get("/processes")
+async def get(request: Request):
+    return templates.TemplateResponse("processes.html", {
+        "request": request, 
+        "context": get_processes_context()
+        }
+    )
+
+@app.post("/ajax/processes")
+async def post(request: Request):
+    return templates.TemplateResponse("partials/processes/ajax.html", {
+        "request": request, 
+        "context": get_processes_context()
+        }
+    )
+
+@app.post("/ajax/processes/stop")
+async def post(request: Request):
+    form = await request.form()
+    name = urllib.parse.unquote(form['process'])
+    helpers.stop_process(name)
+    return templates.TemplateResponse("partials/processes/row.html", {
+        "request": request, 
+        "context": get_process_context(name)
+        }
+    )
+
+@app.post("/ajax/processes/start")
+async def post(request: Request):
+    form = await request.form()
+    name = urllib.parse.unquote(form['process'])
+    helpers.start_process(name)
+    return templates.TemplateResponse("partials/processes/row.html", {
+        "request": request, 
+        "context": get_process_context(name)
+        }
+    )
+
+@app.post("/ajax/processes/restart")
+async def post(request: Request):
+    form = await request.form()
+    name = urllib.parse.unquote(form['process'])
+    helpers.restart_process(name)
+    return templates.TemplateResponse("partials/processes/row.html", {
+        "request": request, 
+        "context": get_process_context(name)
+        }
+    )
+
+def get_processes_context():
+    return {
+        "page": "processes",
+        "processes": helpers.get_all_processes(),
+        "urlslug": os.environ.get('IMAGE_SLUG'),
+    }
+
+def get_process_context(name):
+    return {
+        "process": helpers.get_single_process(name)
+    }
+   
 @app.get("/{catch_all:path}")
 async def get(request: Request):
     return RedirectResponse("/")
-    
-def load_index(request: Request, message: str = "", status_code: int = 200):
-    services = get_services()
-    context = {
-                "message": message,
-                "services": services,
-                "urlslug": os.environ.get('IMAGE_SLUG'),
-                "cloud": os.environ.get('CLOUD_PROVIDER'),
-                'quicktunnels': True if os.environ.get('CF_QUICK_TUNNELS') == "true" else False,
-                'namedtunnels': True if os.environ.get('SUPERVISOR_START_CLOUDFLARED') == "1" else False
-            }
-    return templates.TemplateResponse("index.html", {
-        "request": request, 
-        "context": context,
-        "status": status_code
-        })
 
-def get_cfnt_url(port):
-    try:
-        process = subprocess.run(['cfnt-url.sh', '-p', port], 
-                             stdout=subprocess.PIPE, 
-                             universal_newlines=True)
-        output = process.stdout.strip()
-        scheme = urlparse(output).scheme
-        if scheme:
-            return output
-        return False
-    except:
-        return False
-
-def get_cfqt_url(port):
-    try:
-        process = subprocess.run(['cfqt-url.sh', '-p', port], 
-                             stdout=subprocess.PIPE, 
-                             universal_newlines=True)
-        output = process.stdout.strip()
-        scheme = urlparse(output).scheme
-        if scheme:
-            return output
-        return False
-    except:
-        return False
-
-def get_direct_url(host_ip, port):
-    cloud = os.environ.get('CLOUD_PROVIDER')
-    if not cloud:
-        return "http://" + host_ip + ":" + port
-
-    elif cloud == 'vast.ai':
-        return get_vast_url(host_ip, port)
-    elif cloud == 'runpod.io':
-        return get_runpod_url(host_ip, port)
-    else:
-        return False
-
-def get_vast_url(host_ip, port):
-    ext_port = os.environ.get("VAST_TCP_PORT_"+port)
-    if ext_port and os.environ.get("PUBLIC_IPADDR"):
-        return "http://" + os.environ.get("PUBLIC_IPADDR") + ":" + ext_port
-    else:
-         return False
-
-def get_runpod_url(host_ip, port):
-    ext_port = os.environ.get("RUNPOD_TCP_PORT_"+port)
-    if ext_port and os.environ.get("RUNPOD_PUBLIC_IP"):
-        return "http://" + os.environ.get("RUNPOD_PUBLIC_IP") + ":" + ext_port
-    elif os.environ.get("RUNPOD_POD_ID"):
-        return "https://" + os.environ.get("RUNPOD_POD_ID") + "-" + port + ".proxy.runpod.net"
-    else:
-        return False
-
-def is_valid_port(port: int):
-    if not port in range(1,65535):
-        return False
-    return True
-
-def get_service_files():
-    dir = "/run/http_ports/"
-    files = []
-    for filename in os.listdir(dir):
-        file = os.path.join(dir, filename)
-        if os.path.isfile(file):
-            files.append(file)
-    return files
-
-def get_services():
-    services = {}
-    for file in get_service_files():
-        with open(file) as dataFile:
-            data = json.load(dataFile)
-        services[data["proxy_port"]] = data
-    return services
-        
 # set parameters to run uvicorn
 if __name__ == "__main__":
     uvicorn.run(
@@ -176,6 +218,6 @@ if __name__ == "__main__":
         host="127.0.0.1",
         port=args.port,
         log_level="info",
-        reload=False,
+        reload=True,
         workers=1,
     )
