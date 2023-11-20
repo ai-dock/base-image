@@ -125,6 +125,9 @@ The password is stored as a bcrypt hash. If you prefer not to pass a plain text 
 
 If you are running the image locally on a trusted network, you may disable authentication by setting the environment variable `WEB_ENABLE_AUTH=false`.
 
+>[!NOTE]  
+>You can use `set-web-credentials.sh <username> <password>` change the username and password in a running container.
+
 ## Provisioning script
 
 It can be useful to perform certain actions when starting a container, such as creating directories and downloading files.
@@ -215,13 +218,7 @@ The service will bind to port `1111`.
 
 For each service, you will find a direct link and, if you have set `CF_QUICK_TUNNELS=true`, a link to the service via a fast and secure Cloudflare tunnel.
 
-### Log Viewer
-
-The web based log viewer will start on port `1122`.
-
-It's a very lightweight websocket based stream of the latest updates in `/var/log/logtail.log`.
-
-This service will also be accessible on any other exposed ports until the program designated to that port is ready to use.
+A simple web-based log viewer and process manager are included for convenience.
 
 ### Cloudflared
 
@@ -304,8 +301,7 @@ Some ports need to be open for the services to run or for certain features of th
 | Open Port             | Service / Description     |
 | --------------------- | ------------------------- |
 | `22`                  | SSH server                |
-| `1111`                | Port redirector web UI    |
-| `1122`                | Log viewer web UI         |
+| `1111`                | Service Portal web UI    |
 | `53682`               | Rclone interactive config |
 
 ## Pre-Configured Templates
