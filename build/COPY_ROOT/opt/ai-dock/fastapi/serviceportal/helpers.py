@@ -48,6 +48,7 @@ def get_cfqt_url(port):
         return False
 
 def get_direct_url(port):
+    port = os.environ.get("MAPPED_TCP_PORT_" + port, port)
     direct_address = os.environ.get('DIRECT_ADDRESS')
     if direct_address == 'auto#vast-ai':
         return get_vast_url(port)
