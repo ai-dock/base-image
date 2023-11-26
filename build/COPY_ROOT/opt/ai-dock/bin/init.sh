@@ -184,6 +184,7 @@ function init_set_workspace() {
 function init_sync_mamba_envs() {
     ws_mamba_target="${WORKSPACE}environments/micromamba-${IMAGE_SLUG}"
     if [[ -d ${WORKSPACE}micromamba ]]; then
+        mkdir -p ${WORKSPACE}environments
         mv ${WORKSPACE}micromamba "$ws_mamba_target"
     fi
     
@@ -198,10 +199,10 @@ function init_sync_mamba_envs() {
     else
       # Complete the copy if not serverless
       if [[ ${SERVERLESS,,} != 'true' ]]; then
-          rm -rf ${WORKSPACE}micromamba
           printf "Moving mamba environments to %s...\n" "${WORKSPACE}"
+          mkdir -p ${WORKSPACE}environments
           while sleep 10; do printf "Waiting for workspace mamba sync...\n"; done &
-          rsync -azh --stats /opt/micromamba/ "${ws_mamba_target}"
+          rsync -auSHh --stats /opt/micromamba/ "${ws_mamba_target}"
           kill $!
           wait $! 2>/dev/null
           printf "Moved mamba environments to %s\n" "${WORKSPACE}"
@@ -254,7 +255,7 @@ init_sync_opt() {
             if [[ ${SERVERLESS,,} != 'true' ]]; then
                 printf "Moving %s to %s\n" "$opt_dir" "$ws_dir"
                 while sleep 10; do printf "Waiting for workspace application sync...\n"; done &
-                rsync -azh --stats "$opt_dir" "$WORKSPACE"
+                rsync -auSHh --stats "$opt_dir" "$WORKSPACE"
                 kill $!
                 wait $! 2>/dev/null
                 printf "Moved %s to %s\n" "$opt_dir" "$ws_dir"
