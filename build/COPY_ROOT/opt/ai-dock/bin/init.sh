@@ -206,7 +206,7 @@ function init_sync_mamba_envs() {
           kill $!
           wait $! 2>/dev/null
           printf "Moved mamba environments to %s\n" "${WORKSPACE}"
-          rm -rf "/opt/micromamba/*"
+          rm -rf /opt/micromamba/*
           printf 1 > ${ws_mamba_target}/.move_complete
           link-mamba-envs.sh
       fi
