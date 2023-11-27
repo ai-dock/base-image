@@ -67,11 +67,11 @@
         border-bottom: 2px solid transparent;
         transition: border 100ms ease-in;
         }
-        .Navbar__Link.active, .Navbar__Link.active:hover {
+        nav .Navbar__Link.active, .Navbar__Link.active:hover {
             border-bottom: 2px solid rgba(72, 94, 130, 1);
         }
 
-        .Navbar__Link:hover {
+        nav .Navbar__Link:hover {
             border-bottom: 2px solid rgba(72, 94, 130, 0.5);
         }
 
@@ -104,16 +104,23 @@
         .Navbar__ToggleShow {
             display: flex;
         }
-        .Navbar__Link {
+        nav .Navbar__Link {
         border-bottom: none;
         margin: 2px 0;
         padding-left: 6px;
         border-left: 2px solid transparent;
         }
-        .Navbar__Link.active {
+        nav .Navbar__Link.active {
             border-bottom: none;
             border-left: 2px solid #485e82;
-        }  
+        }
+        nav .Navbar__Link.active, .Navbar__Link.active:hover {
+            border-bottom: none;
+        }
+
+        nav .Navbar__Link:hover {
+            border-bottom: none;
+        }
         .Navbar__Link-toggle {
             align-self: flex-end;
             display: initial;
