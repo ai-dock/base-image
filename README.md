@@ -28,7 +28,7 @@ ROCm builds are experimental. Please give feedback.
 
 Browse [here](https://github.com/ai-dock/base-image/pkgs/container/base-image) for an image suitable for your target environment.
 
-## _Building Images_
+## Building Images
 
 You can self-build from source by editing `docker-compose.yaml` or `.env` and running `docker compose build`.
 
