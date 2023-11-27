@@ -28,7 +28,13 @@ ROCm builds are experimental. Please give feedback.
 
 Browse [here](https://github.com/ai-dock/base-image/pkgs/container/base-image) for an image suitable for your target environment.
 
-You can also self-build from source by editing `.env` and running `docker compose build`.
+## _Building Images_
+
+You can self-build from source by editing `docker-compose.yaml` or `.env` and running `docker compose build`.
+
+It is a good idea to leave the source tree alone and copy any edits you would like to make into `build/COPY_ROOT_EXTRA/...`. The structure within this directory will be overlayed on `/` at the end of the build process.
+
+As this overlaying happens after the main build, it is easy to add extra files such as ML models and datasets to your images. You will also be able to rebuild quickly if your file overrides are made here.
 
 ## Run Locally
 
@@ -209,6 +215,8 @@ All processes are managed by [supervisord](https://supervisord.readthedocs.io/en
 This is a simple webserver acting as a reverse proxy.
 
 Caddy is used to enable basic authentication for all sensitive web services.
+
+To make changes to the caddy configuration inside a runing container you should edit `/opt/caddy/share/base_config` followed by `supervisorctl restart caddy`.
 
 ### Service Portal
 

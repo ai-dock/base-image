@@ -48,5 +48,8 @@ ENV IMAGE_SLUG="base-image"
 # Don't put anything heavy in here - We can use multi-stage building above if necessary.
 RUN /opt/ai-dock/bin/build/layer0/init.sh | tee /var/log/build.log
 
+# Copy overrides and new files into a final layer for fast rebuilds
+COPY ./COPY_ROOT_EXTRA/ /
+
 # Keep init.sh as-is and place additional logic in /opt/ai-dock/bin/preflight.sh
 CMD ["init.sh"]

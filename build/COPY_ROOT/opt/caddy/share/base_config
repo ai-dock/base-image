@@ -1,9 +1,19 @@
+#####
+# Do not edit /opt/caddy/etc/Caddyfile directly. 
+# It is rebuilt when the server starts
+# to make changes, eg for CORS you should edit: /opt/caddy/share/base_config
+#####
+
+# Top-level configuration
+
 {
   auto_https off
-	log {
+        log {
         level warn
     }
 }
 
-# Auto-generated below this line
 
+#####
+# Below here is auto-generated using /opt/caddy/share/service_config*
+#####

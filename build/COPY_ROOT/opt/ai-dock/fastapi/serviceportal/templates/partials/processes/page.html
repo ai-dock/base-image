@@ -1,4 +1,8 @@
-<h1 id="status">Process List</h1>
+<h1 id="status">Process List
+    <img id="spinner-page" 
+        class="htmx-indicator" 
+        src="/static/bars.svg"/>
+</h1>
 <main id="process-list">
     <div class="row">
         <div class="heading">Process</div>
@@ -21,7 +25,7 @@
                 <div>
                     {{ proc_friendly_name }}
                 </div>
-                <div>{{ process.statename }} 
+                <div class="statename">{{ process.statename }} 
                     <img id="spinner-{{ proc_identifier }}" 
                         class="htmx-indicator" 
                         src="/static/bars.svg"/>

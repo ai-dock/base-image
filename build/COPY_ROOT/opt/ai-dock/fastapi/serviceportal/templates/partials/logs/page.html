@@ -1,4 +1,8 @@
-<h1 id="status">{{ context.title }}</h1>
+<h1><span id="status">{{ context.title }}</span>
+    <img id="spinner-page" 
+        class="htmx-indicator" 
+        src="/static/bars.svg"/>
+</h1>
 <main id="terminal">
     <div id="logs">
         reading {{ context.log_file }}...

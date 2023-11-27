@@ -65,9 +65,14 @@
         .Navbar__Link {
         margin-right: 8px;
         border-bottom: 2px solid transparent;
+        transition: border 100ms ease-in;
         }
-        .Navbar__Link.active {
-            border-bottom: 2px solid #485e82;
+        .Navbar__Link.active, .Navbar__Link.active:hover {
+            border-bottom: 2px solid rgba(72, 94, 130, 1);
+        }
+
+        .Navbar__Link:hover {
+            border-bottom: 2px solid rgba(72, 94, 130, 0.5);
         }
 
         .Navbar__Items {
@@ -152,6 +157,14 @@
     div#page {
         width:100%;
     }
+    div#page h1 {
+        display: flex;
+        align-items: center;
+    }
+    div#page img#spinner-page {
+        padding-left: 5px;
+        height: 1.6rem;
+    }
     main#service-list {
         display: grid;
         width: 100%;
@@ -187,6 +200,13 @@
         list-style: none;
         padding-bottom: 5px;
     }
+    main#service-list ul li a {
+        border-bottom: 1px solid transparent;
+        transition: border 100ms ease-in;
+    }
+    main#service-list ul li a:hover {
+        border-bottom: 1px solid #485e82;
+    }
     
     main#process-list {
         display: grid;
@@ -217,6 +237,7 @@
      {
         margin-right: 5px;
         border-bottom: 1px solid transparent;
+        transition: border 100ms ease-in;
     }
     main#process-list div.row div.controls a:hover,
     main#process-list div.row div.controls a:focus,
@@ -239,7 +260,14 @@
         list-style: none;
         padding-bottom: 5px;
     }
-
+    main#process-list .statename {
+        display: flex;
+        align-items: center;
+    }
+    main#process-list .statename img.htmx-indicator {
+        padding-left: 5px;
+        height: 20px;
+    }
     main#terminal {
         position: relative;
         box-sizing: border-box;
