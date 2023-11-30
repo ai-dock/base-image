@@ -332,7 +332,7 @@ function init_count_rclone_remotes() {
 function init_direct_address() {
     # Ensure set
     if [[ ! -v $DIRECT_ADDRESS ]]; then
-        $DIRECT_ADDRESS=""
+        DIRECT_ADDRESS=""
     fi
     
     if [[ ${DIRECT_ADDRESS,,} == "false" ]]; then
