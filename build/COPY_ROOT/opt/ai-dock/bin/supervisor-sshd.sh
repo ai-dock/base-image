@@ -12,8 +12,9 @@ function start() {
         exec sleep 10
     fi
     
-    if [[ -z $SSH_PORT ]]; then
-        SSH_PORT=22
+    # Support previous config
+    if [[ ! -v SSH_PORT || -z $SSH_PORT ]]; then
+        SSH_PORT=${SSH_PORT_LOCAL:-22}
     fi
     
     ak_file="/root/.ssh/authorized_keys"
