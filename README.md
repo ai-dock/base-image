@@ -149,7 +149,7 @@ The URL must point to a plain text file - GitHub Gists/Pastebin (raw) are suitab
 If you are running locally you may instead opt to mount a script at `/opt/ai-dock/bin/provisioning.sh`.
 
 >[!NOTE]  
->If configured, `sshd`, `caddy`, `cloudflared`, `rclone`, `serviceportal` & `logtail` will be launched before provisioning; Any other processes will launch after.
+>If configured, `sshd`, `caddy`, `cloudflared`, `rclone`, `serviceportal`, `storagemonitor` & `logtail` will be launched before provisioning; Any other processes will launch after.
 
 >[!WARNING]  
 >Only use scripts that you trust and which cannot be changed without your consent.
