@@ -166,6 +166,7 @@ function init_set_workspace() {
     fi
 
     mkdir -p "${WORKSPACE}"remote/.cache
+    mkdir -p "${WORKSPACE}"storage
     
     # Determine workspace mount status
     if mountpoint "$WORKSPACE" > /dev/null 2>&1; then
@@ -200,7 +201,6 @@ function init_sync_mamba_envs() {
       # Complete the copy if not serverless
       if [[ ${SERVERLESS,,} != 'true' ]]; then
           printf "Moving mamba environments to %s...\n" "${WORKSPACE}"
-          mkdir -p ${WORKSPACE}environments
           while sleep 10; do printf "Waiting for workspace mamba sync...\n"; done &
           rsync -auSHh --stats /opt/micromamba/ "${ws_mamba_target}"
           kill $!

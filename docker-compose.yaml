@@ -64,13 +64,14 @@ services:
       
     ports:
         # SSH available on host machine port 2222 to avoid conflict. Change to suit
-        - ${SSH_PORT_HOST:-2222}:${SSH_PORT:-22}
-        # Redirect to Cloudflare quick tunnel
-        - ${SERVICEPORTAL_PORT_HOST:-1111}:1111
+        - ${SSH_PORT_HOST:-2222}:${SSH_PORT_LOCAL:-22}
+        # Caddy port for service portal
+        - ${SERVICEPORTAL_PORT_HOST:-1111}:${SERVICEPORTAL_PORT_HOST:-1111}
         # Rclone webserver for interactive configuration
-        - ${RCLONE_PORT_HOST:-53682}:53682
+        - ${RCLONE_PORT_HOST:-53682}:${RCLONE_PORT_HOST:-53682}
    
     environment:
+        # Important: Edit values in .env - not here.
         # Don't enclose values in quotes
         - DIRECT_ADDRESS=${DIRECT_ADDRESS:-127.0.0.1}
         - DIRECT_ADDRESS_GET_WAN=${DIRECT_ADDRESS_GET_WAN:-false}
@@ -82,4 +83,9 @@ services:
         - WEB_USER=${WEB_USER:-user}
         - WEB_PASSWORD=${WEB_PASSWORD:-password}
         - SERVERLESS=${SERVERLESS:-false}
+        - SSH_PORT_HOST=${SSH_PORT_HOST:-2222}
+        - SSH_PORT_LOCAL=${SSH_PORT_LOCAL:-22}
+        - SERVICEPORTAL_PORT_HOST=${SERVICEPORTAL_PORT_HOST:-1111}
+        - SERVICEPORTAL_PORT_LOCAL=${SERVICEPORTAL_PORT_LOCAL:-11111}
+        - SERVICEPORTAL_METRICS_PORT=${SERVICEPORTAL_METRICS_PORT:-21111}
         #- PROVISIONING_SCRIPT=https://raw.githubusercontent.com/ai-dock/base-image/main/config/provisioning/default.sh

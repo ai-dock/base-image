@@ -36,6 +36,10 @@ It is a good idea to leave the source tree alone and copy any edits you would li
 
 As this overlaying happens after the main build, it is easy to add extra files such as ML models and datasets to your images. You will also be able to rebuild quickly if your file overrides are made here.
 
+Any directories and files that you add into `opt/storage` will be made available in the running container at `$WORKSPACE/storage`.  
+
+This directory is monitored by `inotifywait`. Any items appearing in this directory can be automatically linked to an arbitrary number of application directories as defined in `/opt/ai-dock/storage_monitor/etc/mappings.sh`.  This is particularly useful if you need to run several applications that each need to make use of the stored files.
+
 ## Run Locally
 
 A 'feature-complete' `docker-compose.yaml` file is included for your convenience. All features of the image are included - Simply edit the environment variables in `.env`, save and then type `docker compose up`.
@@ -301,6 +305,10 @@ If you intend to use the `rclone create` command to interactively generate remot
 This script follows and prints the log files for each of the above services to stdout. This allows you to follow the progress of all running services through docker's own logging system.
 
 If you are logged into the container you can follow the logs by running `logtail.sh`
+
+### Storage Monitor
+
+This service detects changes to files in `$WORKSPACE_STORAGE` and creates symbolic links to the application directories defined in `/opt/ai-dock/storage_monitor/etc/mappings.sh`
 
 ## Open Ports
 

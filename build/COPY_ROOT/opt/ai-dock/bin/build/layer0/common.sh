@@ -26,6 +26,7 @@ $APT_INSTALL \
     git \
     git-lfs \
     gpg \
+    inotify-tools \
     jq \
     less \
     libcap2-bin \

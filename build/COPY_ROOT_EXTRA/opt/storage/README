@@ -1,0 +1,7 @@
+Any files present in the container image at /opt/storage will be symlinked
+to $WORKSPACE/storage at startup.
+
+Files in $WORKSPACE/storage will then be linked/unlinked as defined in
+/opt/storage_monitor/etc/mappings.sh as they are added/moved/removed.
+
+This is where you should add models and datasets if you would like to bundle them.
