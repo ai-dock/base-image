@@ -38,7 +38,7 @@ As this overlaying happens after the main build, it is easy to add extra files s
 
 Any directories and files that you add into `opt/storage` will be made available in the running container at `$WORKSPACE/storage`.  
 
-This directory is monitored by `inotifywait`. Any items appearing in this directory can be automatically linked to an arbitrary number of application directories as defined in `/opt/ai-dock/storage_monitor/etc/mappings.sh`.  This is particularly useful if you need to run several applications that each need to make use of the stored files.
+This directory is monitored by `inotifywait`. Any items appearing in this directory will be automatically linked to the application directories as defined in `/opt/ai-dock/storage_monitor/etc/mappings.sh`.  This is particularly useful if you need to run several applications that each need to make use of the stored files.
 
 ## Run Locally
 
@@ -109,7 +109,7 @@ You can use the included `cloudflared` service to make secure connections withou
 | `PROVISIONING_SCRIPT`    | URL of a remote script to execute on init. See [note](#provisioning-script). |
 | `RCLONE_*`               | Rclone configuration - See [rclone documentation](https://rclone.org/docs/#config-file) |
 | `SKIP_ACL`               | Set `true` to skip modifying workspace ACL |
-| `SSH_PORT`               | Set a non-standard port for SSH (default `22`) |
+| `SSH_PORT_LOCAL`         | Set a non-standard port for SSH (default `22`) |
 | `SSH_PUBKEY`             | Your public key for SSH |
 | `WEB_ENABLE_AUTH`        | Enable password protection for web services (default `true`) |
 | `WEB_USER`               | Username for web services (default `user`) |
@@ -308,7 +308,7 @@ If you are logged into the container you can follow the logs by running `logtail
 
 ### Storage Monitor
 
-This service detects changes to files in `$WORKSPACE_STORAGE` and creates symbolic links to the application directories defined in `/opt/ai-dock/storage_monitor/etc/mappings.sh`
+This service detects changes to files in `$WORKSPACE/storage` and creates symbolic links to the application directories defined in `/opt/ai-dock/storage_monitor/etc/mappings.sh`
 
 ## Open Ports
 
