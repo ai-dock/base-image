@@ -343,11 +343,14 @@ function init_direct_address() {
         # Detected provider has direct connection method
         elif env | grep 'VAST' > /dev/null 2>&1; then
             export DIRECT_ADDRESS="auto#vast-ai"
+            export CLOUD_PROVIDER="vast.ai"
         elif env | grep 'RUNPOD' > /dev/null 2>&1; then
            export DIRECT_ADDRESS="auto#runpod-io"
+           export CLOUD_PROVIDER="runpod.io"
         # Detected provider does not support direct connections
         elif env | grep 'PAPERSPACE' > /dev/null 2>&1; then
             export DIRECT_ADDRESS=""
+            export CLOUD_PROVIDER="paperspace.com"
         else
             export DIRECT_ADDRESS="localhost"
         fi
