@@ -19,7 +19,7 @@ function start() {
             sleep 1
         done
     fi
-    
+    printf "Serverless worker started: %s\n" "$(date +"%x %T.%3N")" >> /var/log/timing_data
     printf "Starting %s serverless worker...\n" ${CLOUD_PROVIDER}
     
     if [[ ${CLOUD_PROVIDER} = "runpod.io" ]]; then

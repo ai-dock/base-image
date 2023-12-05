@@ -41,6 +41,7 @@ function init_main() {
     init_source_provisioning_script >> /var/log/provisioning.log 2>&1
     # Removal of this file will trigger fastapi shutdown and service start
     rm /run/container_config
+    printf "Init complete: %s\n" "$(date +"%x %T.%3N")" >> /var/log/timing_data
     # Don't exit unless supervisord is killed
     wait
 }
@@ -66,7 +67,9 @@ init_serverless() {
   rm /run/workspace_sync
   init_source_preflight_script > /var/log/preflight.log 2>&1
   rm /run/container_config
-  supervisord -c /etc/supervisor/supervisord.conf
+  supervisord -c /etc/supervisor/supervisord.conf &
+  printf "Init complete: %s\n" "$(date +"%x %T.%3N")" >> /var/log/timing_data
+  wait
 }
 
 function init_set_envs() {
@@ -171,7 +174,6 @@ function init_set_workspace() {
     # Determine workspace mount status
     if mountpoint "$WORKSPACE" > /dev/null 2>&1; then
         export WORKSPACE_MOUNTED=true
-        mkdir -p ${WORKSPACE}environments
     else
         export WORKSPACE_MOUNTED=false
         no_mount_warning_file="${WORKSPACE}WARNING-NO-MOUNT.txt"
@@ -183,6 +185,7 @@ function init_set_workspace() {
 }
 
 function init_sync_mamba_envs() {
+    printf "Mamba sync start: %s\n" "$(date +"%x %T.%3N")" >> /var/log/timing_data
     ws_mamba_target="${WORKSPACE}environments/micromamba-${IMAGE_SLUG}"
     if [[ -d ${WORKSPACE}micromamba ]]; then
         mkdir -p ${WORKSPACE}environments
@@ -211,9 +214,11 @@ function init_sync_mamba_envs() {
           link-mamba-envs.sh
       fi
 fi
+printf "Mamba sync complete: %s\n" "$(date +"%x %T.%3N")" >> /var/log/timing_data
 }
 
 init_sync_opt() {
+  printf "Opt sync start: %s\n" "$(date +"%x %T.%3N")" >> /var/log/timing_data
   IFS=: read -r -d '' -a path_array < <(printf '%s:\0' "$OPT_SYNC")
   for item in "${path_array[@]}"; do
     opt_dir="/opt/${item}"
@@ -280,6 +285,7 @@ init_sync_opt() {
         ln -s "$ws_dir" "$opt_dir"
     fi
   done
+  printf "Opt sync complete: %s\n" "$(date +"%x %T.%3N")" >> /var/log/timing_data
 }
 
 init_set_workspace_permissions() {
@@ -402,6 +408,7 @@ function init_write_environment() {
 }
 
 function init_get_provisioning_script() {
+    printf "Provisioning start: %s\n" "$(date +"%x %T.%3N")" >> /var/log/timing_data
     if [[ -n  $PROVISIONING_SCRIPT ]]; then
         file="/opt/ai-dock/bin/provisioning.sh"
         curl -L -o ${file} ${PROVISIONING_SCRIPT}
@@ -416,13 +423,18 @@ function init_get_provisioning_script() {
 }
 
 function init_source_provisioning_script() {
-    # Child images can provide in their PATH
-    printf "Looking for provisioning.sh...\n"
-    if [[ ! -f /opt/ai-dock/bin/provisioning.sh ]]; then
-        printf "Not found\n"
+    if [[ ! -e "$WORKSPACE"/.update_lock ]]; then
+        # Child images can provide in their PATH
+        printf "Looking for provisioning.sh...\n"
+        if [[ ! -f /opt/ai-dock/bin/provisioning.sh ]]; then
+            printf "Not found\n"
+        else
+            source /opt/ai-dock/bin/provisioning.sh
+        fi
     else
-        source /opt/ai-dock/bin/provisioning.sh
+        printf "Refusing to provision container with %s.update_lock present\n" "$WORKSPACE"
     fi
+    printf "Provisioning complete: %s\n" "$(date +"%x %T.%3N")" >> /var/log/timing_data
 }
 
 # This could be much better...
@@ -453,6 +465,7 @@ function init_debug_print() {
     fi
 }
 
+printf "Init started: %s\n" "$(date +"%x %T.%3N")" > /var/log/timing_data
 if [[ ${SERVERLESS,,} != 'true' ]]; then
     init_main "$@"; exit
 else
