@@ -45,6 +45,7 @@ $APT_INSTALL \
     unzip \
     vim \
     wget \
+    xz-utils \
     zip
   
   # These libraries are needed to run the log/redirect interfaces
@@ -86,12 +87,6 @@ mkdir -p /opt/micromamba
 cd /opt/micromamba
 curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba
 micromamba shell init --shell bash --root-prefix=/opt/micromamba
-
-# Cloud helpers - Serverless support
-$MAMBA_CREATE -n serverless -c conda-forge python=3.10
-micromamba run -n serverless $PIP_INSTALL \
-  runpod
-
 
 # Ensure critical paths/files are present
 mkdir -p --mode=0755 /etc/apt/keyrings
