@@ -6,13 +6,6 @@ set -eo pipefail
 apt-get update
 apt-get upgrade -y --no-install-recommends
 
-function download() {
-  set +e
-  while ! wget -c -O $1 $2
-  do echo "will retry in 2 seconds"; sleep 2; done
-  set -e
-}
-
 # System packages
 $APT_INSTALL \
     acl \
@@ -61,13 +54,13 @@ $APT_INSTALL \
 
 # Get caddy server
 mkdir -p /opt/caddy/bin
-download caddy.tar.gz https://github.com/caddyserver/caddy/releases/download/v2.7.5/caddy_2.7.5_linux_amd64.tar.gz 
+wget -c -O caddy.tar.gz https://github.com/caddyserver/caddy/releases/download/v2.7.5/caddy_2.7.5_linux_amd64.tar.gz 
 tar -xf caddy.tar.gz -C /opt/caddy
 rm caddy.tar.gz
 mv /opt/caddy/caddy /opt/caddy/bin
 
 # Get Cloudflare daemon
-download cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+wget -c -O cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
 dpkg -i cloudflared.deb
 rm cloudflared.deb
 
