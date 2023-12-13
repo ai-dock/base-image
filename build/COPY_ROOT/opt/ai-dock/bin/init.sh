@@ -187,9 +187,9 @@ function init_set_workspace() {
 function init_sync_mamba_envs() {
     printf "Mamba sync start: %s\n" "$(date +"%x %T.%3N")" >> /var/log/timing_data
     ws_mamba_target="${WORKSPACE}environments/micromamba-${IMAGE_SLUG}"
-    if [[ -d ${WORKSPACE}micromamba ]]; then
-        mkdir -p ${WORKSPACE}environments
-        mv ${WORKSPACE}micromamba "$ws_mamba_target"
+    if [[ -d ${WORKSPACE}/micromamba ]]; then
+        mkdir -p ${WORKSPACE}/environments
+        mv ${WORKSPACE}/micromamba "$ws_mamba_target"
     fi
     
     if [[ $WORKSPACE_MOUNTED = "false" ]]; then
@@ -203,6 +203,7 @@ function init_sync_mamba_envs() {
     else
       # Complete the copy if not serverless
       if [[ ${SERVERLESS,,} != 'true' ]]; then
+          mkdir -p ${WORKSPACE}/environments
           printf "Moving mamba environments to %s...\n" "${WORKSPACE}"
           while sleep 10; do printf "Waiting for workspace mamba sync...\n"; done &
           rsync -auSHh --stats /opt/micromamba/ "${ws_mamba_target}"
@@ -226,7 +227,7 @@ init_sync_opt() {
         continue
     fi
     
-    ws_dir=${WORKSPACE}${item}
+    ws_dir=${WORKSPACE}/${item}
     ws_backup_link=${ws_dir}-link
     
     # Restarting stopped container

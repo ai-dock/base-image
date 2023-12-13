@@ -50,7 +50,7 @@ RUN set -eo pipefail && /opt/ai-dock/bin/build/layer0/init.sh | tee /var/log/bui
 
 # Copy overrides and new files into a final layer for fast rebuilds. Uncomment below
 #COPY ./COPY_ROOT_EXTRA/ /
-#RUN set -eo pipefail && /opt/ai-dock/bin/build/layer1/init.sh | tee /var/log/build.log
+#RUN set -eo pipefail && /opt/ai-dock/bin/build/layer1/init.sh | tee -a /var/log/build.log
 
 # Keep init.sh as-is and place additional logic in /opt/ai-dock/bin/preflight.sh
 CMD ["init.sh"]
