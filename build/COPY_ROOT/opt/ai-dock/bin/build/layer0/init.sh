@@ -3,6 +3,8 @@
 # Must exit and fail to build if any command fails
 set -eo pipefail
 
+source /opt/ai-dock/bin/build/layer0/config.sh
+
 /opt/ai-dock/bin/build/layer0/common.sh
 
 if [[ "$XPU_TARGET" == "NVIDIA_GPU" ]]; then
