@@ -1,12 +1,16 @@
-#!/bin/bash
-
-# Must exit and fail to build if any command fails
-set -eo pipefail
+#!/bin/false
 
 if [[ -z $ROCM_VERSION ]]; then
     printf "No valid ROCM_VERSION specified\n" >&2
     exit 1
 fi
+
+export ROCM_VERSION="$ROCM_VERSION"
+export ROCM_LEVEL="$ROCM_LEVEL"
+export PATH=/opt/rocm/bin:$PATH
+printf "export ROCM_VERSION=\"%s\"\n" "${ROCM_VERSION}" >> /opt/ai-dock/etc/environment.sh
+printf "export ROCM_LEVEL=\"%s\"\n" "${ROCM_LEVEL}" >> /opt/ai-dock/etc/environment.sh
+printf "export PATH=\"%s\"\n" "${PATH}" >> /etc/bash.bashrc
 
 curl -Ss https://repo.radeon.com/rocm/rocm.gpg.key | gpg --dearmor | tee /etc/apt/keyrings/rocm.gpg > /dev/null
 

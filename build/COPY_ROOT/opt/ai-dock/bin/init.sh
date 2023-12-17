@@ -84,11 +84,6 @@ function init_set_envs() {
     while IFS='=' read -r -d '' key val; do
         export "${key}"="$(init_strip_quotes "${val//___/' '}")"
     done < <(env -0)
-    
-    # TODO: branch init.sh into common,nvidia,amd,cpu
-    if [[ $XPU_TARGET == "AMD_GPU" ]]; then
-        export PATH=$PATH:/opt/rocm/bin
-    fi
 }
 
 function init_set_ssh_keys() {
@@ -396,11 +391,10 @@ function init_source_preflight_script() {
 
 function init_write_environment() {
     # Ensure all variables available for interactive sessions
-    env > /etc/environment
     while IFS='=' read -r -d '' key val; do
-        printf "export %s=\"%s\"\n" "$key" "$val" >> /root/.bashrc
+        printf "export %s=\"%s\"\n" "$key" "$val" >> /opt/ai-dock/etc/environment.sh
     done < <(env -0)
-    
+
     if [[ -n $MAMBA_DEFAULT_ENV ]]; then
       printf "micromamba activate %s\n" $MAMBA_DEFAULT_ENV >> /root/.bashrc
     fi
@@ -459,6 +453,9 @@ function init_debug_print() {
         printf "\n--------------------------------------------\n"
         printf "authorized_keys...\n\n"
         cat /root/.ssh/authorized_keys
+        printf "\n--------------------------------------------\n"
+        printf "/opt/ai-dock/etc/environment.sh...\n\n"
+        cat /opt/ai-dock/etc/environment.sh
         printf "\n--------------------------------------------\n"
         printf ".bashrc...\n\n"
         cat /root/.bashrc

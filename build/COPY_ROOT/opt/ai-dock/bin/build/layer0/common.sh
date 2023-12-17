@@ -1,7 +1,9 @@
-#!/bin/bash
+#!/bin/false
 
-# Must exit and fail to build if any command fails
-set -eo pipefail
+export MAMBA_CREATE="micromamba create --always-softlink -y -c conda-forge"
+export MAMBA_INSTALL="micromamba install --always-softlink -y -c conda-forge"
+printf "export MAMBA_CREATE=\"%s\"\n" "${MAMBA_CREATE}" >> /opt/ai-dock/etc/environment.sh
+printf "export MAMBA_INSTALL=\"%s\"\n" "${MAMBA_INSTALL}" >> /opt/ai-dock/etc/environment.sh
 
 apt-get update
 apt-get upgrade -y --no-install-recommends
@@ -92,3 +94,8 @@ touch /etc/rclone/rclone.conf
 # Git config
 
 git config --global --add safe.directory "*"
+
+# Ensure correct environment for child builds
+
+printf "source /opt/ai-dock/etc/environment.sh\n" >> /etc/profile.d/02-ai-dock.sh
+printf "source /opt/ai-dock/etc/environment.sh\n" >> /etc/bash.bashrc
