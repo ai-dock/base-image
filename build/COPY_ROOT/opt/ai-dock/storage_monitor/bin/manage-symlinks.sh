@@ -21,7 +21,10 @@ manage_symlinks() {
                 if [[ -e "$stored_file" ]]; then
                     # Create symlinks for existing or newly created files
                     mkdir -p "$symlink_target_dir"
-                    ln -sf "$absolute_stored_file" "$symlink_target"
+                    if [[ -h $symlink_target ]]; then
+                        rm $symlink_target
+                    fi
+                    ln -sv "$absolute_stored_file" "$symlink_target"
                 else
                     # Remove symlink for deleted files
                     rm -f "$symlink_target"
