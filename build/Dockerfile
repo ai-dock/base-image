@@ -13,7 +13,9 @@ LABEL org.opencontainers.image.description "Base image for ai-dock."
 LABEL maintainer="Rob Ballantyne <rob@dynamedia.uk>"
 
 # Set ENV variables
-ENV LANG C.UTF-8
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
+ENV TZ=UTC
 SHELL ["/bin/bash", "-c"]
 ENV SHELL="/bin/bash"
 ENV DEBIAN_FRONTEND=noninteractive
@@ -37,7 +39,8 @@ ARG ROCM_LEVEL
 
 # Use build scripts to ensure we can build all targets from one Dockerfile in a single layer.
 # Don't put anything heavy in here - We can use multi-stage building above if necessary.
-RUN set -eo pipefail && /opt/ai-dock/bin/build/layer0/init.sh | tee /var/log/build.log
+RUN yes | unminimize && \
+    set -eo pipefail && /opt/ai-dock/bin/build/layer0/init.sh | tee /var/log/build.log
 
 # Copy overrides and new files into a final layer for fast rebuilds. Uncomment below
 #COPY ./COPY_ROOT_EXTRA/ /

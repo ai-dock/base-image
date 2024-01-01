@@ -108,7 +108,6 @@ You can use the included `cloudflared` service to make secure connections withou
 | `GPU_COUNT`              | Limit the number of available GPUs |
 | `PROVISIONING_SCRIPT`    | URL of a remote script to execute on init. See [note](#provisioning-script). |
 | `RCLONE_*`               | Rclone configuration - See [rclone documentation](https://rclone.org/docs/#config-file) |
-| `SKIP_ACL`               | Set `true` to skip modifying workspace ACL |
 | `SSH_PORT_LOCAL`         | Set a non-standard port for SSH (default `22`) |
 | `SSH_PUBKEY`             | Your public key for SSH |
 | `WEB_ENABLE_AUTH`        | Enable password protection for web services (default `true`) |
@@ -125,7 +124,19 @@ Example usage: `docker run -e STANDARD_VAR1="this value" -e STANDARD_VAR2="that 
 
 ## Security
 
-By default, all exposed web services other than the port redirect page are protected by HTTP basic authentication.
+All ai-dock containers are interactive and will not drop root privileges. You should ensure that your docker daemon runs as an unprivileged user.
+
+### System
+
+A system user will be created at startup. The UID will be either 1000 or will match the UID of the `$WORKSPACE` bind mount.
+
+No password is set for this user and it will share the root user's ssh public key.
+
+Some processes may start in the user context for convenience only.
+
+### Web Services
+
+By default, all exposed web services other than the port redirect index page are protected by HTTP basic authentication.
 
 The default username is `user` and the password is `password`.
 
@@ -203,8 +214,6 @@ As docker containers generally run as the root user, new files created in /works
 
 To ensure that the files remain accessible to the local user that owns the directory, the docker entrypoint will set a default ACL on the directory by executing the commamd `setfacl -d -m u:${WORKSPACE_UID}:rwx /workspace`.
 
-If you do not want this, you can set the environment variable `SKIP_ACL=true`.
-
 ## Running Services
 
 This image will spawn multiple processes upon starting a container because some of our remote environments do not support more than one container per instance.
@@ -274,30 +283,6 @@ See [this guide](https://link.ai-dock.org/guide-sshd-do) by DigitalOcean for an 
 
 >[!NOTE]  
 >_SSHD is included because the end-user should be able to know the version prior to deloyment. Using a providers add-on, if available, does not guarantee this._
-
-### Rclone mount
-
-Rclone allows you to access your cloud storage from within the container by configuring one or more remotes. If you are unfamiliar with the project you can find out more at the [Rclone website](https://rclone.org/).
-
-Any Rclone remotes that you have specified, either through mounting the config directory or via setting environment variables will be mounted at `/workspace/remote/[remote name]`. For this service to start, the following conditions must be met:
-
-- Fuse3 installed in the host operating system
-- Kernel module `fuse` loaded in the host
-- Host `/etc/passwd` mounted in the container
-- Host `/etc/group` mounted in the container
-- Host device `/dev/fuse` made available to the container
-- Container must run with `cap-add SYS_ADMIN`
-- Container must run with `securiry-opt apparmor:unconfined`
-- At least one remote must be configured
-
-The provided docker-compose.yaml includes a working configuration (add your own remotes).
-
-In the event that the conditions listed cannot be met, `rclone` will still be available to use via the CLI - only mounts will be unavailable.
-
-If you intend to use the `rclone create` command to interactively generate remote configurations you should ensure port `53682` is accessible. See https://rclone.org/remote_setup/ for further details.
-
->[!NOTE]  
->_Rclone is included to give the end-user an opportunity to easily transfer files between the instance and their cloud storage provider._
 
 >[!WARNING]  
 >You should only provide auth tokens in secure cloud environments.

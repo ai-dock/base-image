@@ -28,19 +28,11 @@ services:
     #          count: all
     #          capabilities: [gpu]
     
-    security_opt:
-      # For Rclone mount
-      - apparmor:unconfined
+    #security_opt:
       # For AMD GPU
       #- seccomp:unconfined
     
-    cap_add:
-      # For Rclone mount
-      - SYS_ADMIN
-    
-    devices:
-      # For Rclone mount
-      - "/dev/fuse:/dev/fuse"
+    #devices:
       # For AMD GPU
       #- "/dev/kfd:/dev/kfd"
       #- "/dev/dri:/dev/dri"
@@ -51,10 +43,6 @@ services:
     #  - render
     
     volumes:
-      # For Rclone mount
-      - /etc/passwd:/etc/passwd:ro
-      - /etc/group:/etc/group:ro
-      - ./config/rclone:/etc/rclone
       # Workspace
       - ./workspace:${WORKSPACE:-/workspace}:rshared
       # Will echo to root-owned authorized_keys file;
@@ -67,9 +55,7 @@ services:
         - ${SSH_PORT_HOST:-2222}:${SSH_PORT_LOCAL:-22}
         # Caddy port for service portal
         - ${SERVICEPORTAL_PORT_HOST:-1111}:${SERVICEPORTAL_PORT_HOST:-1111}
-        # Rclone webserver for interactive configuration
-        - ${RCLONE_PORT_HOST:-53682}:${RCLONE_PORT_HOST:-53682}
-   
+
     environment:
         # Important: Edit values in .env - not here.
         # Don't enclose values in quotes

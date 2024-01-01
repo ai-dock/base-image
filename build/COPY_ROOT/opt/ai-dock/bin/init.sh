@@ -19,9 +19,9 @@ function init_main() {
     init_set_web_credentials
     init_direct_address
     init_set_workspace
+    init_create_user
     init_count_gpus
     init_count_quicktunnels
-    init_count_rclone_remotes
     init_set_cf_tunnel_wanted
     touch /run/container_config
     touch /run/workspace_sync
@@ -51,9 +51,7 @@ init_serverless() {
   init_set_envs "$@"
   touch "${WORKSPACE}.update_lock"
   export CF_QUICK_TUNNELS_COUNT=0
-  export RCLONE_MOUNT_COUNT=0
   export SUPERVISOR_START_CLOUDFLARED=0
-  init_direct_address
   init_set_workspace
   init_count_gpus
   init_create_directories
@@ -159,11 +157,18 @@ function init_set_workspace() {
         export WORKSPACE=${ws_tmp//\/\//\/}
     fi
     
+    WORKSPACE_UID=$(stat -c '%u' "$WORKSPACE")
+    if [[ $WORKSPACE_UID -eq 0 ]]; then
+        WORKSPACE_UID=1000
+    fi
+    export WORKSPACE_UID
+    WORKSPACE_GID=$(stat -c '%g' "$WORKSPACE")
+    export WORKSPACE_GID
+    
     if [[ -f "${WORKSPACE}".update_lock ]]; then
         export AUTO_UPDATE=false
     fi
 
-    mkdir -p "${WORKSPACE}"remote/.cache
     mkdir -p "${WORKSPACE}"storage
     
     # Determine workspace mount status
@@ -176,6 +181,29 @@ function init_set_workspace() {
         printf "%b" "${no_mount_warning}"
         touch "${no_mount_warning_file}"
         printf "%b" "${no_mount_warning}" > "${no_mount_warning_file}"
+    fi
+}
+
+# This is a convenience for X11 containers and bind mounts - No additional security implied.
+# These are interactive containers; root will always be available. Secure your daemon.
+function init_create_user() {
+    user_name=user
+    home_dir=${WORKSPACE}/home/user
+    mkdir -p ${home_dir}
+    groupadd -g $WORKSPACE_GID $user_name
+    useradd -ms /bin/bash $user_name -d $home_dir -u $WORKSPACE_UID -g $WORKSPACE_GID
+    usermod -a -G users,sudo,audio,video,render,adm,cdrom,input,lp,lpadmin,plugdev,pulse-access,scanner,ssl-cert,tty,voice $user_name
+    ln -s $home_dir /home/${user_name}
+    echo "${user_name} ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+    if [[ ! -e ${home_dir}/.bashrc ]]; then
+        cp -f /root/.bashrc ${home_dir}
+        chown ${WORKSPACE_UID}:${WORKSPACE_GID} ${home_dir}/.bashrc
+    fi
+    # Set initial keys to match root
+    if [[ -e /root/.ssh/authorized_keys  && ! -d ${home_dir}/.ssh ]]; then
+        mkdir -m 700 ${home_dir}/.ssh
+        cp /root/.ssh/authorized_keys ${home_dir}/.ssh
+        chmod 600 ${home_dir}/.ssh/authorized_keys
     fi
 }
 
@@ -285,16 +313,8 @@ init_sync_opt() {
 }
 
 init_set_workspace_permissions() {
-    # Ensure the workspace owner can access files from outside of the container
-    WORKSPACE_UID=$(stat -c '%u' "$WORKSPACE")
-    export WORKSPACE_UID
-    WORKSPACE_GID=$(stat -c '%g' "$WORKSPACE")
-    export WORKSPACE_GID
-    if [[ ${WORKSPACE_SYNC,,} != 'false' && ${SKIP_ACL,,} != 'false' && $WORKSPACE_UID -gt 0 ]]; then
-        setfacl -R -d -m u:"${WORKSPACE_UID}":rwx "${WORKSPACE}"
-        setfacl -R -d -m m:rwx "${WORKSPACE}"
-        chown -R ${WORKSPACE_UID}.${WORKSPACE_GID} "${WORKSPACE}"
-    fi
+    # Ensure the workspace owner/container user can access files from outside of the container
+    /opt/ai-dock/bin/fix-permissions.sh -o workspace
 }
 
 function init_set_cf_tunnel_wanted() {
@@ -305,34 +325,9 @@ function init_set_cf_tunnel_wanted() {
     fi
 }
 
-function init_count_rclone_remotes() {
-    # Determine if rclone mount will be possible
-    mount_env_warning_file="${WORKSPACE}remote/WARNING-CANNOT-MOUNT-REMOTES.txt"
-    no_remotes_warning_file="${WORKSPACE}remote/WARNING-NO-REMOTES-CONFIGURED.txt"
-    rm ${mount_env_warning_file} > /dev/null 2>&1
-    rm ${no_remotes_warning_file} > /dev/null 2>&1
-    capsh --print | grep "Current:" | grep -q cap_sys_admin
-    if [[ $? -ne 0 || ! -e /dev/fuse ]]; then
-        # Not in container with sufficient privileges
-        mount_env_warning="Environment unsuitable for rclone mount...\nrclone remains available via CLI\n"
-        printf "%b" "${mount_env_warning}"
-        touch "${mount_env_warning_file}"
-        printf "%b" "${mount_env_warning}" > "${mount_env_warning_file}"
-        export RCLONE_MOUNT_COUNT=0
-    else
-        RCLONE_MOUNT_COUNT=$(rclone listremotes |wc -w)
-        export RCLONE_MOUNT_COUNT
-        if [[ $RCLONE_MOUNT_COUNT -eq 0 ]]; then
-            no_remotes_warning="You have no configured rclone remotes to be mounted\n"
-            printf "%b" "${no_remotes_warning}"
-            touch "${no_remotes_warning_file}"
-            printf "%b" "${no_remotes_warning}" > ${no_remotes_warning_file}
-        fi
-    fi
-}
-
 function init_direct_address() {
-    # Ensure set
+    export EXTERNAL_IP_ADDRESS="$(dig +short myip.opendns.com @resolver1.opendns.com)"
+    
     if [[ ! -v DIRECT_ADDRESS ]]; then
         DIRECT_ADDRESS=""
     fi
@@ -341,7 +336,7 @@ function init_direct_address() {
         export DIRECT_ADDRESS=""
     elif [[ -z $DIRECT_ADDRESS || ${DIRECT_ADDRESS_GET_WAN,,} == 'true' ]]; then
         if [[ ${DIRECT_ADDRESS_GET_WAN,,} == 'true' ]]; then
-            export DIRECT_ADDRESS="$(curl https://icanhazip.com)"
+            export DIRECT_ADDRESS="$EXTERNAL_IP_ADDRESS"
         # Detected provider has direct connection method
         elif env | grep 'VAST' > /dev/null 2>&1; then
             export DIRECT_ADDRESS="auto#vast-ai"
@@ -391,8 +386,13 @@ function init_source_preflight_script() {
 
 function init_write_environment() {
     # Ensure all variables available for interactive sessions
+    skip_keys=(
+        "HOME"
+    )
     while IFS='=' read -r -d '' key val; do
-        printf "export %s=\"%s\"\n" "$key" "$val" >> /opt/ai-dock/etc/environment.sh
+        if [[ ! ${skip_keys[@]} =~ "$key" ]]; then
+            printf "export %s=\"%s\"\n" "$key" "$val" >> /opt/ai-dock/etc/environment.sh
+        fi
     done < <(env -0)
 
     if [[ -n $MAMBA_DEFAULT_ENV ]]; then
@@ -400,6 +400,7 @@ function init_write_environment() {
     fi
     
     printf "cd %s\n" "$WORKSPACE" >> /root/.bashrc
+    ln -snf "/usr/share/zoneinfo/$TZ" /etc/localtime && echo "$TZ" | sudo tee /etc/timezone > /dev/null
 }
 
 function init_get_provisioning_script() {
