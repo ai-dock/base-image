@@ -190,13 +190,14 @@ function init_set_workspace() {
 # This is a convenience for X11 containers and bind mounts - No additional security implied.
 # These are interactive containers; root will always be available. Secure your daemon.
 function init_create_user() {
-    user_name=user
-    home_dir=${WORKSPACE}/home/user
+    home_dir=${WORKSPACE}home/${USER_NAME}
     mkdir -p ${home_dir}
-    groupadd -g $WORKSPACE_GID $user_name
-    useradd -ms /bin/bash $user_name -d $home_dir -u $WORKSPACE_UID -g $WORKSPACE_GID
-    usermod -a -G users,sudo,audio,video,render,adm,cdrom,input,lp,lpadmin,plugdev,pulse-access,scanner,ssl-cert,tty,voice $user_name
-    ln -s $home_dir /home/${user_name}
+    groupadd -g $WORKSPACE_GID $USER_NAME
+    useradd -ms /bin/bash $USER_NAME -d $home_dir -u $WORKSPACE_UID -g $WORKSPACE_GID
+    usermod -a -G $USER_GROUPS $USER_NAME
+    # May not exist
+    usermod -a -G render $USER_NAME
+    ln -s $home_dir /home/${USER_NAME}
     echo "${user_name} ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
     if [[ ! -e ${home_dir}/.bashrc ]]; then
         cp -f /root/.bashrc ${home_dir}

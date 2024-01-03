@@ -32,12 +32,11 @@ services:
       # For AMD GPU
       #- seccomp:unconfined
     
-    #devices:
+    devices:
+      - "/dev/dri:/dev/dri"
       # For AMD GPU
       #- "/dev/kfd:/dev/kfd"
-      #- "/dev/dri:/dev/dri"
       
-    # For AMD GPU
     #group_add:
     #  - video
     #  - render

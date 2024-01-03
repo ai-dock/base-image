@@ -12,12 +12,14 @@ LABEL org.opencontainers.image.description "Base image for ai-dock."
 
 LABEL maintainer="Rob Ballantyne <rob@dynamedia.uk>"
 
+SHELL ["/bin/bash", "-c"]
 # Set ENV variables
 ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
 ENV TZ=UTC
-SHELL ["/bin/bash", "-c"]
 ENV SHELL="/bin/bash"
+ENV USER_NAME=user
+ENV USER_GROUPS=users,adm,sudo,audio,video,tty
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PATH=/opt/ai-dock/bin:/opt/micromamba/bin:/opt/caddy/bin:$PATH
 ENV OPT_SYNC=
