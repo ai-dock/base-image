@@ -198,7 +198,7 @@ function init_create_user() {
     # May not exist
     usermod -a -G render $USER_NAME
     ln -s $home_dir /home/${USER_NAME}
-    echo "${user_name} ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+    echo "${USER_NAME} ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
     if [[ ! -e ${home_dir}/.bashrc ]]; then
         cp -f /root/.bashrc ${home_dir}
         chown ${WORKSPACE_UID}:${WORKSPACE_GID} ${home_dir}/.bashrc
