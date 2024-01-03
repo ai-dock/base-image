@@ -163,6 +163,9 @@ function init_set_workspace() {
     fi
     export WORKSPACE_UID
     WORKSPACE_GID=$(stat -c '%g' "$WORKSPACE")
+    if [[ $WORKSPACE_GID -eq 0 ]]; then
+        WORKSPACE_GID=1000
+    fi
     export WORKSPACE_GID
     
     if [[ -f "${WORKSPACE}".update_lock ]]; then
