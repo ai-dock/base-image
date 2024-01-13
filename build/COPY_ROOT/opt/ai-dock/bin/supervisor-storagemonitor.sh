@@ -7,8 +7,10 @@ function cleanup() {
 }
 
 function start() {
+    source /opt/ai-dock/etc/environment.sh
+    
     printf "Starting storage monitor..\n"
-    exec /opt/ai-dock/storage_monitor/bin/storage-monitor.sh
+    /opt/ai-dock/storage_monitor/bin/storage-monitor.sh
 }
 
 start 2>&1

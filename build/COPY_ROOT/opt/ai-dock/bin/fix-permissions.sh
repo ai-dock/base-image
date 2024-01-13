@@ -18,20 +18,11 @@ function main() {
 }
 
 function fix_container() {
-    printf "Fixing container permissions...\n"
-    items=micromamba:$OPT_SYNC
-    IFS=: read -r -d '' -a path_array < <(printf '%s:\0' "$items")
-    for item in "${path_array[@]}"; do
-        if [[ -n $item ]]; then
-            opt_dir="/opt/${item}"
-            chown -R root.users "$opt_dir"
-            chmod -R g+s "$opt_dir"
-            chmod -R ug+rw "$opt_dir"
-            setfacl -R -d -m g:users:rwx "$opt_dir"
-            setfacl -R -d -m m:rwx "$opt_dir"
-        fi
-    done
-    
+    chown -R root.ai-dock /opt
+    chmod -R g+s /opt
+    chmod -R ug+rwX /opt
+    setfacl -R -d -m g:ai-dock:rwx /opt
+    setfacl -R -d -m m:rwx /opt
 }
 
 function fix_workspace() {

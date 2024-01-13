@@ -8,9 +8,12 @@ function cleanup() {
 }
 
 function start() {
+    source /opt/ai-dock/etc/environment.sh
+    
     if [[ ${SERVERLESS,,} = "true" ]]; then
         printf "Refusing to start Caddy service in serverless mode\n"
-        exec sleep 10
+        sleep 5
+        exit 0
     fi
     
     # Give processes time to register their ports
@@ -42,7 +45,7 @@ function start() {
     done
     
     caddy fmt --overwrite /opt/caddy/etc/Caddyfile
-    exec caddy run --config /opt/caddy/etc/Caddyfile
+    caddy run --config /opt/caddy/etc/Caddyfile
 }
 
 start 2>&1

@@ -1,10 +1,11 @@
 #!/bin/false
 
 export MAMBA_CREATE="micromamba create --always-softlink -y -c conda-forge"
+env-store MAMBA_CREATE
 export MAMBA_INSTALL="micromamba install --always-softlink -y -c conda-forge"
-printf "export MAMBA_CREATE=\"%s\"\n" "${MAMBA_CREATE}" >> /opt/ai-dock/etc/environment.sh
-printf "export MAMBA_INSTALL=\"%s\"\n" "${MAMBA_INSTALL}" >> /opt/ai-dock/etc/environment.sh
-printf "git config --global --add safe.directory \"*\"\n" >> /opt/ai-dock/etc/environment.sh
+env-store MAMBA_INSTALL
+
+groupadd -g 1111 ai-dock
 
 dpkg --add-architecture i386
 apt-get update
@@ -41,11 +42,13 @@ $APT_INSTALL \
     locales \
     lsb-release \
     lsof \
+    man \
     mlocate \
     net-tools \
     nano \
     openssh-server \
     pkg-config \
+    psmisc \
     python3-pip \
     rar \
     rclone \
@@ -120,5 +123,5 @@ touch /etc/rclone/rclone.conf
 printf "source /opt/ai-dock/etc/environment.sh\n" >> /etc/profile.d/02-ai-dock.sh
 printf "source /opt/ai-dock/etc/environment.sh\n" >> /etc/bash.bashrc
 
-# Give our runtime user full access (added to users group)
+# Give our runtime user full access (added to ai-dock group)
 /opt/ai-dock/bin/fix-permissions.sh -o container

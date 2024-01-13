@@ -7,9 +7,11 @@ function cleanup() {
 }
 
 function start() {
+    source /opt/ai-dock/etc/environment.sh
+    
     printf "Starting logtail service...\n"
     sleep 2
-    exec logtail.sh -s
+    logtail.sh -s
 }
 
 start 2>&1

@@ -25,8 +25,6 @@ function init_main() {
     init_set_cf_tunnel_wanted
     touch /run/container_config
     touch /run/workspace_sync
-    # Opportunity to process & manipulate config before supervisor
-    init_source_config_script
     init_write_environment
     # Allow autostart processes to run early
     supervisord -c /etc/supervisor/supervisord.conf &
@@ -38,7 +36,7 @@ function init_main() {
     init_source_preflight_script > /var/log/preflight.log 2>&1
     init_debug_print > /var/log/debug.log 2>&1
     init_get_provisioning_script > /var/log/provisioning.log 2>&1
-    init_source_provisioning_script >> /var/log/provisioning.log 2>&1
+    init_run_provisioning_script >> /var/log/provisioning.log 2>&1
     # Removal of this file will trigger fastapi shutdown and service start
     rm /run/container_config
     printf "Init complete: %s\n" "$(date +"%x %T.%3N")" >> /var/log/timing_data
@@ -53,12 +51,12 @@ init_serverless() {
   export CF_QUICK_TUNNELS_COUNT=0
   export SUPERVISOR_START_CLOUDFLARED=0
   init_set_workspace
+  init_create_user
   init_count_gpus
   init_create_directories
   init_create_logfiles
   touch /run/container_config
   touch /run/workspace_sync
-  init_source_config_script
   init_write_environment
   init_sync_mamba_envs > /var/log/sync.log 2>&1
   init_sync_opt >> /var/log/sync.log 2>&1
@@ -195,9 +193,11 @@ function init_create_user() {
     groupadd -g $WORKSPACE_GID $USER_NAME
     useradd -ms /bin/bash $USER_NAME -d $home_dir -u $WORKSPACE_UID -g $WORKSPACE_GID
     usermod -a -G $USER_GROUPS $USER_NAME
-    # May not exist
+    # May not exist - todo check device ownership
     usermod -a -G render $USER_NAME
+    usermod -a -G sgx $USER_NAME
     ln -s $home_dir /home/${USER_NAME}
+    # See the README (in)security notice
     echo "${USER_NAME} ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
     if [[ ! -e ${home_dir}/.bashrc ]]; then
         cp -f /root/.bashrc ${home_dir}
@@ -209,6 +209,8 @@ function init_create_user() {
         cp /root/.ssh/authorized_keys ${home_dir}/.ssh
         chmod 600 ${home_dir}/.ssh/authorized_keys
     fi
+    # Set username in startup sctipts
+    sed -i "s/\$USER_NAME/$USER_NAME/g" /etc/supervisor/supervisord/conf.d/* 
 }
 
 function init_sync_mamba_envs() {
@@ -359,23 +361,14 @@ function init_direct_address() {
 }
 
 function init_create_directories() {
-  mkdir -p /run/http_ports
+  mkdir -m 2770 -p /run/http_ports
+  chown root.ai-dock /run/http_ports
   mkdir -p /opt/caddy/etc
 }
 
 # Ensure the files logtail needs to display during init
 function init_create_logfiles() {
     touch /var/log/{logtail.log,config.log,debug.log,preflight.log,provisioning.log,sync.log}
-}
-
-function init_source_config_script() {
-    # Child images can provide in their PATH
-    printf "Looking for config.sh...\n"
-    if [[ ! -f /opt/ai-dock/bin/config.sh ]]; then
-        printf "Not found\n"
-    else
-        source /opt/ai-dock/bin/config.sh
-    fi
 }
 
 function init_source_preflight_script() {
@@ -395,7 +388,7 @@ function init_write_environment() {
     )
     while IFS='=' read -r -d '' key val; do
         if [[ ! ${skip_keys[@]} =~ "$key" ]]; then
-            printf "export %s=\"%s\"\n" "$key" "$val" >> /opt/ai-dock/etc/environment.sh
+            env-store "$key"
         fi
     done < <(env -0)
 
@@ -422,14 +415,16 @@ function init_get_provisioning_script() {
     fi
 }
 
-function init_source_provisioning_script() {
+function init_run_provisioning_script() {
     if [[ ! -e "$WORKSPACE"/.update_lock ]]; then
-        # Child images can provide in their PATH
+        file="/opt/ai-dock/bin/provisioning.sh"
         printf "Looking for provisioning.sh...\n"
-        if [[ ! -f /opt/ai-dock/bin/provisioning.sh ]]; then
+        if [[ ! -f ${file} ]]; then
             printf "Not found\n"
         else
-            source /opt/ai-dock/bin/provisioning.sh
+            chown ${USER_NAME}:ai-dock ${file}
+            chmod 0755 ${file}
+            su ${USER_NAME} -c ${file}
         fi
     else
         printf "Refusing to provision container with %s.update_lock present\n" "$WORKSPACE"

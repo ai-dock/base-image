@@ -15,6 +15,8 @@ function cleanup() {
 }
 
 function start() {
+    source /opt/ai-dock/etc/environment.sh
+    
     if [[ ${SERVERLESS,,} = "true" ]]; then
         printf "Refusing to start $SERVICE_NAME in serverless mode\n"
         exec sleep 10
@@ -35,7 +37,7 @@ function start() {
     printf "Starting ${SERVICE_NAME}...\n"
     kill $(lsof -t -i:$LISTEN_PORT) > /dev/null 2>&1 &
     wait -n
-    exec /usr/bin/python3 /opt/ai-dock/fastapi/serviceportal/main.py \
+    /usr/bin/python3 /opt/ai-dock/fastapi/serviceportal/main.py \
         -p $LISTEN_PORT
 }
 

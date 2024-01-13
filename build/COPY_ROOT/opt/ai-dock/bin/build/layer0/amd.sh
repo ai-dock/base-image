@@ -6,11 +6,11 @@ if [[ -z $ROCM_VERSION ]]; then
 fi
 
 export ROCM_VERSION="$ROCM_VERSION"
+env-store ROCM_VERSION
 export ROCM_LEVEL="$ROCM_LEVEL"
+env-store ROCM_LEVEL
 export PATH=/opt/rocm/bin:$PATH
-printf "export ROCM_VERSION=\"%s\"\n" "${ROCM_VERSION}" >> /opt/ai-dock/etc/environment.sh
-printf "export ROCM_LEVEL=\"%s\"\n" "${ROCM_LEVEL}" >> /opt/ai-dock/etc/environment.sh
-printf "export PATH=\"%s\"\n" "${PATH}" >> /etc/bash.bashrc
+env-store PATH
 
 curl -Ss https://repo.radeon.com/rocm/rocm.gpg.key | gpg --dearmor | tee /etc/apt/keyrings/rocm.gpg > /dev/null
 

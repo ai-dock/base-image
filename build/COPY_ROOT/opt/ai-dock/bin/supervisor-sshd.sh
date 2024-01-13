@@ -7,6 +7,8 @@ function cleanup() {
 }
 
 function start() {
+    source /opt/ai-dock/etc/environment.sh
+    
     if [[ ${SERVERLESS,,} = "true" ]]; then
         printf "Refusing to start SSH service in serverless mode\n"
         exec sleep 10
@@ -32,7 +34,7 @@ function start() {
     
     printf "Starting SSH server on port ${SSH_PORT}...\n"
     /usr/bin/ssh-keygen -A
-    exec /usr/sbin/sshd -D -p $SSH_PORT
+    /usr/sbin/sshd -D -p $SSH_PORT
 }
 
 start 2>&1

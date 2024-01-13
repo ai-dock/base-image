@@ -7,6 +7,8 @@ function cleanup() {
 }
 
 function start() {
+    source /opt/ai-dock/etc/environment.sh
+    
     if [[ -z $PROC_NUM ]]; then
         # Something has gone awry, but no retry
         exit 0
@@ -26,8 +28,8 @@ function start() {
         tunnel="--url localhost:${proxy_port}"
         metrics="--metrics localhost:${metrics_port}"
     fi
-    
-    exec cloudflared tunnel ${metrics} ${tunnel}
+
+    cloudflared tunnel ${metrics} ${tunnel}
 }
 
 start 2>&1
