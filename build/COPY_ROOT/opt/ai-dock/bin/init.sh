@@ -192,13 +192,14 @@ function init_create_user() {
     mkdir -p ${home_dir}
     groupadd -g $WORKSPACE_GID $USER_NAME
     useradd -ms /bin/bash $USER_NAME -d $home_dir -u $WORKSPACE_UID -g $WORKSPACE_GID
+    printf "user:%s" "$USER_PASSWORD" | chpasswd
     usermod -a -G $USER_GROUPS $USER_NAME
     # May not exist - todo check device ownership
     usermod -a -G render $USER_NAME
     usermod -a -G sgx $USER_NAME
     ln -s $home_dir /home/${USER_NAME}
     # See the README (in)security notice
-    echo "${USER_NAME} ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+    printf "%s ALL=(ALL) NOPASSWD: ALL\n" ${USER_NAME} >> /etc/sudoers
     if [[ ! -e ${home_dir}/.bashrc ]]; then
         cp -f /root/.bashrc ${home_dir}
         chown ${WORKSPACE_UID}:${WORKSPACE_GID} ${home_dir}/.bashrc
