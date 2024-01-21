@@ -76,9 +76,21 @@ function init_set_envs() {
         fi
     done
     
-    # Re-write envs; Strip quotes & replace ___ with a space
+    # Re-write envs; 
+    ## 1) Strip quotes & replace ___ with a space
+    ## 2) re-write cloud out-of-band ports
     while IFS='=' read -r -d '' key val; do
-        export "${key}"="$(init_strip_quotes "${val//___/' '}")"
+        if [[ $key == *"PORT_HOST" && $val -ge 70000 ]]; then
+            declare -n vast_oob_port=VAST_TCP_PORT_${val}
+            declare -n runpod_oob_port=RUNPOD_TCP_PORT_${val}
+            if [[ -n $vast_oob_port ]]; then
+                export $key=$vast_oob_port
+            elif [[ -n $runpod_oob_port ]]; then
+                export $key=$runpod_oob_port
+            fi
+        else
+            export "${key}"="$(init_strip_quotes "${val//___/' '}")"
+        fi
     done < <(env -0)
 }
 
@@ -384,11 +396,8 @@ function init_source_preflight_script() {
 
 function init_write_environment() {
     # Ensure all variables available for interactive sessions
-    skip_keys=(
-        "HOME"
-    )
     while IFS='=' read -r -d '' key val; do
-        if [[ ! ${skip_keys[@]} =~ "$key" ]]; then
+        if [[  $key != "HOME" ]]; then
             env-store "$key"
         fi
     done < <(env -0)
