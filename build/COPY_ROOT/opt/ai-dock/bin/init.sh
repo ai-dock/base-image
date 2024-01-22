@@ -76,17 +76,21 @@ function init_set_envs() {
         fi
     done
     
+    # TODO: This does not handle cases where the tcp and udp port are both opened
     # Re-write envs; 
     ## 1) Strip quotes & replace ___ with a space
     ## 2) re-write cloud out-of-band ports
     while IFS='=' read -r -d '' key val; do
         if [[ $key == *"PORT_HOST" && $val -ge 70000 ]]; then
-            declare -n vast_oob_port=VAST_TCP_PORT_${val}
-            declare -n runpod_oob_port=RUNPOD_TCP_PORT_${val}
-            if [[ -n $vast_oob_port ]]; then
-                export $key=$vast_oob_port
-            elif [[ -n $runpod_oob_port ]]; then
-                export $key=$runpod_oob_port
+            declare -n vast_oob_tcp_port=VAST_TCP_PORT_${val}
+            declare -n vast_oob_udp_port=VAST_UDP_PORT_${val}
+            declare -n runpod_oob_tcp_port=RUNPOD_TCP_PORT_${val}
+            if [[ -n $vast_oob_tcp_port ]]; then
+                export $key=$vast_oob_tcp_port
+            elif [[ -n $vast_oob_udp_port ]]; then
+                export $key=$vast_oob_udp_port
+            elif [[ -n $runpod_oob_tcp_port ]]; then
+                export $key=$runpod_oob_tcp_port
             fi
         else
             export "${key}"="$(init_strip_quotes "${val//___/' '}")"
