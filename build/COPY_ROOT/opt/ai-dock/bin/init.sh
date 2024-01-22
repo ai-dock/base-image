@@ -350,7 +350,9 @@ function init_set_cf_tunnel_wanted() {
 
 function init_direct_address() {
     export EXTERNAL_IP_ADDRESS="$(dig +short myip.opendns.com @resolver1.opendns.com)"
-    
+    if [[ -z $EXTERNAL_IP_ADDRESS ]];then
+        export EXTERNAL_IP_ADDRESS=$(curl -s ifconfig.me)
+    fi
     if [[ ! -v DIRECT_ADDRESS ]]; then
         DIRECT_ADDRESS=""
     fi
@@ -364,9 +366,11 @@ function init_direct_address() {
         elif env | grep 'VAST' > /dev/null 2>&1; then
             export DIRECT_ADDRESS="auto#vast-ai"
             export CLOUD_PROVIDER="vast.ai"
+            export EXTERNAL_IP_ADDRESS=${PUBLIC_IPADDR}
         elif env | grep 'RUNPOD' > /dev/null 2>&1; then
            export DIRECT_ADDRESS="auto#runpod-io"
            export CLOUD_PROVIDER="runpod.io"
+           export EXTERNAL_IP_ADDRESS=${RUNPOD_PUBLIC_IP}
         # Detected provider does not support direct connections
         elif env | grep 'PAPERSPACE' > /dev/null 2>&1; then
             export DIRECT_ADDRESS=""
