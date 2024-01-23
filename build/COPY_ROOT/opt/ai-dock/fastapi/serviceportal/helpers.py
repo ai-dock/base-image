@@ -11,6 +11,7 @@ def get_service_files():
         file = os.path.join(dir, filename)
         if os.path.isfile(file):
             files.append(file)
+    files.sort()
     return files
 
 def get_services():

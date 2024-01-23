@@ -11,7 +11,7 @@ function start() {
     
     if [[ -z $PROC_NUM ]]; then
         # Something has gone awry, but no retry
-        exit 0
+        exec sleep 6
     fi
     
     # Give processes time to register their ports
@@ -28,7 +28,11 @@ function start() {
         tunnel="--url localhost:${proxy_port}"
         metrics="--metrics localhost:${metrics_port}"
     fi
-
+    
+    # Ensure the port is available (kill stale for restart)
+    kill $(lsof -t -i:${metrics_port}) > /dev/null 2>&1 &
+    wait -n
+    
     cloudflared tunnel ${metrics} ${tunnel}
 }
 

@@ -3,7 +3,8 @@
 trap cleanup EXIT
 
 function cleanup() {
-    kill $(jobs -p) > /dev/null 2>&1
+    kill $(lsof -t -i:${SSH_PORT}) > /dev/null 2>&1 &
+    wait -n
 }
 
 function start() {
@@ -11,7 +12,7 @@ function start() {
     
     if [[ ${SERVERLESS,,} = "true" ]]; then
         printf "Refusing to start SSH service in serverless mode\n"
-        exec sleep 10
+        exec sleep 6
     fi
     
     # Support previous config
@@ -23,7 +24,7 @@ function start() {
     if [[ ! $(ssh-keygen -l -f $ak_file) ]]; then
         printf "Skipping SSH server: No public key\n" 1>&2
         # No error - Supervisor will not atempt restart
-        exec sleep 10
+        exec sleep 6
     fi
     
     # Dynamically check users - we might have a mounted /etc/passwd
@@ -32,6 +33,7 @@ function start() {
         useradd -r -g sshd -s /usr/sbin/nologin sshd
     fi
     
+    cleanup
     printf "Starting SSH server on port ${SSH_PORT}...\n"
     /usr/bin/ssh-keygen -A
     /usr/sbin/sshd -D -p $SSH_PORT

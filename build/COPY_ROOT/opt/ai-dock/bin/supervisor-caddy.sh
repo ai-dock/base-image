@@ -3,17 +3,16 @@
 trap cleanup EXIT
 
 function cleanup() {
-    kill $(jobs -p) >/dev/null 2>&1
     rm -f /opt/caddy/etc/Caddyfile >/dev/null 2>&1
 }
 
 function start() {
+    cleanup
     source /opt/ai-dock/etc/environment.sh
     
     if [[ ${SERVERLESS,,} = "true" ]]; then
         printf "Refusing to start Caddy service in serverless mode\n"
-        sleep 5
-        exit 0
+        exec sleep 5
     fi
     
     # Give processes time to register their ports
