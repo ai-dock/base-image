@@ -10,7 +10,6 @@ function cleanup() {
 }
 
 function start() {
-    cleanup
     source /opt/ai-dock/etc/environment.sh
     
     if [[ -z $CF_TUNNEL_TOKEN ]]; then
@@ -20,6 +19,10 @@ function start() {
     fi
 
     printf "Starting Cloudflare daemon...\n"
+
+    kill -9 $(lsof -t -i:${METRICS_PORT}) > /dev/null 2>&1 &
+    wait -n
+
     cloudflared tunnel --metrics localhost:"${METRICS_PORT}" run --token "${CF_TUNNEL_TOKEN}"
 }
 

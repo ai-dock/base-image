@@ -7,7 +7,6 @@ function cleanup() {
 }
 
 function start() {
-    cleanup
     source /opt/ai-dock/etc/environment.sh
     
     if [[ ${SERVERLESS,,} = "true" ]]; then

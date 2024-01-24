@@ -74,6 +74,7 @@ jobs:
           - 11.8.0
           - 12.1.0
           - 12.2.0
+          - 12.3.1
         level:
           - "base"
           - "runtime"
@@ -82,9 +83,13 @@ jobs:
           - "cudnn8-devel"
         exclude:
           - cuda: 12.2.0
-            level: "cudnn8-runtime" # Not yet available
+            level: "cudnn8-runtime" # Not available
           - cuda: 12.2.0
-            level: "cudnn8-devel" # Not yet available
+            level: "cudnn8-devel" # Not available
+          - cuda: 12.3.1
+            level: "cudnn8-runtime" # Not available
+          - cuda: 12.3.1
+            level: "cudnn8-devel" # Not available
     steps:
       -
         name: Free Space

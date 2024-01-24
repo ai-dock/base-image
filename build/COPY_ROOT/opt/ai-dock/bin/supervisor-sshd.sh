@@ -33,8 +33,11 @@ function start() {
         useradd -r -g sshd -s /usr/sbin/nologin sshd
     fi
     
-    cleanup
     printf "Starting SSH server on port ${SSH_PORT}...\n"
+
+    kill -9 $(lsof -t -i:$SSH_PORT) > /dev/null 2>&1 &
+    wait -n
+    
     /usr/bin/ssh-keygen -A
     /usr/sbin/sshd -D -p $SSH_PORT
 }

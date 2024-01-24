@@ -16,7 +16,6 @@ function cleanup() {
 }
 
 function start() {
-    cleanup
     source /opt/ai-dock/etc/environment.sh
     
     if [[ ${SERVERLESS,,} = "true" ]]; then
@@ -37,6 +36,10 @@ function start() {
     printf "%s\n" "$file_content" > /run/http_ports/$PROXY_PORT
     
     printf "Starting ${SERVICE_NAME}...\n"
+    
+    kill -9 $(lsof -t -i:$LISTEN_PORT) > /dev/null 2>&1 &
+    wait -n
+    
     /usr/bin/python3 /opt/ai-dock/fastapi/serviceportal/main.py \
         -p $LISTEN_PORT
 }
