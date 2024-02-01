@@ -19,13 +19,13 @@ function init_main() {
     init_set_web_credentials
     init_direct_address
     init_set_workspace
-    init_create_user
     init_count_gpus
     init_count_quicktunnels
     init_set_cf_tunnel_wanted
     touch /run/container_config
     touch /run/workspace_sync
     init_write_environment
+    init_create_user
     # Allow autostart processes to run early
     supervisord -c /etc/supervisor/supervisord.conf &
     # Redirect output to files - Logtail will now handle
@@ -51,13 +51,13 @@ init_serverless() {
   export CF_QUICK_TUNNELS_COUNT=0
   export SUPERVISOR_START_CLOUDFLARED=0
   init_set_workspace
-  init_create_user
   init_count_gpus
   init_create_directories
   init_create_logfiles
   touch /run/container_config
   touch /run/workspace_sync
   init_write_environment
+  init_create_user
   init_sync_mamba_envs > /var/log/sync.log 2>&1
   init_sync_opt >> /var/log/sync.log 2>&1
   rm /run/workspace_sync
