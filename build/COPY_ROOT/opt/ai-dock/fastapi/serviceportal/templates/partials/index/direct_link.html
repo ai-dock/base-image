@@ -1,0 +1,20 @@
+{% if context.url %}
+<li id="direct-{{ context.port }}">
+    <i class="fa-solid fa-fw fa-link"></i> 
+    <a href="{{ context.url }}" target="_blank" class="icon">
+        Direct / Default
+    </a>
+</li>
+{% else %}
+<li id="direct-{{ context.port }}">
+    <a href="#_" 
+        hx-post="/direct"
+        hx-vals='{"port": "{{ context.port }}" }'
+        hx-trigger="click, every 1s"
+        hx-target="#direct-{{ context.port }}"
+        hx-swap="outerHTML"
+        class="icon">
+        <i class="fa-solid fa-fw fa-repeat"></i></a>
+        Direct Link Not Ready
+</li>
+{% endif %}

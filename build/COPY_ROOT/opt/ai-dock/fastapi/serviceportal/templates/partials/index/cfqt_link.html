@@ -1,0 +1,20 @@
+{% if context.url and not context.url.endswith("//") %}
+<li id="cfqt-{{ context.port }}">
+    <i class="fa-solid fa-fw fa-link"></i> 
+    <a href="{{ context.url }}" target="_blank" class="icon">
+        Cloudflare Quick Tunnel
+    </a>
+</li>
+{% else %}
+<li id="cfqt-{{ context.port }}">
+    <a href="#_" 
+        hx-post="/quicktunnel"
+        hx-vals='{"port": "{{ context.port }}" }'
+        hx-trigger="click, every 1s"
+        hx-target="#cfqt-{{ context.port }}"
+        hx-swap="outerHTML"
+        class="icon">
+        <i class="fa-solid fa-fw fa-repeat"></i></a>
+        Quick Tunnel Unavailable
+</li>
+{% endif %}

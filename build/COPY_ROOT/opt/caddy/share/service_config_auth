@@ -1,6 +1,0 @@
-:!PROXY_PORT {
-    basicauth * {
-      import /opt/caddy/etc/basicauth
-    }
-	  reverse_proxy localhost:!LISTEN_PORT
-}

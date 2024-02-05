@@ -32,16 +32,38 @@ app.mount("/static", StaticFiles(directory=str(Path(base_dir, "static"))), name=
 async def get(request: Request):
     return load_index(request)
 
+
+
+@app.get("/login")
+async def get(request: Request):
+    return templates.TemplateResponse("login.html", {
+        "request": request, 
+        "context": {}
+        }
+    )
+
+@app.post("/login")
+async def post(request: Request):
+    form = await request.form()
+    user = urllib.parse.unquote(form['user'])
+    password = urllib.parse.unquote(form['password'])
+    response = RedirectResponse(url="/", status_code=303)
+    if user == os.environ.get('WEB_USER') and password == os.environ.get('WEB_PASSWORD'):
+        response.set_cookie(key="auth_token", value=os.environ.get('WEB_PASSWORD_B64'))
+    return response
+        
+    
+
 @app.post("/ajax/index")
 async def post(request: Request):
     return templates.TemplateResponse("partials/index/ajax.html", {
-        "request": request, 
-        "context": get_index_context()
+        "request": request,
+        "context": get_index_context(request)
         }
     )
 
 def load_index(request: Request, message: str = "", status_code: int = 200):
-    context = get_index_context(message)
+    context = get_index_context(request, message)
     return templates.TemplateResponse("index.html", {
         "request": request, 
         "context": context,
@@ -49,11 +71,13 @@ def load_index(request: Request, message: str = "", status_code: int = 200):
         }
     )
 
-def get_index_context(message=None):
+def get_index_context(request, message=None):
     services = helpers.get_services()
     return {
         "message": message,
+        "request": request,
         "page": "index",
+        "auth_token": request.cookies.get("auth_token"),
         "services": services,
         "urlslug": os.environ.get('IMAGE_SLUG'),
         "direct_address": os.environ.get('DIRECT_ADDRESS'),
@@ -73,7 +97,19 @@ async def get(request: Request, port: str):
             return load_index(request, "Unable to load Cloudflare tunnel for port " + port, 404)
     except:
         return load_index(request, "Unable to load Cloudflare tunnel for port " + port, 404)
-    
+
+@app.post("/namedtunnel")
+async def post(request: Request):
+    form = await request.form()
+    port = urllib.parse.unquote(form['port'])
+    path = urllib.parse.unquote(form['path'])
+    url = helpers.get_cfnt_url(port, path)
+    return templates.TemplateResponse("partials/index/cfnt_link.html", {
+        "request": request, 
+        "context": {"url":url, "port":port}
+        }
+    )
+
 
 @app.get("/quicktunnel/{port}")
 async def get(request: Request, port: str):
@@ -87,7 +123,19 @@ async def get(request: Request, port: str):
             return load_index(request, "Unable to load Cloudflare quick tunnel for port " + port, 404)
     except:
         return load_index(request, "Unable to load Cloudflare quick tunnel for port " + port, 404)
-    
+
+@app.post("/quicktunnel")
+async def post(request: Request):
+    form = await request.form()
+    port = urllib.parse.unquote(form['port'])
+    path = urllib.parse.unquote(form['path'])
+    url = helpers.get_cfqt_url(port, path)
+    return templates.TemplateResponse("partials/index/cfqt_link.html", {
+        "request": request, 
+        "context": {"url":url, "port":port}
+        }
+    )
+
     
 @app.get("/direct/{port}")
 async def get(request: Request, port: str):
@@ -101,6 +149,18 @@ async def get(request: Request, port: str):
         return load_index(request, "Port not valid", 400)
         
     return load_index(request, "Unable to complete redirect for port " + port, 400)
+
+@app.post("/direct")
+async def post(request: Request):
+    form = await request.form()
+    port = urllib.parse.unquote(form['port'])
+    path = urllib.parse.unquote(form['path'])
+    url = helpers.get_direct_url(port, path)
+    return templates.TemplateResponse("partials/index/direct_link.html", {
+        "request": request, 
+        "context": {"url":url, "port":port}
+        }
+    )
 
 @app.get("/logs")
 async def get(request: Request):
@@ -218,6 +278,6 @@ if __name__ == "__main__":
         host="127.0.0.1",
         port=args.port,
         log_level="info",
-        reload=False,
+        reload=True,
         workers=1,
     )

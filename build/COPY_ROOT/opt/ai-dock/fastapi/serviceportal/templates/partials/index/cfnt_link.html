@@ -1,0 +1,20 @@
+{% if context.url %}
+<li id="cfnt-{{ context.port }}">
+    <i class="fa-solid fa-fw fa-link"></i> 
+    <a href="{{ context.url }}" target="_blank" class="icon">
+        Cloudflare Tunnel
+    </a>
+</li>
+{% else %}
+<li id="cfnt-{{ context.port }}">
+    <a href="#_" 
+        hx-post="/namedtunnel"
+        hx-vals='{"port": "{{ context.port }}" }'
+        hx-trigger="click, every 1s"
+        hx-target="#cfnt-{{ context.port }}"
+        hx-swap="outerHTML"
+        class="icon">
+        <i class="fa-solid fa-fw fa-repeat"></i></a>
+        Named Tunnel Unavailable
+</li>
+{% endif %}

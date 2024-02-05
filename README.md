@@ -102,19 +102,20 @@ You can use the included `cloudflared` service to make secure connections withou
 | Variable                 | Description |
 | ------------------------ | ----------- |
 | `CF_TUNNEL_TOKEN`        | Cloudflare zero trust tunnel token - See [documentation](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/). |
-| `CF_QUICK_TUNNELS`       | Create ephemeral Cloudflare tunnels for web services (default `false`) |
+| `CF_QUICK_TUNNELS`       | Create ephemeral Cloudflare tunnels for web services (default `true`) |
 | `DIRECT_ADDRESS`         | IP/hostname for service portal direct links (default `localhost`) |
 | `DIRECT_ADDRESS_GET_WAN` | Use the internet facing interface for direct links (default `false`) |
 | `GPU_COUNT`              | Limit the number of available GPUs |
 | `PROVISIONING_SCRIPT`    | URL of a remote script to execute on init. See [note](#provisioning-script). |
 | `RCLONE_*`               | Rclone configuration - See [rclone documentation](https://rclone.org/docs/#config-file) |
-| `SSH_PORT_LOCAL`         | Set a non-standard port for SSH (default `22`) |
 | `SSH_PUBKEY`             | Your public key for SSH |
+| `USER_NAME`              | System acount username (default `user`)|
+| `USER_PASSWORD`          | System acount username (default `password`)|
 | `WEB_ENABLE_AUTH`        | Enable password protection for web services (default `true`) |
 | `WEB_USER`               | Username for web services (default `user`) |
-| `WEB_PASSWORD`           | Password for web services (default `password`) |
+| `WEB_PASSWORD`           | Password for web services (default `auto generated`) |
 | `WORKSPACE`              | A volume path. Defaults to `/workspace/` |
-| `WORKSPACE_SYNC`         | Move mamba environments and services to workspace if mounted (default `true`) |
+| `WORKSPACE_SYNC`         | Move mamba environments and services to workspace if mounted (default `false`) |
 
 Environment variables can be specified by using any of the standard methods (`docker-compose.yaml`, `docker run -e...`). Additionally, environment variables can also be passed as parameters of `init.sh`.
 
@@ -136,15 +137,17 @@ Some processes may start in the user context for convenience only.
 
 ### Web Services
 
-By default, all exposed web services other than the port redirect index page are protected by HTTP basic authentication.
+By default, all exposed web services are protected by a single login form at `:1111/login`.
 
-The default username is `user` and the password is `password`.
+The default username is `user` and the password is auto generated unless you have passed a value in the environment variable `WEB_PASSWORD`. To find the auto-generated password and related tokens you should type `env | grep WEB_` from inside the container.
 
 You can set your credentials by passing environment variables as shown above.
 
-The password is stored as a bcrypt hash. If you prefer not to pass a plain text password to the container you can pre-hash and use the variable `WEB_PASSWORD_HASH`.
-
 If you are running the image locally on a trusted network, you may disable authentication by setting the environment variable `WEB_ENABLE_AUTH=false`.
+
+If you need to connect programmatically to the web services you can authenticate using either `Bearer $WEB_TOKEN` or `Basic $WEB_PASSWORD_B64`.
+
+The security measures included aim to be as secure as basic authentication, i.e. not secure without HTTPS.  Please use the provided cloudflare connections wherever possible.
 
 >[!NOTE]  
 >You can use `set-web-credentials.sh <username> <password>` change the username and password in a running container.
@@ -202,9 +205,9 @@ Data inside docker containers is ephemeral - You'll lose all of it when the cont
 
 You may opt to mount a data volume at `/workspace` - This is a directory that ai-dock images will look for to make downloaded data available outside of the container for persistence.
 
-When a mounted workspace is available, all micromamba environments and feature software packages will be moved to the workspace directory to persist changes and shorten startup time.
+When a mounted workspace is available, all micromamba environments and feature software packages can be moved to the workspace directory to persist changes and shorten startup time in cloud environments.
 
-To prevent this behaviour you can set the environment variable `SYNC_WORKSPACE=false`.
+To enable this behaviour you can set the environment variable `WORKSPACE_SYNC=true`.
 
 You can define an alternative path for the workspace directory by passing the environment variable `WORKSPACE=/my/alternative/path/` and mounting your volume there. This feature will generally assist where cloud providers enforce their own mountpoint location for persistent storage.
 

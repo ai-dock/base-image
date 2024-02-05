@@ -1,6 +1,28 @@
-# For build automation - Allows building from any Debian-based image
 ARG IMAGE_BASE="nvidia/cuda:11.8.0-base-ubuntu22.04"
+
+# Caddy build
+FROM ubuntu:22.04 as caddybuilder
+
+ENV PATH=/opt/go/bin:$PATH
+ENV GOROOT=/opt/go
+RUN apt-get update && \
+    apt-get install -y wget && \
+    wget https://dl.google.com/go/go1.20.5.linux-amd64.tar.gz && \
+    tar -xf go1.20.5.linux-amd64.tar.gz && \
+    mv ./go /opt && \ 
+    wget https://github.com/caddyserver/xcaddy/releases/download/v0.3.5/xcaddy_0.3.5_linux_amd64.deb && \
+    apt-get install ./xcaddy_0.3.5_linux_amd64.deb && \
+    xcaddy build \
+        --with github.com/caddyserver/replace-response && \
+    mkdir -p /opt/caddy/bin && \
+    mv ./caddy /opt/caddy/bin
+
+
+# For build automation - Allows building from any Debian-based image
+
 FROM ${IMAGE_BASE}
+
+COPY --from=caddybuilder /opt/caddy/ /opt/caddy/
 
 # Determines which scripts at /opt/ai-dock/bin/build/layerX will be run by init.sh
 ARG XPU_TARGET="GPU_NVIDIA" # GPU_AMD, CPU

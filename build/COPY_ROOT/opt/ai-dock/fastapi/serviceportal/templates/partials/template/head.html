@@ -153,7 +153,7 @@
         padding: 0;
         margin: 10px 0;
     }
-    .fa-link {
+    .fa-link, .fa-repeat {
         color: #485e82;
         margin-right: 3px;
     }
@@ -213,6 +213,9 @@
     }
     main#service-list ul li a:hover {
         border-bottom: 1px solid #485e82;
+    }
+    main#service-list ul li a.icon:hover {
+        border-bottom: 1px solid transparent;
     }
     
     main#process-list {
@@ -344,6 +347,53 @@
         height: 30px;
         width: 30px;
     }
+    #login #form-container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        width: 600px;
+        max-width: 90vw;
+        margin: 0 auto;
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        border: 1px solid #ccc;
+    }
+    #login #form-container img {
+      margin-bottom: 20px;
+    }
+    #login form {
+        justify-self: center;
+        width: 100%;
+    }
+    #login .form-group {
+        margin-bottom: 20px;
+    }
+    #login label {
+        display: block;
+        font-weight: bold;
+    }
+    #login input[type="text"],
+    #login input[type="password"] {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+    #login button {
+        width: 100%;
+        background-color: #333;
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        border-radius: 5px;
+    }
+    
 </style>
 <script async defer src="https://buttons.github.io/buttons.js"></script>
 <title>{{ title }}</title>

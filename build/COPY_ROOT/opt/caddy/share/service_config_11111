@@ -1,3 +1,28 @@
 :!PROXY_PORT {
-    reverse_proxy localhost:!LISTEN_PORT
+    import universal-config
+    
+    @noauth {
+        path /login
+    }
+    @login {
+        path /login
+    }
+    
+    reverse_proxy @authenticating_bearer localhost:!LISTEN_PORT {
+        header_down Set-Cookie "auth_token={$WEB_TOKEN}; Path=/ ;Max-Age=604800; HttpOnly; SameSite=lax"
+    }
+    reverse_proxy @authenticating_basic localhost:!LISTEN_PORT {
+        header_down Set-Cookie "auth_token={$WEB_PASSWORD_B64}; Path=/ ;Max-Age=604800; HttpOnly; SameSite=lax"
+    }
+    reverse_proxy @authorized localhost:!LISTEN_PORT
+    reverse_proxy @noauth localhost:!LISTEN_PORT
+    
+    route @login {
+        redir @authorized {$SERVICEPORTAL_HOME} 
+    }
+    route @preauth {
+        redir @authorized /
+    }
+    # All other requests must authenticate
+    redir @default {$SERVICEPORTAL_LOGIN}
 }

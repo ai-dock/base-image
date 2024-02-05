@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        {{ render_partial('partials/template/head.html', title="Login", context=context) }}
+    </head>
+    <body>
+        <div class="one-col">
+            <div id="page">
+                {{ render_partial('partials/login/page.html', context=context) }}
+            </div>
+    </div>
+    {{ render_partial('partials/template/scripts.html', context=context) }}
+  </body>
+</html>

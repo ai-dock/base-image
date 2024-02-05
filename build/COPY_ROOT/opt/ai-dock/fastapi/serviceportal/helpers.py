@@ -22,9 +22,9 @@ def get_services():
         services[data["proxy_port"]] = data
     return services
 
-def get_cfnt_url(port):
+def get_cfnt_url(port, path=""):
     try:
-        process = subprocess.run(['cfnt-url.sh', '-p', port], 
+        process = subprocess.run(['cfnt-url.sh', '-p', port, '-l', path], 
                              stdout=subprocess.PIPE, 
                              universal_newlines=True)
         output = process.stdout.strip()
@@ -35,9 +35,9 @@ def get_cfnt_url(port):
     except:
         return False
 
-def get_cfqt_url(port):
+def get_cfqt_url(port, path=""):
     try:
-        process = subprocess.run(['cfqt-url.sh', '-p', port], 
+        process = subprocess.run(['cfqt-url.sh', '-p', port, '-l', path], 
                              stdout=subprocess.PIPE, 
                              universal_newlines=True)
         output = process.stdout.strip()
@@ -48,32 +48,17 @@ def get_cfqt_url(port):
     except:
         return False
 
-def get_direct_url(port):
-    port = os.environ.get("MAPPED_TCP_PORT_" + port, port)
-    direct_address = os.environ.get('DIRECT_ADDRESS')
-    if direct_address == 'auto#vast-ai':
-        return get_vast_url(port)
-    elif direct_address == 'auto#runpod-io':
-        return get_runpod_url(port)
-    elif direct_address:
-        return "http://" + direct_address + ":" + port
-    else:
+def get_direct_url(port, path=""):
+    try:
+        process = subprocess.run(['direct-url.sh', '-p', port, '-l', path], 
+                             stdout=subprocess.PIPE, 
+                             universal_newlines=True)
+        output = process.stdout.strip()
+        scheme = urlparse(output).scheme
+        if scheme:
+            return output
         return False
-
-def get_vast_url(port):
-    ext_port = os.environ.get("VAST_TCP_PORT_"+port)
-    if ext_port and os.environ.get("PUBLIC_IPADDR"):
-        return "http://" + os.environ.get("PUBLIC_IPADDR") + ":" + ext_port
-    else:
-         return False
-
-def get_runpod_url(port):
-    ext_port = os.environ.get("RUNPOD_TCP_PORT_"+port)
-    if ext_port and os.environ.get("RUNPOD_PUBLIC_IP"):
-        return "http://" + os.environ.get("RUNPOD_PUBLIC_IP") + ":" + ext_port
-    elif os.environ.get("RUNPOD_POD_ID"):
-        return "https://" + os.environ.get("RUNPOD_POD_ID") + "-" + port + ".proxy.runpod.net"
-    else:
+    except:
         return False
 
 def is_valid_port(port: int):

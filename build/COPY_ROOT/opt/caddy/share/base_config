@@ -8,11 +8,49 @@
 
 {
   auto_https off
-        log {
-        level warn
-    }
+  log {
+      level warn
+  }
+
+  # We need to redirect to login page if no token, but our default is to proxy
+  order redir after route
+  order reverse_proxy before redir
+  order respond before reverse_proxy
 }
 
+# Aim to be as secure as Basic Auth:
+# One token, unencrypted, passed in each request via cookie
+# Insecure without SSL but will stop port-sniffers gaining free access
+# Token visible to logged-in users at :1111/ for simple pre-authentication
+
+(universal-config) {
+    respond /health-check 200
+    @authenticating_bearer {
+        expression \
+            {http.request.header.authorization} == "Bearer {$WEB_TOKEN}" || \
+            {http.request.uri.query.token} == "{$WEB_TOKEN}"
+    }
+    
+    # Password/basic logins are invalidated when set-web-credentials is used
+    @authenticating_basic {
+        expression \
+            {http.request.header.authorization} == "Basic {$WEB_PASSWORD_B64}" || \
+            {http.request.uri.query.token} == "{$WEB_PASSWORD_B64}"
+    }
+    
+    @authorized {
+        expression \
+            {http.request.cookie.auth_token} == "{$WEB_TOKEN}" || \
+            {http.request.cookie.auth_token} == "{$WEB_PASSWORD_B64}" || \
+            "{$WEB_ENABLE_AUTH}" == "false"
+    }
+    @preauth {
+        path /pre-authenticate
+    }
+    @default {
+        path *
+    }
+}
 
 #####
 # Below here is auto-generated using /opt/caddy/share/service_config*
