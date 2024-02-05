@@ -131,7 +131,7 @@ All ai-dock containers are interactive and will not drop root privileges. You sh
 
 A system user will be created at startup. The UID will be either 1000 or will match the UID of the `$WORKSPACE` bind mount.
 
-No password is set for this user and it will share the root user's ssh public key.
+The user will share the root user's ssh public key.
 
 Some processes may start in the user context for convenience only.
 

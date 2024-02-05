@@ -16,8 +16,8 @@ function init_main() {
     init_create_directories
     init_create_logfiles
     init_set_ssh_keys
-    init_set_web_credentials
     init_direct_address
+    init_set_web_credentials
     init_set_workspace
     init_count_gpus
     init_count_quicktunnels
