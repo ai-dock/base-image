@@ -5,11 +5,14 @@ if [[ -z $2 ]]; then
     exit 1
 fi
 
-WEB_USER=$1
-WEB_PASSWORD_HASH=$(hash-password.sh -p $2 -r 15)
-export WEB_PASSWORD="********"
+export WEB_USER=$1
+env-store WEB_USER
+export WEB_PASSWORD=$2
+env-store WEB_PASSWORD
+export WEB_PASSWORD_B64="$(printf "%s:%s" "$WEB_USER" "$WEB_PASSWORD" | base64)"
+env-store WEB_PASSWORD_B64
 
 printf "Setting credentials and restarting proxy server...\n"
-printf "%s %s" "$WEB_USER" "$WEB_PASSWORD_HASH" > /opt/caddy/etc/basicauth
-supervisorctl restart caddy
 
+supervisorctl restart serviceportal
+supervisorctl restart caddy

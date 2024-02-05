@@ -2,16 +2,16 @@
 
 trap cleanup EXIT
 
-LISTEN_PORT=${SERVICEPORTAL_PORT_LOCAL:-11111}
+LISTEN_PORT=11111
 METRICS_PORT=${SERVICEPORTAL_METRICS_PORT:-21111}
 PROXY_PORT=${SERVICEPORTAL_PORT_HOST:-1111}
-# Auth is true for defined paths - See /opt/caddy/share/service_config_11111_auth
-PROXY_SECURE=true
+QUICKTUNNELS=true
+
 SERVICE_NAME="Service Portal"
 
 function cleanup() {
     rm /run/http_ports/$PROXY_PORT > /dev/null 2>&1
-    kill $(lsof -t -i:$LISTEN_PORT) > /dev/null 2>&1 &
+    fuser -k -SIGTERM ${LISTEN_PORT}/tcp > /dev/null 2>&1 &
     wait -n
 }
 
@@ -37,7 +37,7 @@ function start() {
     
     printf "Starting ${SERVICE_NAME}...\n"
     
-    kill -9 $(lsof -t -i:$LISTEN_PORT) > /dev/null 2>&1 &
+    fuser -k -SIGKILL ${LISTEN_PORT}/tcp > /dev/null 2>&1 &
     wait -n
     
     /usr/bin/python3 /opt/ai-dock/fastapi/serviceportal/main.py \

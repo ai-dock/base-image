@@ -3,7 +3,7 @@
 trap cleanup EXIT
 
 function cleanup() {
-    kill $(lsof -t -i:${metrics_port}) > /dev/null 2>&1 &
+    fuser -k -SIGTERM ${metrics_port}/tcp > /dev/null 2>&1 &
     wait -n
 }
 
@@ -31,7 +31,7 @@ function start() {
     fi
     
     # Ensure the port is available (kill stale for restart)
-    kill -9 $(lsof -t -i:${metrics_port}) > /dev/null 2>&1 &
+    fuser -k -SIGKILL ${metrics_port}/tcp > /dev/null 2>&1 &
     wait -n
     
     cloudflared tunnel ${metrics} ${tunnel}

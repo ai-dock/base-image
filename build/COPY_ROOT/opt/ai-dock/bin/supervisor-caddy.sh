@@ -31,10 +31,6 @@ function start() {
             template_file="/opt/caddy/share/service_config"
         fi
 
-        if [[ ${WEB_ENABLE_AUTH,,} != 'false' && ${proxy_secure,,} != 'false' ]]; then
-            template_file="${template_file}_auth"
-        fi
-
         cp "${template_file}" /tmp/caddy
         sed -i "s/!PROXY_PORT/${proxy_port}/g" /tmp/caddy
         sed -i "s/!LISTEN_PORT/${listen_port}/g" /tmp/caddy

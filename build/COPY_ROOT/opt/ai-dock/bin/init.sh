@@ -122,19 +122,26 @@ function init_set_ssh_keys() {
 }
 
 init_set_web_credentials() {
+  export SERVICEPORTAL_LOGIN=$(direct-url.sh -p "${SERVICEPORTAL_PORT_HOST:-1111}" -l "/login")
+  export SERVICEPORTAL_HOME=$(direct-url.sh -p "${SERVICEPORTAL_PORT_HOST:-1111}")
+  
   if [[ -z $WEB_USER ]]; then
-      WEB_USER=user
+      export WEB_USER=user
   fi
 
-  if [[ -z $WEB_PASSWORD && -z $WEB_PASSWORD_HASH ]]; then
-      WEB_PASSWORD=password
-  elif [[ -z $WEB_PASSWORD ]]; then
-      WEB_PASSWORD="********"
+  if [[ -z $WEB_PASSWORD ]]; then
+      export WEB_PASSWORD="$(openssl rand -base64 12)"
   fi
 
-  if [[ $WEB_PASSWORD != "********" ]]; then
-      WEB_PASSWORD_HASH=$(hash-password.sh -p $WEB_PASSWORD -r 15)
-      export WEB_PASSWORD="********"
+  export WEB_PASSWORD_B64="$(printf "%s:%s" "$WEB_USER" "$WEB_PASSWORD" | base64)"
+
+  if [[ -z $WEB_TOKEN ]]; then
+      # Not the same as password (probably!)
+      export WEB_TOKEN="$(openssl rand -base64 32)"
+  fi
+
+  if [[ -n $DISPLAY && -z $COTURN_PASSWORD ]]; then
+        export COTURN_PASSWORD="auto_$(openssl rand -base64 8)"
   fi
   
   printf "%s %s" "$WEB_USER" "$WEB_PASSWORD_HASH" > /opt/caddy/etc/basicauth
@@ -156,10 +163,13 @@ function init_count_gpus() {
 }
 
 function init_count_quicktunnels() {
-    if [[ ! ${CF_QUICK_TUNNELS,,} = "true" ]]; then
+    if [[ ${CF_QUICK_TUNNELS,,} == "false" ]]; then
         export CF_QUICK_TUNNELS_COUNT=0
     else
-        export CF_QUICK_TUNNELS_COUNT=$(grep -l "METRICS_PORT" /opt/ai-dock/bin/supervisor-*.sh | wc -l)
+        export CF_QUICK_TUNNELS_COUNT=$(grep -l "QUICKTUNNELS=true" /opt/ai-dock/bin/supervisor-*.sh | wc -l)
+        if [[ -z $TUNNEL_TRANSPORT_PROTOCOL ]]; then
+            export TUNNEL_TRANSPORT_PROTOCOL=http2
+        fi
     fi
 }
 
@@ -199,6 +209,17 @@ function init_set_workspace() {
         touch "${no_mount_warning_file}"
         printf "%b" "${no_mount_warning}" > "${no_mount_warning_file}"
     fi
+    # Ensure we have a proper linux filesystem so we don't run into errors on sync
+    if [[ $WORKSPACE_MOUNTED == "true" ]]; then
+        test_file=${WORKSPACE}/.ai-dock-permissions-test
+        touch $test_file
+        if chown ${WORKSPACE_UID}.${WORKSPACE_GID} $test_file; then
+            export WORKSPACE_PERMISSIONS=true
+        else 
+            export WORKSPACE_PERMISSIONS=false
+        fi
+        rm $test_file
+    fi
 }
 
 # This is a convenience for X11 containers and bind mounts - No additional security implied.
@@ -208,7 +229,7 @@ function init_create_user() {
     mkdir -p ${home_dir}
     groupadd -g $WORKSPACE_GID $USER_NAME
     useradd -ms /bin/bash $USER_NAME -d $home_dir -u $WORKSPACE_UID -g $WORKSPACE_GID
-    printf "user:%s" "$USER_PASSWORD" | chpasswd
+    printf "user:%s" "${USER_PASSWORD}" | chpasswd
     usermod -a -G $USER_GROUPS $USER_NAME
     # May not exist - todo check device ownership
     usermod -a -G render $USER_NAME
@@ -252,7 +273,11 @@ function init_sync_mamba_envs() {
           mkdir -p ${WORKSPACE}/environments
           printf "Moving mamba environments to %s...\n" "${WORKSPACE}"
           while sleep 10; do printf "Waiting for workspace mamba sync...\n"; done &
-          rsync -auSHh --stats /opt/micromamba/ "${ws_mamba_target}"
+          if [[ $WORKSPACE_PERMISSIONS == "true" ]]; then
+            rsync -auSHh --stats /opt/micromamba/ "${ws_mamba_target}"
+          else
+            rsync -uSHh --stats /opt/micromamba/ "${ws_mamba_target}"
+          fi
           kill $!
           wait $! 2>/dev/null
           printf "Moved mamba environments to %s\n" "${WORKSPACE}"

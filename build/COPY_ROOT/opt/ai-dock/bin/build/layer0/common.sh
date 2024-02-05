@@ -83,11 +83,11 @@ $APT_INSTALL \
     websockets
 
 # Get caddy server
-mkdir -p /opt/caddy/bin
-wget -c -O caddy.tar.gz https://github.com/caddyserver/caddy/releases/download/v2.7.5/caddy_2.7.5_linux_amd64.tar.gz 
-tar -xf caddy.tar.gz -C /opt/caddy
-rm caddy.tar.gz
-mv /opt/caddy/caddy /opt/caddy/bin
+#mkdir -p /opt/caddy/bin
+#wget -c -O caddy.tar.gz https://github.com/caddyserver/caddy/releases/download/v2.7.5/caddy_2.7.5_linux_amd64.tar.gz 
+#tar -xf caddy.tar.gz -C /opt/caddy
+#rm caddy.tar.gz
+#mv /opt/caddy/caddy /opt/caddy/bin
 
 # Get Cloudflare daemon
 wget -c -O cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb

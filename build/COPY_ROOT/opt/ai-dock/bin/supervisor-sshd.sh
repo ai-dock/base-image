@@ -3,7 +3,7 @@
 trap cleanup EXIT
 
 function cleanup() {
-    kill $(lsof -t -i:${SSH_PORT}) > /dev/null 2>&1 &
+    fuser -k -SIGTERM 22/tcp > /dev/null 2>&1 &
     wait -n
 }
 
@@ -13,11 +13,6 @@ function start() {
     if [[ ${SERVERLESS,,} = "true" ]]; then
         printf "Refusing to start SSH service in serverless mode\n"
         exec sleep 6
-    fi
-    
-    # Support previous config
-    if [[ ! -v SSH_PORT || -z $SSH_PORT ]]; then
-        SSH_PORT=${SSH_PORT_LOCAL:-22}
     fi
     
     ak_file="/root/.ssh/authorized_keys"
@@ -35,11 +30,11 @@ function start() {
     
     printf "Starting SSH server on port ${SSH_PORT}...\n"
 
-    kill -9 $(lsof -t -i:$SSH_PORT) > /dev/null 2>&1 &
+    fuser -k -SIGKILL 22/tcp > /dev/null 2>&1 &
     wait -n
     
     /usr/bin/ssh-keygen -A
-    /usr/sbin/sshd -D -p $SSH_PORT
+    /usr/sbin/sshd -D -p 22
 }
 
 start 2>&1
