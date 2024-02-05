@@ -55,7 +55,7 @@ services:
         # SSH available on host machine port 2222 to avoid conflict. Change to suit
         - ${SSH_PORT_HOST:-2222}:22
         # Caddy port for service portal
-        - ${SERVICEPORTAL_PORT_HOST:-1111}:11111
+        - ${SERVICEPORTAL_PORT_HOST:-1111}:${SERVICEPORTAL_PORT_HOST:-1111}
 
     environment:
         # Important: Edit values in .env - not here.
