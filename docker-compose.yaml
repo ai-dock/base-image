@@ -53,14 +53,13 @@ services:
       
     ports:
         # SSH available on host machine port 2222 to avoid conflict. Change to suit
-        - ${SSH_PORT_HOST:-2222}:${SSH_PORT_LOCAL:-22}
+        - ${SSH_PORT_HOST:-2222}:22
         # Caddy port for service portal
-        - ${SERVICEPORTAL_PORT_HOST:-1111}:${SERVICEPORTAL_PORT_HOST:-1111}
+        - ${SERVICEPORTAL_PORT_HOST:-1111}:11111
 
     environment:
         # Important: Edit values in .env - not here.
         # Don't enclose values in quotes
-        - VAST_AUTH_TOKEN=abc123
         - DIRECT_ADDRESS=${DIRECT_ADDRESS:-127.0.0.1}
         - DIRECT_ADDRESS_GET_WAN=${DIRECT_ADDRESS_GET_WAN:-false}
         - WORKSPACE=${WORKSPACE:-/workspace}

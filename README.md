@@ -150,7 +150,7 @@ If you need to connect programmatically to the web services you can authenticate
 The security measures included aim to be as secure as basic authentication, i.e. not secure without HTTPS.  Please use the provided cloudflare connections wherever possible.
 
 >[!NOTE]  
->You can use `set-web-credentials.sh <username> <password>` change the username and password in a running container.
+>You can use `set-web-credentials.sh <username> <password>` to change the username and password in a running container.
 
 ## Provisioning script
 
