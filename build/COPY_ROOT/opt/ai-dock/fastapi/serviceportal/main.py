@@ -85,7 +85,7 @@ def get_index_context(request, message=None):
         "services": services,
         "urlslug": os.environ.get('IMAGE_SLUG'),
         "direct_address": os.environ.get('DIRECT_ADDRESS'),
-        'quicktunnels': True if os.environ.get('CF_QUICK_TUNNELS') == "true" else False,
+        'quicktunnels': False if os.environ.get('CF_QUICK_TUNNELS') == "false" else True,
         'namedtunnels': True if os.environ.get('SUPERVISOR_START_CLOUDFLARED') == "1" else False
     }
 
