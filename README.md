@@ -109,8 +109,8 @@ You can use the included `cloudflared` service to make secure connections withou
 | `PROVISIONING_SCRIPT`    | URL of a remote script to execute on init. See [note](#provisioning-script). |
 | `RCLONE_*`               | Rclone configuration - See [rclone documentation](https://rclone.org/docs/#config-file) |
 | `SSH_PUBKEY`             | Your public key for SSH |
-| `USER_NAME`              | System acount username (default `user`)|
-| `USER_PASSWORD`          | System acount username (default `password`)|
+| `USER_NAME`              | System account username (default `user`)|
+| `USER_PASSWORD`          | System account username (default `password`)|
 | `WEB_ENABLE_AUTH`        | Enable password protection for web services (default `true`) |
 | `WEB_USER`               | Username for web services (default `user`) |
 | `WEB_PASSWORD`           | Password for web services (default `auto generated`) |

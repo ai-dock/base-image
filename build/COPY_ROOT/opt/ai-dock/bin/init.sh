@@ -124,6 +124,15 @@ function init_set_ssh_keys() {
 init_set_web_credentials() {
   export SERVICEPORTAL_LOGIN=$(direct-url.sh -p "${SERVICEPORTAL_PORT_HOST:-1111}" -l "/login")
   export SERVICEPORTAL_HOME=$(direct-url.sh -p "${SERVICEPORTAL_PORT_HOST:-1111}")
+
+  # Handle cloud provider auto login
+  # Vast.ai
+  if [[ $(env | grep -i vast) && -n $OPEN_BUTTON_TOKEN ]]; then
+      export WEB_TOKEN="${OPEN_BUTTON_TOKEN}"
+      if [[ $WEB_PASSWORD == "password" ]]; then
+          unset WEB_PASSWORD
+      fi
+  fi
   
   if [[ -z $WEB_USER ]]; then
       export WEB_USER=user
@@ -132,9 +141,9 @@ init_set_web_credentials() {
   if [[ -z $WEB_PASSWORD ]]; then
       export WEB_PASSWORD="$(openssl rand -base64 12)"
   fi
-
+  
   export WEB_PASSWORD_B64="$(printf "%s:%s" "$WEB_USER" "$WEB_PASSWORD" | base64)"
-
+  
   if [[ -z $WEB_TOKEN ]]; then
       # Not the same as password (probably!)
       export WEB_TOKEN="$(openssl rand -base64 32)"

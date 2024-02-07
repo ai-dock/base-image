@@ -49,11 +49,15 @@ async def post(request: Request):
     password = urllib.parse.unquote(form['password'])
     response = RedirectResponse(url="/", status_code=303)
     if user == os.environ.get('WEB_USER') and password == os.environ.get('WEB_PASSWORD'):
-        response.set_cookie(key="auth_token", value=os.environ.get('WEB_PASSWORD_B64'))
+        response.set_cookie(key="ai_dock_token", 
+            value=os.environ.get('WEB_PASSWORD_B64'),
+            path="/",
+            max_age=604800,
+            httponly=True,
+            samesite="lax"
+        )
     return response
         
-    
-
 @app.post("/ajax/index")
 async def post(request: Request):
     return templates.TemplateResponse("partials/index/ajax.html", {
@@ -77,7 +81,7 @@ def get_index_context(request, message=None):
         "message": message,
         "request": request,
         "page": "index",
-        "auth_token": request.cookies.get("auth_token"),
+        "auth_token": request.cookies.get("ai_dock_token"),
         "services": services,
         "urlslug": os.environ.get('IMAGE_SLUG'),
         "direct_address": os.environ.get('DIRECT_ADDRESS'),

@@ -44,8 +44,6 @@ services:
     volumes:
       # Workspace
       - ./workspace:${WORKSPACE:-/workspace}:rshared
-      - ./build/COPY_ROOT/opt/ai-dock/fastapi/:/opt/ai-dock/fastapi/
-      - ./build/COPY_ROOT/opt/caddy/share/:/opt/caddy/share/
       # Will echo to root-owned authorized_keys file;
       # Avoids changing local file owner
       - ./config/authorized_keys:/root/.ssh/authorized_keys_mount

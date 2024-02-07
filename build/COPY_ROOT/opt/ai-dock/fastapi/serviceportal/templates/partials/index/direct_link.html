@@ -9,7 +9,7 @@
 <li id="direct-{{ context.port }}">
     <a href="#_" 
         hx-post="/direct"
-        hx-vals='{"port": "{{ context.port }}" }'
+        hx-vals='{"port": "{{ context.port }}", "path": "/ai-dock/pre-auth?token={{ context.auth_token }}" }'
         hx-trigger="click, every 1s"
         hx-target="#direct-{{ context.port }}"
         hx-swap="outerHTML"

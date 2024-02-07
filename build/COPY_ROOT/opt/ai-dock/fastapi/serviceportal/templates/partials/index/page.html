@@ -19,7 +19,7 @@
                 {% if context.namedtunnels == True %}
                     <li id='cfqt-{{ service["proxy_port"] }}'
                         hx-post="/namedtunnel"
-                        hx-vals='{"port": "{{ service["proxy_port"] }}", "path": "//pre-authenticate?token={{ context.auth_token }}" }'
+                        hx-vals='{"port": "{{ service["proxy_port"] }}", "path": "/ai-dock/pre-auth?token={{ context.auth_token }}" }'
                         hx-trigger="load"
                         hx-swap="outerHTML"
                         >
@@ -28,7 +28,7 @@
                 {% if context.quicktunnels == True %}
                     <li id='cfqt-{{ service["proxy_port"] }}'
                         hx-post="/quicktunnel"
-                        hx-vals='{"port": "{{ service["proxy_port"] }}", "path": "//pre-authenticate?token={{ context.auth_token }}" }'
+                        hx-vals='{"port": "{{ service["proxy_port"] }}", "path": "/ai-dock/pre-auth?token={{ context.auth_token }}" }'
                         hx-trigger="load"
                         hx-swap="outerHTML"
                         >
@@ -37,7 +37,7 @@
                 {% if context.direct_address %}
                     <li id='cfqt-{{ service["proxy_port"] }}'
                         hx-post="/direct"
-                        hx-vals='{"port": "{{ service["proxy_port"] }}", "path": "/pre-authenticate?token={{ context.auth_token }}" }'
+                        hx-vals='{"port": "{{ service["proxy_port"] }}", "path": "/ai-dock/pre-auth?token={{ context.auth_token }}" }'
                         hx-trigger="load"
                         hx-swap="outerHTML"
                         >
