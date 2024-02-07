@@ -270,7 +270,7 @@ function init_sync_mamba_envs() {
     
     if [[ $WORKSPACE_MOUNTED = "false" ]]; then
       printf "No mount: Mamba environments remain in /opt\n"
-    elif [[ ${WORKSPACE_SYNC,,} = "false" ]]; then
+    elif [[ ${WORKSPACE_SYNC,,} != "true" ]]; then
       printf "Skipping workspace sync: Mamba environments remain in /opt\n"
     elif [[ -f ${ws_mamba_target}/.move_complete ]]; then
       printf "Mamba environments already present at ${WORKSPACE}\n"
@@ -282,11 +282,7 @@ function init_sync_mamba_envs() {
           mkdir -p ${WORKSPACE}/environments
           printf "Moving mamba environments to %s...\n" "${WORKSPACE}"
           while sleep 10; do printf "Waiting for workspace mamba sync...\n"; done &
-          if [[ $WORKSPACE_PERMISSIONS == "true" ]]; then
-            rsync -auSHh --stats /opt/micromamba/ "${ws_mamba_target}"
-          else
-            rsync -uSHh --stats /opt/micromamba/ "${ws_mamba_target}"
-          fi
+            rsync -rlptDu --stats /opt/micromamba/ "${ws_mamba_target}"
           kill $!
           wait $! 2>/dev/null
           printf "Moved mamba environments to %s\n" "${WORKSPACE}"
@@ -311,7 +307,7 @@ init_sync_opt() {
     ws_backup_link=${ws_dir}-link
     
     # Restarting stopped container
-    if [[ -d $ws_dir && -L $opt_dir && ${WORKSPACE_SYNC,,} != "false" ]]; then
+    if [[ -d $ws_dir && -L $opt_dir && ${WORKSPACE_SYNC,,} == "true" ]]; then
         printf "%s already symlinked to %s\n" $opt_dir $ws_dir
         continue
     fi
@@ -328,7 +324,7 @@ init_sync_opt() {
     fi
     
     # Copy & delete directories
-    if [[ $WORKSPACE_MOUNTED = "true" && ${WORKSPACE_SYNC,,} != "false" ]]; then
+    if [[ $WORKSPACE_MOUNTED = "true" && ${WORKSPACE_SYNC,,} == "true" ]]; then
         # Found a Successfully copied directory
         if [[ -d $ws_dir && -f $ws_dir/.move_complete ]]; then
             # Delete the container copy
