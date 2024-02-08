@@ -5,13 +5,5 @@
 apt-get clean -y
 micromamba clean -ay
 
-# Remove build scripts
-scripts_dir="/opt/ai-dock/bin/build/"
-
-# Remove this layer's scripts
-rm -rf ${scripts_dir}layer0
-
-# Remove parent directory if this is the last build layer
-if [[ $(ls -l ${scripts_dir} | grep -c ^d) -eq 0 ]]; then
-    rm -rf ${scripts_dir}
-fi
+rm /etc/ld.so.cache
+ldconfig
