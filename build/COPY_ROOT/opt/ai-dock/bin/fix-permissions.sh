@@ -7,22 +7,7 @@ function main() {
       esac
   done
   
-  if [[ ${only,,} == "container" ]]; then
-      fix_container
-  elif [[ ${only,,} == "workspace" ]]; then
-      fix_workspace
-  else
-      fix_container
-      fix_workspace
-  fi
-}
-
-function fix_container() {
-    chown -R root.ai-dock /opt
-    chmod -R g+s /opt
-    chmod -R ug+rwX /opt
-    setfacl -R -d -m g:ai-dock:rwx /opt
-    setfacl -R -d -m m:rwx /opt
+  fix_workspace
 }
 
 function fix_workspace() {

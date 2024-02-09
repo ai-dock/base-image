@@ -367,7 +367,7 @@ init_sync_opt() {
 
 init_set_workspace_permissions() {
     # Ensure the workspace owner/container user can access files from outside of the container
-    /opt/ai-dock/bin/fix-permissions.sh -o workspace
+    /opt/ai-dock/bin/fix-permissions.sh
 }
 
 function init_set_cf_tunnel_wanted() {

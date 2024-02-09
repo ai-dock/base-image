@@ -69,18 +69,26 @@ $APT_INSTALL \
     zip \
     zstd
   
-  locale-gen en_US.UTF-8
+locale-gen en_US.UTF-8
   
-  # These libraries are needed to run the log/redirect interfaces
-  # They are needed before micromamba is guaranteed to be ready
-  $PIP_INSTALL \
-    bcrypt \
-    uvicorn==0.23 \
-    fastapi==0.103 \
-    jinja2==3.1 \
-    jinja_partials \
-    python-multipart \
-    websockets
+# Ensure runtime user can use /opt
+  
+chown -R root.ai-dock /opt
+chmod -R g+s /opt
+chmod -R ug+rwX /opt
+setfacl -R -d -m g:ai-dock:rwx /opt
+setfacl -R -d -m m:rwx /opt
+  
+# These libraries are needed to run the log/redirect interfaces
+# They are needed before micromamba is guaranteed to be ready
+$PIP_INSTALL \
+  bcrypt \
+  uvicorn==0.23 \
+  fastapi==0.103 \
+  jinja2==3.1 \
+  jinja_partials \
+  python-multipart \
+  websockets
 
 # Get Cloudflare daemon
 wget -c -O cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb

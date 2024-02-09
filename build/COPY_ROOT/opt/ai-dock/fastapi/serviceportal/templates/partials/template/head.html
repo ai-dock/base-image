@@ -326,12 +326,29 @@
         font-style: italic;
     }
     footer {
+        display: flex;
+        flex-direction: column;
+        text-align: center;
+        align-items: center;
         justify-self: center;
         font-family: 'Rubik', sans-serif;
         padding-top: 10px;
     }
+    footer #support-dev {
+        margin-top: 10px;
+    }
+    footer #support-dev summary:hover {
+        cursor: pointer;
+    }
     footer p {
-        margin: 10px 0;
+        text-align: center;
+        margin: 15px 0;
+    }
+    footer ul.unstyled {
+        list-style: none;
+    }
+    footer ul.unstyled li {
+        padding: 3px;
     }
     footer ul#social-buttons {
         list-style: none;
