@@ -336,19 +336,23 @@
     }
     footer #support-dev {
         margin-top: 10px;
+        max-width: 95vw;
+        overflow: scroll;
     }
     footer #support-dev summary:hover {
         cursor: pointer;
     }
+    footer #support-dev ul.unstyled {
+        list-style: none;
+        padding: 0;
+    }
+    footer #support-dev ul.unstyled li {
+        padding: 3px;
+        word-break: break-all;
+    }
     footer p {
         text-align: center;
         margin: 15px 0;
-    }
-    footer ul.unstyled {
-        list-style: none;
-    }
-    footer ul.unstyled li {
-        padding: 3px;
     }
     footer ul#social-buttons {
         list-style: none;
