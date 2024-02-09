@@ -3,6 +3,9 @@
 # Must exit and fail to build if any command fails
 set -eo pipefail
 
+umask 002
+fix-permissions -o container
+
 source /opt/ai-dock/bin/build/layer0/common.sh
 
 if [[ "$XPU_TARGET" == "NVIDIA_GPU" ]]; then
@@ -15,5 +18,7 @@ else
     printf "No valid XPU_TARGET specified\n" >&2
     exit 1
 fi
+
+fix-permissions -o container
 
 source /opt/ai-dock/bin/build/layer0/clean.sh

@@ -440,6 +440,9 @@ function init_write_environment() {
         fi
     done < <(env -0)
 
+    # g=rw permissions on new files owned by root
+    printf "umask 002\n" >> /root/.bashrc
+
     if [[ -n $MAMBA_DEFAULT_ENV ]]; then
       printf "micromamba activate %s\n" $MAMBA_DEFAULT_ENV >> /root/.bashrc
     fi
@@ -511,6 +514,7 @@ function init_debug_print() {
     fi
 }
 
+umask 002
 printf "Init started: %s\n" "$(date +"%x %T.%3N")" > /var/log/timing_data
 if [[ ${SERVERLESS,,} != 'true' ]]; then
     init_main "$@"; exit

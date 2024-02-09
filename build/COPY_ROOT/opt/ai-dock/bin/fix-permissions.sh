@@ -7,20 +7,35 @@ function main() {
       esac
   done
   
-  fix_workspace
+  if [[ ${only,,} == "container" ]]; then
+      fix_container
+  elif [[ ${only,,} == "workspace" ]]; then
+      fix_workspace
+  else
+      fix_container
+      fix_workspace
+  fi
+}
+
+function fix_container() {
+    # Ensure we only affect files in this fs layer
+    chown root.ai-dock /opt
+    chmod g+s /opt
+    find /opt -not -group ai-dock -exec chown root.ai-dock {} \;
+    find /opt -type d ! -perm -g=w -exec chmod g+w {} \; -exec chmod g+s {} \;
 }
 
 function fix_workspace() {
     if [[ $WORKSPACE_PERMISSIONS == "true" ]]; then
         printf "Fixing workspace permissions...\n"
-        chown -R ${WORKSPACE_UID}.${WORKSPACE_GID} "${WORKSPACE}"
-        chmod -R g+s ${WORKSPACE}
-        setfacl -R -d -m u:"${WORKSPACE_UID}":rwx "${WORKSPACE}"
-        setfacl -R -d -m m:rwx "${WORKSPACE}"
-        chmod o-rw ${WORKSPACE}/home/user
+        chown "${WORKSPACE_UID}.${WORKSPACE_GID}" "${WORKSPACE}"
+        chmod -R g+s "${WORKSPACE}"
+        find "${WORKSPACE}" -not -group "${WORKSPACE_GID}" -exec chown "${WORKSPACE_UID}.${WORKSPACE_GID}" {} \;
+        find "${WORKSPACE}" -type d ! -perm -g=w -exec chmod g+w {} \; -exec chmod g+s {} \;
+        chmod o-rw "${WORKSPACE}/home/${USER_NAME}"
         if [[ -e ${WORKSPACE}/home/user/.ssh/authorized_keys ]]; then
-            chmod 700 ${WORKSPACE}/home/user/.ssh
-            chmod 600 ${WORKSPACE}/home/user/.ssh/authorized_keys
+            chmod 700 "${WORKSPACE}/home/${USER_NAME}/.ssh"
+            chmod 600 "${WORKSPACE}/home/${USER_NAME}/.ssh/authorized_keys"
         fi
     else
         printf "No permissions changed (non-standard fs)\n"
