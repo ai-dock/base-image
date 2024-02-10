@@ -257,10 +257,17 @@ function init_create_user() {
     fi
     # Set initial keys to match root
     if [[ -e /root/.ssh/authorized_keys  && ! -d ${home_dir}/.ssh ]]; then
-        mkdir -m 700 ${home_dir}/.ssh
+        mkdir -pm 700 ${home_dir}/.ssh
         cp /root/.ssh/authorized_keys ${home_dir}/.ssh
         chown -R ${WORKSPACE_UID}:${WORKSPACE_GID} "${home_dir}/.ssh"
         chmod 600 ${home_dir}/.ssh/authorized_keys
+        if [[ $WORKSPACE_MOUNTED == 'true' && $WORKSPACE_PERMISSIONS == 'false' ]]; then
+            mkdir -pm 700 "/home/${USER_NAME}-linux"
+            mv "${home_dir}.ssh" "/home/${USER_NAME}-linux"
+            chown -R ${WORKSPACE_UID}.${WORKSPACE_GID} "/home/${USER_NAME}-linux"
+            chmod 600 "/home/${USER_NAME}-linux/.ssh/authorized_keys"
+            ln -s "/home/${USER_NAME}-linux/.ssh" "${home_dir}.ssh"
+        fi
     fi
     # Set username in startup sctipts
     sed -i "s/\$USER_NAME/$USER_NAME/g" /etc/supervisor/supervisord/conf.d/* 
