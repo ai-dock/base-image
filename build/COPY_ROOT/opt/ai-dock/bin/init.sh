@@ -263,10 +263,10 @@ function init_create_user() {
         chmod 600 ${home_dir}/.ssh/authorized_keys
         if [[ $WORKSPACE_MOUNTED == 'true' && $WORKSPACE_PERMISSIONS == 'false' ]]; then
             mkdir -pm 700 "/home/${USER_NAME}-linux"
-            mv "${home_dir}.ssh" "/home/${USER_NAME}-linux"
+            mv "${home_dir}/.ssh" "/home/${USER_NAME}-linux/.ssh"
             chown -R ${WORKSPACE_UID}.${WORKSPACE_GID} "/home/${USER_NAME}-linux"
             chmod 600 "/home/${USER_NAME}-linux/.ssh/authorized_keys"
-            ln -s "/home/${USER_NAME}-linux/.ssh" "${home_dir}.ssh"
+            ln -s "/home/${USER_NAME}-linux/.ssh" "${home_dir}/.ssh"
         fi
     fi
     # Set username in startup sctipts
