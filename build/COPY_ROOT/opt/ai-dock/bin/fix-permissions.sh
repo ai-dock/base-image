@@ -29,7 +29,7 @@ function fix_container() {
 }
 
 function fix_workspace() {
-    if [[ $WORKSPACE_PERMISSIONS == "true" ]]; then
+    if [[ $WORKSPACE_PERMISSIONS != "false" ]]; then
         printf "Fixing workspace permissions...\n"
         chown "${WORKSPACE_UID}.${WORKSPACE_GID}" "${WORKSPACE}"
         chmod -R g+s "${WORKSPACE}"

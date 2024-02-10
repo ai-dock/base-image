@@ -28,19 +28,12 @@ services:
     #          count: all
     #          capabilities: [gpu]
     
-    #security_opt:
-      # For AMD GPU
-      #- seccomp:unconfined
     
     devices:
       - "/dev/dri:/dev/dri"
       # For AMD GPU
       #- "/dev/kfd:/dev/kfd"
       
-    #group_add:
-    #  - video
-    #  - render
-    
     volumes:
       # Workspace
       - ./workspace:${WORKSPACE:-/workspace}:rshared

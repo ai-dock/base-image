@@ -106,6 +106,7 @@ micromamba shell init --shell bash --root-prefix=/opt/micromamba
 # Ensure critical paths/files are present
 mkdir -p --mode=0755 /etc/apt/keyrings
 mkdir -p --mode=0755 /run/sshd
+mkdir -p /opt/ai-dock/lib/micromamba
 mkdir -p /var/log/supervisor
 mkdir -p /var/empty
 mkdir -p /etc/rclone

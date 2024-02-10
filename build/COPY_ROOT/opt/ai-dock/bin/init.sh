@@ -7,8 +7,8 @@ function init_cleanup() {
     # Each running process should have its own cleanup routine
     supervisorctl stop all
     kill -9 $(cat /var/run/supervisord.pid) > /dev/null 2>&1
-    rm /var/run/supervisord.pid
-    rm /var/run/supervisor.sock
+    rm -f /var/run/supervisord.pid
+    rm -f /var/run/supervisor.sock
 }
 
 function init_main() {
@@ -47,10 +47,10 @@ function init_main() {
 # A trimmed down init suitable for serverless infrastructure
 init_serverless() {
   init_set_envs "$@"
-  touch "${WORKSPACE}.update_lock"
   export CF_QUICK_TUNNELS_COUNT=0
   export SUPERVISOR_START_CLOUDFLARED=0
   init_set_workspace
+  touch "${WORKSPACE}.update_lock"
   init_count_gpus
   init_create_directories
   init_create_logfiles
@@ -205,7 +205,10 @@ function init_set_workspace() {
         export AUTO_UPDATE=false
     fi
 
-    mkdir -p "${WORKSPACE}"storage
+    mkdir "${WORKSPACE}"
+    chown ${WORKSPACE_UID}.${WORKSPACE_GID} "${WORKSPACE}"
+    chmod g+s "${WORKSPACE}"
+    mkdir "${WORKSPACE}"storage
     
     # Determine workspace mount status
     if mountpoint "$WORKSPACE" > /dev/null 2>&1; then
@@ -236,6 +239,8 @@ function init_set_workspace() {
 function init_create_user() {
     home_dir=${WORKSPACE}home/${USER_NAME}
     mkdir -p ${home_dir}
+    chown ${WORKSPACE_UID}.${WORKSPACE_GID} "$home_dir"
+    chmod g+s "$home_dir"
     groupadd -g $WORKSPACE_GID $USER_NAME
     useradd -ms /bin/bash $USER_NAME -d $home_dir -u $WORKSPACE_UID -g $WORKSPACE_GID
     printf "user:%s" "${USER_PASSWORD}" | chpasswd
@@ -248,12 +253,13 @@ function init_create_user() {
     printf "%s ALL=(ALL) NOPASSWD: ALL\n" ${USER_NAME} >> /etc/sudoers
     if [[ ! -e ${home_dir}/.bashrc ]]; then
         cp -f /root/.bashrc ${home_dir}
-        chown ${WORKSPACE_UID}:${WORKSPACE_GID} ${home_dir}/.bashrc
+        chown ${WORKSPACE_UID}:${WORKSPACE_GID} "${home_dir}/.bashrc"
     fi
     # Set initial keys to match root
     if [[ -e /root/.ssh/authorized_keys  && ! -d ${home_dir}/.ssh ]]; then
         mkdir -m 700 ${home_dir}/.ssh
         cp /root/.ssh/authorized_keys ${home_dir}/.ssh
+        chown -R ${WORKSPACE_UID}:${WORKSPACE_GID} "${home_dir}/.ssh"
         chmod 600 ${home_dir}/.ssh/authorized_keys
     fi
     # Set username in startup sctipts
