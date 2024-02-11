@@ -471,6 +471,7 @@ function init_get_provisioning_script() {
         curl -L -o ${file} ${PROVISIONING_SCRIPT}
         if [[ "$?" -eq 0 ]]; then
             dos2unix ${file}
+            sed -i "s/^#\!\/bin\/false$/#\!\/bin\/bash/" ${file}
             printf "Successfully created %s from %s\n" "$file" "$PROVISIONING_SCRIPT"
         else
             printf "Failed to fetch %s\n" "$PROVISIONING_SCRIPT"
@@ -489,6 +490,7 @@ function init_run_provisioning_script() {
             chown ${USER_NAME}:ai-dock ${file}
             chmod 0755 ${file}
             su ${USER_NAME} -c ${file}
+            ldconfig
         fi
     else
         printf "Refusing to provision container with %s.update_lock present\n" "$WORKSPACE"
@@ -529,6 +531,7 @@ function init_debug_print() {
 
 umask 002
 printf "Init started: %s\n" "$(date +"%x %T.%3N")" > /var/log/timing_data
+ldconfig
 if [[ ${SERVERLESS,,} != 'true' ]]; then
     init_main "$@"; exit
 else
