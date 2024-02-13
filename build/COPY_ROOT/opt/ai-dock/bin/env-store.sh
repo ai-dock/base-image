@@ -15,5 +15,5 @@ if [[ $code -ne 0 ]]; then
     exit 1
 fi
 
-printf "export %s=\"%s\"\n" "${key}" "${value}" >> /opt/ai-dock/etc/environment.sh
+printf "export %s=\'%s\'\n" "${key}" "${value}" >> /opt/ai-dock/etc/environment.sh
 printf "Stored environment variable '%s': %s\n" "$key" "$value"
