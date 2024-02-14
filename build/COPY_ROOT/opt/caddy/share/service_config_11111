@@ -5,8 +5,17 @@
         path /login
     }
     
+    @token {
+        path /
+        query token=*
+    }
+    
     header @authenticating_bearer Set-Cookie "ai_dock_token={$WEB_TOKEN}; Path=/ ;Max-Age=604800; HttpOnly; SameSite=lax"
     header @authenticating_basic Set-Cookie "ai_dock_token={$WEB_PASSWORD_B64}; Path=/ ;Max-Age=604800; HttpOnly; SameSite=lax"
+    
+    route @token {
+        redir @authorized {$SERVICEPORTAL_HOME}
+    }
     
     route @login {
         redir @authorized {$SERVICEPORTAL_HOME}

@@ -139,18 +139,18 @@ init_set_web_credentials() {
   fi
 
   if [[ -z $WEB_PASSWORD ]]; then
-      export WEB_PASSWORD="$(openssl rand -base64 12)"
+      export WEB_PASSWORD="$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 12 | head -n 1)"
   fi
   
   export WEB_PASSWORD_B64="$(printf "%s:%s" "$WEB_USER" "$WEB_PASSWORD" | base64)"
   
   if [[ -z $WEB_TOKEN ]]; then
-      # Not the same as password (probably!)
-      export WEB_TOKEN="$(openssl rand -base64 32)"
+      # Not the same as password
+      export WEB_TOKEN="$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)"
   fi
 
   if [[ -n $DISPLAY && -z $COTURN_PASSWORD ]]; then
-        export COTURN_PASSWORD="auto_$(openssl rand -base64 8)"
+        export COTURN_PASSWORD="auto_$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 8 | head -n 1)"
   fi
   
   printf "%s %s" "$WEB_USER" "$WEB_PASSWORD_HASH" > /opt/caddy/etc/basicauth
@@ -487,9 +487,9 @@ function init_run_provisioning_script() {
         if [[ ! -f ${file} ]]; then
             printf "Not found\n"
         else
-            chown ${USER_NAME}:ai-dock ${file}
-            chmod 0755 ${file}
-            su ${USER_NAME} -c ${file}
+            chown "${USER_NAME}":ai-dock "${file}"
+            chmod 0755 "${file}"
+            su -l "${USER_NAME}" -c "${file}"
             ldconfig
         fi
     else
