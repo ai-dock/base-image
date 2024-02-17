@@ -55,7 +55,7 @@ ENV MAMBA_EXE="/opt/micromamba/bin/micromamba"
 ENV RCLONE_CONFIG="/etc/rclone/rclone.conf"
 ENV IMAGE_SLUG="base-image"
 # Copy early so we can use scripts in the build - Changes to these files will invalidate the cache and cause a rebuild.
-COPY ./COPY_ROOT/ /
+COPY --chown=0:1111 ./COPY_ROOT/ /
 
 ARG CUDA_VERSION
 ARG CUDNN_VERSION
@@ -69,7 +69,7 @@ RUN yes | unminimize && \
     set -eo pipefail && /opt/ai-dock/bin/build/layer0/init.sh | tee /var/log/build.log
 
 # Copy overrides and new files into a final layer for fast rebuilds. Uncomment below
-#COPY ./COPY_ROOT_EXTRA/ /
+#COPY --chown=0:1111 ./COPY_ROOT_EXTRA/ /
 #RUN set -eo pipefail && /opt/ai-dock/bin/build/layer1/init.sh | tee -a /var/log/build.log
 
 # Keep init.sh as-is and place additional logic in /opt/ai-dock/bin/preflight.sh
