@@ -23,7 +23,9 @@ manage_symlinks() {
                 if [[ -e "$absolute_stored_file" && (! -e "$symlink_target" || -L "$symlink_target") ]]; then
                     # Create symlinks for existing or newly created files
                     mkdir -p "$symlink_target_dir"
-                    ln -svf "$absolute_stored_file" "$symlink_target"
+                    # Always delete first to avoid recursive symlink issue
+                    rm -f "$symlink_target"
+                    ln -sv "$absolute_stored_file" "$symlink_target"
                 else
                     # Remove symlink for deleted files
                     if [[ -L $symlink_target ]]; then
