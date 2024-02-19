@@ -20,10 +20,10 @@ manage_symlinks() {
             for mapped_target_directory in "${target_dirs[@]}"; do
                 symlink_target="${mapped_target_directory}${unmapped_subdirs}/$(basename "$stored_file")"
                 symlink_target_dir="$(dirname "$symlink_target")"
-                if [[ -e "$stored_file" && ! -e "$symlink_target" ]]; then
+                if [[ -e "$absolute_stored_file" && (! -e "$symlink_target" || -L "$symlink_target") ]]; then
                     # Create symlinks for existing or newly created files
                     mkdir -p "$symlink_target_dir"
-                    ln -sv "$absolute_stored_file" "$symlink_target"
+                    ln -svf "$absolute_stored_file" "$symlink_target"
                 else
                     # Remove symlink for deleted files
                     if [[ -L $symlink_target ]]; then
