@@ -183,8 +183,9 @@ function init_count_quicktunnels() {
 }
 
 function init_set_workspace() {
+    # no defined workspace - Keep users close to the install
     if [[ -z $WORKSPACE ]]; then
-        export WORKSPACE="/workspace/"
+        export WORKSPACE="/opt/"
     else
         ws_tmp="/$WORKSPACE/"
         export WORKSPACE=${ws_tmp//\/\//\/}
@@ -205,21 +206,27 @@ function init_set_workspace() {
         export AUTO_UPDATE=false
     fi
 
-    mkdir "${WORKSPACE}"
-    chown ${WORKSPACE_UID}.${WORKSPACE_GID} "${WORKSPACE}"
-    chmod g+s "${WORKSPACE}"
-    mkdir "${WORKSPACE}"storage
+    if [[ $WORKSPACE != "/opt/" ]]; then
+        mkdir -p "${WORKSPACE}"
+        chown ${WORKSPACE_UID}.${WORKSPACE_GID} "${WORKSPACE}"
+        chmod g+s "${WORKSPACE}"
+    fi
     
     # Determine workspace mount status
     if mountpoint "$WORKSPACE" > /dev/null 2>&1; then
         export WORKSPACE_MOUNTED=true
+        mkdir -p "${WORKSPACE}"storage
     else
         export WORKSPACE_MOUNTED=false
+        ln -sT /opt/storage "${WORKSPACE}"storage > /dev/null 2>&1
         no_mount_warning_file="${WORKSPACE}WARNING-NO-MOUNT.txt"
-        no_mount_warning="$WORKSPACE is not a mounted volume.\n\nData saved here will not survive if the container is destroyed.\n"
+        no_mount_warning="$WORKSPACE is not a mounted volume.\n\nData saved here will not survive if the container is destroyed.\n\n"
         printf "%b" "${no_mount_warning}"
         touch "${no_mount_warning_file}"
         printf "%b" "${no_mount_warning}" > "${no_mount_warning_file}"
+        if [[ $WORKSPACE != "/opt/" ]]; then
+            printf "Find your software in /opt\n\n" >> "${no_mount_warning_file}"
+        fi
     fi
     # Ensure we have a proper linux filesystem so we don't run into errors on sync
     if [[ $WORKSPACE_MOUNTED == "true" ]]; then
@@ -237,8 +244,14 @@ function init_set_workspace() {
 # This is a convenience for X11 containers and bind mounts - No additional security implied.
 # These are interactive containers; root will always be available. Secure your daemon.
 function init_create_user() {
-    home_dir=${WORKSPACE}home/${USER_NAME}
-    mkdir -p ${home_dir}
+    if [[ ${WORKSPACE_MOUNTED,,} == "true" ]]; then
+        home_dir=${WORKSPACE}home/${USER_NAME}
+        mkdir -p $home_dir
+        ln -s $home_dir /home/${USER_NAME}
+    else
+        home_dir=/home/${USER_NAME}
+        mkdir -p ${home_dir}
+    fi
     chown ${WORKSPACE_UID}.${WORKSPACE_GID} "$home_dir"
     chmod g+s "$home_dir"
     groupadd -g $WORKSPACE_GID $USER_NAME
@@ -248,7 +261,6 @@ function init_create_user() {
     # May not exist - todo check device ownership
     usermod -a -G render $USER_NAME
     usermod -a -G sgx $USER_NAME
-    ln -s $home_dir /home/${USER_NAME}
     # See the README (in)security notice
     printf "%s ALL=(ALL) NOPASSWD: ALL\n" ${USER_NAME} >> /etc/sudoers
     if [[ ! -e ${home_dir}/.bashrc ]]; then
@@ -274,108 +286,105 @@ function init_create_user() {
 }
 
 function init_sync_mamba_envs() {
-    printf "Mamba sync start: %s\n" "$(date +"%x %T.%3N")" >> /var/log/timing_data
-    ws_mamba_target="${WORKSPACE}environments/micromamba-${IMAGE_SLUG}"
-    if [[ -d ${WORKSPACE}/micromamba ]]; then
-        mkdir -p ${WORKSPACE}/environments
-        mv ${WORKSPACE}/micromamba "$ws_mamba_target"
+    if [[ ${WORKSPACE_SYNC,,} == "true" ]]; then
+        printf "Mamba sync start: %s\n" "$(date +"%x %T.%3N")" >> /var/log/timing_data
+        ws_mamba_target="${WORKSPACE}environments/micromamba-${IMAGE_SLUG}"
+        if [[ ${WORKSPACE}/micromamba ]]; then
+            mkdir -p ${WORKSPACE}/environments
+            mv ${WORKSPACE}/micromamba "$ws_mamba_target"
+        fi
+        
+        if [[ $WORKSPACE_MOUNTED = "false" ]]; then
+        printf "No mount: Mamba environments remain in /opt\n"
+        elif [[ ${WORKSPACE_SYNC,,} != "true" ]]; then
+        printf "Skipping workspace sync: Mamba environments remain in /opt\n"
+        elif [[ -f ${ws_mamba_target}/.move_complete ]]; then
+        printf "Mamba environments already present at ${WORKSPACE}\n"
+        rm -rf /opt/micromamba/*
+        link-mamba-envs.sh
+        else
+        # Complete the copy if not serverless
+        if [[ ${SERVERLESS,,} != 'true' ]]; then
+            mkdir -p ${WORKSPACE}/environments
+            printf "Moving mamba environments to %s...\n" "${WORKSPACE}"
+            while sleep 10; do printf "Waiting for workspace mamba sync...\n"; done &
+                rsync -rlptDu --stats /opt/micromamba/ "${ws_mamba_target}"
+            kill $!
+            wait $! 2>/dev/null
+            printf "Moved mamba environments to %s\n" "${WORKSPACE}"
+            rm -rf /opt/micromamba/*
+            printf 1 > ${ws_mamba_target}/.move_complete
+            link-mamba-envs.sh
+        fi
     fi
-    
-    if [[ $WORKSPACE_MOUNTED = "false" ]]; then
-      printf "No mount: Mamba environments remain in /opt\n"
-    elif [[ ${WORKSPACE_SYNC,,} != "true" ]]; then
-      printf "Skipping workspace sync: Mamba environments remain in /opt\n"
-    elif [[ -f ${ws_mamba_target}/.move_complete ]]; then
-      printf "Mamba environments already present at ${WORKSPACE}\n"
-      rm -rf /opt/micromamba/*
-      link-mamba-envs.sh
-    else
-      # Complete the copy if not serverless
-      if [[ ${SERVERLESS,,} != 'true' ]]; then
-          mkdir -p ${WORKSPACE}/environments
-          printf "Moving mamba environments to %s...\n" "${WORKSPACE}"
-          while sleep 10; do printf "Waiting for workspace mamba sync...\n"; done &
-            rsync -rlptDu --stats /opt/micromamba/ "${ws_mamba_target}"
-          kill $!
-          wait $! 2>/dev/null
-          printf "Moved mamba environments to %s\n" "${WORKSPACE}"
-          rm -rf /opt/micromamba/*
-          printf 1 > ${ws_mamba_target}/.move_complete
-          link-mamba-envs.sh
-      fi
+    printf "Mamba sync complete: %s\n" "$(date +"%x %T.%3N")" >> /var/log/timing_data
 fi
-printf "Mamba sync complete: %s\n" "$(date +"%x %T.%3N")" >> /var/log/timing_data
 }
 
 init_sync_opt() {
-  printf "Opt sync start: %s\n" "$(date +"%x %T.%3N")" >> /var/log/timing_data
-  IFS=: read -r -d '' -a path_array < <(printf '%s:\0' "$OPT_SYNC")
-  for item in "${path_array[@]}"; do
-    opt_dir="/opt/${item}"
-    if [[ ! -d $opt_dir || $opt_dir = "/opt/"  ]]; then
-        continue
-    fi
-    
-    ws_dir=${WORKSPACE}/${item}
-    ws_backup_link=${ws_dir}-link
-    
-    # Restarting stopped container
-    if [[ -d $ws_dir && -L $opt_dir && ${WORKSPACE_SYNC,,} == "true" ]]; then
-        printf "%s already symlinked to %s\n" $opt_dir $ws_dir
-        continue
-    fi
-    
-    # Reset symlinks first
-    if [[ -L $opt_dir ]]; then rm "$opt_dir"; fi
-    if [[ -L $ws_dir ]]; then rm "$ws_dir" "${ws_dir}-link"; fi
-    
-    # Sanity check
-    # User broke something - Container requires tear-down & restart
-    if [[ ! -d $opt_dir && ! -d $ws_dir ]]; then
-        printf "\U274C Critical directory ${opt_dir} is missing without a backup!\n"
-        continue
-    fi
-    
-    # Copy & delete directories
-    if [[ $WORKSPACE_MOUNTED = "true" && ${WORKSPACE_SYNC,,} == "true" ]]; then
-        # Found a Successfully copied directory
-        if [[ -d $ws_dir && -f $ws_dir/.move_complete ]]; then
-            # Delete the container copy
-            if [[ -d $opt_dir && ! -L $opt_dir ]]; then
-                rm -rf "$opt_dir"
+  if [[ $WORKSPACE_MOUNTED = "true" ]]; then
+        printf "Opt sync start: %s\n" "$(date +"%x %T.%3N")" >> /var/log/timing_data
+        IFS=: read -r -d '' -a path_array < <(printf '%s:\0' "$OPT_SYNC")
+        for item in "${path_array[@]}"; do
+            opt_dir="/opt/${item}"
+            if [[ ! -d $opt_dir || $opt_dir = "/opt/"  ]]; then
+                continue
             fi
-        # No/incomplete workspace copy
-        else
-            # Complete the copy if not serverless
-            if [[ ${SERVERLESS,,} != 'true' ]]; then
-                printf "Moving %s to %s\n" "$opt_dir" "$ws_dir"
-                while sleep 10; do printf "Waiting for workspace application sync...\n"; done &
-                rsync -auSHh --stats "$opt_dir" "$WORKSPACE"
-                kill $!
-                wait $! 2>/dev/null
-                printf "Moved %s to %s\n" "$opt_dir" "$ws_dir"
-                printf 1 > $ws_dir/.move_complete
-                rm -rf "$opt_dir"
+            
+            ws_dir=${WORKSPACE}${item}
+
+            # remove old backup links (depreciated)
+            rm -f "${ws_dir}-link"
+            
+            # Restarting stopped container
+            if [[ -d $ws_dir && -L $opt_dir ]]; then
+                printf "%s already symlinked to %s\n" $opt_dir $ws_dir
+                continue
             fi
-        fi
-    fi
-    
-    # Create symlinks
-    # Use container version over existing workspace version
-    if [[ -d $opt_dir && -d $ws_dir ]]; then
-        printf "Ignoring %s and creating symlink to %s at %s\n" $ws_dir $opt_dir $ws_backup_link
-        ln -s "$opt_dir" "$ws_backup_link"
-    # Use container version
-    elif [[ -d $opt_dir ]]; then
-        printf "Creating symlink to %s at %s\n" $opt_dir $ws_dir
-        ln -s "$opt_dir" "$ws_dir"
-    # Use workspace version
-    elif [[ -d $ws_dir ]]; then
-        printf "Creating symlink to %s at %s\n" $ws_dir $opt_dir
-        ln -s "$ws_dir" "$opt_dir"
-    fi
-  done
-  printf "Opt sync complete: %s\n" "$(date +"%x %T.%3N")" >> /var/log/timing_data
+            
+            # Reset symlinks first
+            if [[ -L $opt_dir ]]; then rm -f "$opt_dir"; fi
+            if [[ -L $ws_dir ]]; then rm -f "$ws_dir"; fi
+            
+            # Sanity check
+            # User broke something - Container requires tear-down & restart
+            if [[ ! -d $opt_dir && ! -d $ws_dir ]]; then
+                printf "\U274C Critical directory ${opt_dir} is missing without a backup!\n"
+                continue
+            fi
+            
+            # Copy & delete directories
+            # Found a Successfully copied directory
+            if [[ -d $ws_dir && -f $ws_dir/.move_complete ]]; then
+                # Delete the container copy
+                if [[ -d $opt_dir && ! -L $opt_dir ]]; then
+                    rm -rf "$opt_dir"
+                fi
+            # No/incomplete workspace copy
+            else
+                # Complete the copy if not serverless
+                if [[ ${SERVERLESS,,} != 'true' ]]; then
+                    printf "Moving %s to %s\n" "$opt_dir" "$ws_dir"
+                    while sleep 10; do printf "Waiting for workspace application sync...\n"; done &
+                    rsync -auSHh --stats "$opt_dir" "$WORKSPACE"
+                    kill $!
+                    wait $! 2>/dev/null
+                    printf "Moved %s to %s\n" "$opt_dir" "$ws_dir"
+                    printf 1 > $ws_dir/.move_complete
+                    rm -rf "$opt_dir"
+                fi
+            fi
+            
+            # Create symlinks
+            # Use workspace version
+            if [[ -d $ws_dir ]]; then
+                printf "Creating symlink to %s at %s\n" $ws_dir $opt_dir
+                rm -rf "$opt_dir"
+                ln -s "$ws_dir" "$opt_dir"
+            fi
+        done
+        printf "Opt sync complete: %s\n" "$(date +"%x %T.%3N")" >> /var/log/timing_data
+  fi
 }
 
 init_set_workspace_permissions() {
@@ -425,9 +434,9 @@ function init_direct_address() {
 }
 
 function init_create_directories() {
-  mkdir -m 2770 -p /run/http_ports
-  chown root.ai-dock /run/http_ports
-  mkdir -p /opt/caddy/etc
+    mkdir -m 2770 -p /run/http_ports
+    chown root.ai-dock /run/http_ports
+    mkdir -p /opt/caddy/etc
 }
 
 # Ensure the files logtail needs to display during init
@@ -457,7 +466,7 @@ function init_write_environment() {
     printf "umask 002\n" >> /root/.bashrc
 
     if [[ -n $MAMBA_DEFAULT_ENV ]]; then
-      printf "micromamba activate %s\n" $MAMBA_DEFAULT_ENV >> /root/.bashrc
+        printf "micromamba activate %s\n" $MAMBA_DEFAULT_ENV >> /root/.bashrc
     fi
     
     printf "cd %s\n" "$WORKSPACE" >> /root/.bashrc

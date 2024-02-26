@@ -5,7 +5,7 @@ image_storage_dir="/opt/storage"
 source /opt/ai-dock/storage_monitor/etc/mappings.sh
 
 # Link files bundled in the image to $storage_dir
-if [[ -d $image_storage_dir ]]; then
+if [[ -d $image_storage_dir && "$(readlink -f $image_storage_dir)" != "$(readlink -f $storage_dir)" ]]; then
     IFS=$'\n'
     for filepath in $(find "$image_storage_dir" -type f -name "[!.]*" ); do
         file_name=$(basename "$filepath")
@@ -16,6 +16,8 @@ if [[ -d $image_storage_dir ]]; then
         mkdir -p "$ws_dir_name"
         ln -sf "$filepath" "$ws_file_path"
     done
+else
+    printf "Skipping container/workspace storage sync (symlinked)\n"
 fi
 
 # Initial pass for existing files

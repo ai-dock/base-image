@@ -6,6 +6,9 @@ export MAMBA_INSTALL="micromamba install --always-softlink -y -c conda-forge"
 env-store MAMBA_INSTALL
 
 groupadd -g 1111 ai-dock
+chown root.ai-dock /opt
+chmod g+w /opt
+chmod g+s /opt
 
 dpkg --add-architecture i386
 apt-get update
