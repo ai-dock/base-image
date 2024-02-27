@@ -32,7 +32,6 @@ function init_main() {
     # Redirect output to files - Logtail will now handle
     init_sync_mamba_envs > /var/log/sync.log 2>&1
     init_sync_opt >> /var/log/sync.log 2>&1
-    init_set_workspace_permissions >> /var/log/sync.log 2>&1
     rm /run/workspace_sync
     init_source_preflight_scripts > /var/log/preflight.log 2>&1
     init_debug_print > /var/log/debug.log 2>&1
@@ -408,11 +407,6 @@ init_sync_opt() {
         done
         printf "Opt sync complete: %s\n" "$(date +"%x %T.%3N")" >> /var/log/timing_data
   fi
-}
-
-init_set_workspace_permissions() {
-    # Ensure the workspace owner/container user can access files from outside of the container
-    /opt/ai-dock/bin/fix-permissions.sh -o workspace
 }
 
 function init_set_cf_tunnel_wanted() {
