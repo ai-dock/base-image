@@ -122,6 +122,7 @@ touch /etc/rclone/rclone.conf
 
 printf "source /opt/ai-dock/etc/environment.sh\n" >> /etc/profile.d/02-ai-dock.sh
 printf "source /opt/ai-dock/etc/environment.sh\n" >> /etc/bash.bashrc
+printf "ready-test\n" >> /root/.bashrc
 
 # Give our runtime user full access (added to ai-dock group)
 /opt/ai-dock/bin/fix-permissions.sh -o container

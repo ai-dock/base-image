@@ -6,9 +6,9 @@ function init_cleanup() {
     printf "Cleaning up...\n"
     # Each running process should have its own cleanup routine
     supervisorctl stop all
-    kill -9 $(cat /var/run/supervisord.pid) > /dev/null 2>&1
-    rm -f /var/run/supervisord.pid
-    rm -f /var/run/supervisor.sock
+    kill -9 $(cat /run/supervisord.pid) > /dev/null 2>&1
+    rm -f /run/supervisor.sock
+    rm -f /run/supervisord.pid
 }
 
 function init_main() {
@@ -28,20 +28,21 @@ function init_main() {
     init_create_user
     # Allow autostart processes to run early
     supervisord -c /etc/supervisor/supervisord.conf &
+    printf "%s" "$!" > /run/supervisord.pid
     # Redirect output to files - Logtail will now handle
     init_sync_mamba_envs > /var/log/sync.log 2>&1
     init_sync_opt >> /var/log/sync.log 2>&1
     init_set_workspace_permissions >> /var/log/sync.log 2>&1
     rm /run/workspace_sync
-    init_source_preflight_script > /var/log/preflight.log 2>&1
+    init_source_preflight_scripts > /var/log/preflight.log 2>&1
     init_debug_print > /var/log/debug.log 2>&1
     init_get_provisioning_script > /var/log/provisioning.log 2>&1
     init_run_provisioning_script >> /var/log/provisioning.log 2>&1
-    # Removal of this file will trigger fastapi shutdown and service start
+    # Removal of this file will trigger fastapi placeholder shutdown and service start
     rm /run/container_config
     printf "Init complete: %s\n" "$(date +"%x %T.%3N")" >> /var/log/timing_data
     # Don't exit unless supervisord is killed
-    wait
+    wait "$(</run/supervisord.pid)"
 }
 
 # A trimmed down init suitable for serverless infrastructure
@@ -61,11 +62,12 @@ init_serverless() {
   init_sync_mamba_envs > /var/log/sync.log 2>&1
   init_sync_opt >> /var/log/sync.log 2>&1
   rm /run/workspace_sync
-  init_source_preflight_script > /var/log/preflight.log 2>&1
+  init_source_preflight_scripts > /var/log/preflight.log 2>&1
   rm /run/container_config
   supervisord -c /etc/supervisor/supervisord.conf &
+  printf "%s" "$!" > /run/supervisord.pid
   printf "Init complete: %s\n" "$(date +"%x %T.%3N")" >> /var/log/timing_data
-  wait
+  wait "$(</run/supervisord.pid)"
 }
 
 function init_set_envs() {
@@ -152,8 +154,6 @@ init_set_web_credentials() {
   if [[ -n $DISPLAY && -z $COTURN_PASSWORD ]]; then
         export COTURN_PASSWORD="auto_$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 8 | head -n 1)"
   fi
-  
-  printf "%s %s" "$WEB_USER" "$WEB_PASSWORD_HASH" > /opt/caddy/etc/basicauth
 }
 
 function init_count_gpus() {
@@ -286,52 +286,67 @@ function init_create_user() {
 }
 
 function init_sync_mamba_envs() {
-    if [[ ${WORKSPACE_SYNC,,} == "true" ]]; then
+    if [[ ${WORKSPACE_MOUNTED,,} == "true" && ${WORKSPACE_SYNC,,} == "true" ]]; then
         printf "Mamba sync start: %s\n" "$(date +"%x %T.%3N")" >> /var/log/timing_data
-        ws_mamba_target="${WORKSPACE}environments/micromamba-${IMAGE_SLUG}"
-        if [[ ${WORKSPACE}/micromamba ]]; then
-            mkdir -p ${WORKSPACE}/environments
-            mv ${WORKSPACE}/micromamba "$ws_mamba_target"
-        fi
+        ws_mamba_target="${WORKSPACE}environments/${IMAGE_SLUG}"
+        old_type_target="${WORKSPACE}environments/micromamba-${IMAGE_SLUG}"
         
-        if [[ $WORKSPACE_MOUNTED = "false" ]]; then
-        printf "No mount: Mamba environments remain in /opt\n"
-        elif [[ ${WORKSPACE_SYNC,,} != "true" ]]; then
-        printf "Skipping workspace sync: Mamba environments remain in /opt\n"
-        elif [[ -f ${ws_mamba_target}/.move_complete ]]; then
-        printf "Mamba environments already present at ${WORKSPACE}\n"
-        rm -rf /opt/micromamba/*
-        link-mamba-envs.sh
+        if [[ -f ${ws_mamba_target}/.move_complete ]]; then
+            printf "Mamba environments already present at ${WORKSPACE}\n"
+
+        elif [[ -f "${old_type_target}/.move_complete" ]]; then
+            printf "Converting old sync format to improve compatibility...\n"
+            # This shouldnt exist - A full copy would have been caught above
+            rm -rf "${ws_mamba_target}"
+            mkdir -p "${ws_mamba_target}"
+            mv "${old_type_target}" "${ws_mamba_target}/micromamba"
+            mv "${ws_mamba_target}/micromamba/.move_complete" "${ws_mamba_target}/.move_complete"
+
         else
-        # Complete the copy if not serverless
-        if [[ ${SERVERLESS,,} != 'true' ]]; then
-            mkdir -p ${WORKSPACE}/environments
-            printf "Moving mamba environments to %s...\n" "${WORKSPACE}"
-            while sleep 10; do printf "Waiting for workspace mamba sync...\n"; done &
-                rsync -rlptDu --stats /opt/micromamba/ "${ws_mamba_target}"
-            kill $!
-            wait $! 2>/dev/null
-            printf "Moved mamba environments to %s\n" "${WORKSPACE}"
-            rm -rf /opt/micromamba/*
-            printf 1 > ${ws_mamba_target}/.move_complete
-            link-mamba-envs.sh
+            # Complete the copy if not serverless
+            if [[ ${SERVERLESS,,} != 'true' ]]; then
+                mkdir -p ${ws_mamba_target}
+                printf "Moving mamba environments to %s...\n" "${WORKSPACE}"
+                while sleep 10; do printf "Waiting for workspace mamba sync...\n"; done &
+                    printf "Creating archive of /opt/micromamba...\n"
+                    (cd /opt && tar -cf micromamba.tar micromamba --no-same-owner --no-same-permissions)
+                    printf "Transferring mamba archive to %s...\n" "${ws_mamba_target}"
+                    mv /opt/micromamba.tar "${ws_mamba_target}/micromamba.tar"
+                    printf "Extracting mamba archive to %s...\n" "${ws_mamba_target}/micromamba/"
+                    tar -xf "${ws_mamba_target}/micromamba.tar" -C "${ws_mamba_target}" --keep-newer-files --no-same-owner --no-same-permissions
+                    rm -f "${ws_mamba_target}/micromamba.tar"
+                # Kill the progress printer
+                kill $!
+                printf "Moved mamba environments to %s\n" "${WORKSPACE}"
+                printf 1 > ${ws_mamba_target}/.move_complete
+            else
+                printf "Environments must be synchronised before enabling serverless mode\n..."
+            fi
+        fi
+
+        if [[ -f "${ws_mamba_target}/.move_complete" ]]; then
+            export MAMBA_ROOT_PREFIX="${ws_mamba_target}/micromamba"
+            env-store MAMBA_ROOT_PREFIX
+            printf "Mamba sync complete: %s\n" "$(date +"%x %T.%3N")" >> /var/log/timing_data
+        else
+            printf "Mamba sync failed: %s\n" "$(date +"%x %T.%3N")" >> /var/log/timing_data
         fi
     fi
-    printf "Mamba sync complete: %s\n" "$(date +"%x %T.%3N")" >> /var/log/timing_data
-fi
 }
 
 init_sync_opt() {
-  if [[ $WORKSPACE_MOUNTED = "true" ]]; then
+    # Applications at /opt *always* get synced to a mounted workspace
+    if [[ $WORKSPACE_MOUNTED = "true" ]]; then
         printf "Opt sync start: %s\n" "$(date +"%x %T.%3N")" >> /var/log/timing_data
         IFS=: read -r -d '' -a path_array < <(printf '%s:\0' "$OPT_SYNC")
         for item in "${path_array[@]}"; do
             opt_dir="/opt/${item}"
-            if [[ ! -d $opt_dir || $opt_dir = "/opt/"  ]]; then
+            if [[ ! -d $opt_dir || $opt_dir = "/opt/" || $opt_dir = "/opt/ai-dock" || $opt_dir = "/opt/micromamba" ]]; then
                 continue
             fi
             
-            ws_dir=${WORKSPACE}${item}
+            ws_dir="${WORKSPACE}${item}"
+            archive="${item}.tar"
 
             # remove old backup links (depreciated)
             rm -f "${ws_dir}-link"
@@ -365,22 +380,30 @@ init_sync_opt() {
                 # Complete the copy if not serverless
                 if [[ ${SERVERLESS,,} != 'true' ]]; then
                     printf "Moving %s to %s\n" "$opt_dir" "$ws_dir"
-                    while sleep 10; do printf "Waiting for workspace application sync...\n"; done &
-                    rsync -auSHh --stats "$opt_dir" "$WORKSPACE"
+
+                    while sleep 10; do printf "Waiting for %s application sync...\n" "$item"; done &
+                        printf "Creating archive of %s...\n" "$opt_dir"
+                        (cd /opt && tar -cf "${archive}" "${item}" --no-same-owner --no-same-permissions)
+                        printf "Transferring %s archive to %s...\n" "${item}" "${WORKSPACE}"
+                        mv -f "/opt/${archive}" "${WORKSPACE}"
+                        printf "Extracting %s archive to %s...\n" "${item}" "${WORKSPACE}${item}"
+                        tar -xf "${WORKSPACE}${archive}" -C "${WORKSPACE}" --keep-newer-files --no-same-owner --no-same-permissions
+                        rm -f "${WORKSPACE}${archive}"
+                    # Kill the progress printer
                     kill $!
-                    wait $! 2>/dev/null
                     printf "Moved %s to %s\n" "$opt_dir" "$ws_dir"
                     printf 1 > $ws_dir/.move_complete
-                    rm -rf "$opt_dir"
                 fi
             fi
             
             # Create symlinks
             # Use workspace version
-            if [[ -d $ws_dir ]]; then
+            if [[ -f "${ws_dir}/.move_complete" ]]; then
                 printf "Creating symlink to %s at %s\n" $ws_dir $opt_dir
                 rm -rf "$opt_dir"
                 ln -s "$ws_dir" "$opt_dir"
+            else
+                printf "Expected to find %s but it's missing.  Using %s instead\n" "${ws_dir}/.move_complete" "$opt_dir"
             fi
         done
         printf "Opt sync complete: %s\n" "$(date +"%x %T.%3N")" >> /var/log/timing_data
@@ -389,7 +412,7 @@ init_sync_opt() {
 
 init_set_workspace_permissions() {
     # Ensure the workspace owner/container user can access files from outside of the container
-    /opt/ai-dock/bin/fix-permissions.sh
+    /opt/ai-dock/bin/fix-permissions.sh -o workspace
 }
 
 function init_set_cf_tunnel_wanted() {
@@ -444,14 +467,12 @@ function init_create_logfiles() {
     touch /var/log/{logtail.log,config.log,debug.log,preflight.log,provisioning.log,sync.log}
 }
 
-function init_source_preflight_script() {
-    # Child images can provide in their PATH
-    printf "Looking for preflight.sh...\n"
-    if [[ ! -f /opt/ai-dock/bin/preflight.sh ]]; then
-        printf "Not found\n"
-    else
-        source /opt/ai-dock/bin/preflight.sh
-    fi
+function init_source_preflight_scripts() {
+    preflight_dir="/opt/ai-dock/bin/preflight.d"
+    printf "Looking for scripts in %s...\n" "$preflight_dir"
+    for script in /opt/ai-dock/bin/preflight.d/*.sh; do
+        source "$script";
+    done
 }
 
 function init_write_environment() {
@@ -462,15 +483,18 @@ function init_write_environment() {
         fi
     done < <(env -0)
 
-    # g=rw permissions on new files owned by root
-    printf "umask 002\n" >> /root/.bashrc
+    if [[ ! $(grep "# First init complete" /root/.bashrc) ]]; then
+        printf "# First init complete\n" >> /root/.bashrc
+        printf "umask 002\n" >> /root/.bashrc
+        printf "source /opt/ai-dock/etc/environment.sh\n" >> /root/.bashrc
 
-    if [[ -n $MAMBA_DEFAULT_ENV ]]; then
-        printf "micromamba activate %s\n" $MAMBA_DEFAULT_ENV >> /root/.bashrc
+        if [[ -n $MAMBA_DEFAULT_ENV ]]; then
+            printf "micromamba activate %s\n" $MAMBA_DEFAULT_ENV >> /root/.bashrc
+        fi
+        
+        printf "cd %s\n" "$WORKSPACE" >> /root/.bashrc
+        ln -snf "/usr/share/zoneinfo/$TZ" /etc/localtime && echo "$TZ" | sudo tee /etc/timezone > /dev/null
     fi
-    
-    printf "cd %s\n" "$WORKSPACE" >> /root/.bashrc
-    ln -snf "/usr/share/zoneinfo/$TZ" /etc/localtime && echo "$TZ" | sudo tee /etc/timezone > /dev/null
 }
 
 function init_get_provisioning_script() {
@@ -479,12 +503,12 @@ function init_get_provisioning_script() {
         file="/opt/ai-dock/bin/provisioning.sh"
         curl -L -o ${file} ${PROVISIONING_SCRIPT}
         if [[ "$?" -eq 0 ]]; then
-            dos2unix ${file}
-            sed -i "s/^#\!\/bin\/false$/#\!\/bin\/bash/" ${file}
+            dos2unix "$file"
+            sed -i "s/^#\!\/bin\/false$/#\!\/bin\/bash/" "$file"
             printf "Successfully created %s from %s\n" "$file" "$PROVISIONING_SCRIPT"
         else
             printf "Failed to fetch %s\n" "$PROVISIONING_SCRIPT"
-            rm $file > /dev/null 2>&1
+            rm -f $file
         fi
     fi
 }
@@ -538,11 +562,12 @@ function init_debug_print() {
     fi
 }
 
-umask 002
 printf "Init started: %s\n" "$(date +"%x %T.%3N")" > /var/log/timing_data
+umask 002
+source /opt/ai-dock/etc/environment.sh
 ldconfig
 if [[ ${SERVERLESS,,} != 'true' ]]; then
-    init_main "$@"; exit
+    init_main "$@" > /var/log/init.log; exit
 else
-    init_serverless "$@"; exit
+    init_serverless "$@" /var/log/init.log; exit
 fi
