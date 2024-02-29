@@ -6,7 +6,7 @@ function init_cleanup() {
     printf "Cleaning up...\n"
     # Each running process should have its own cleanup routine
     supervisorctl stop all
-    kill -9 $(cat /run/supervisord.pid) > /dev/null 2>&1
+    kill -9 $(</run/supervisord.pid) > /dev/null 2>&1
     rm -f /run/supervisor.sock
     rm -f /run/supervisord.pid
 }
@@ -264,20 +264,19 @@ function init_create_user() {
     printf "%s ALL=(ALL) NOPASSWD: ALL\n" ${USER_NAME} >> /etc/sudoers
     if [[ ! -e ${home_dir}/.bashrc ]]; then
         cp -f /root/.bashrc ${home_dir}
-        chown ${WORKSPACE_UID}:${WORKSPACE_GID} "${home_dir}/.bashrc"
+        cp -f /root/.profile ${home_dir}
+        chown ${WORKSPACE_UID}:${WORKSPACE_GID} "${home_dir}/.bashrc" "${home_dir}/.profile"
     fi
     # Set initial keys to match root
     if [[ -e /root/.ssh/authorized_keys  && ! -d ${home_dir}/.ssh ]]; then
-        mkdir -pm 700 ${home_dir}/.ssh
-        cp /root/.ssh/authorized_keys ${home_dir}/.ssh
-        chown -R ${WORKSPACE_UID}:${WORKSPACE_GID} "${home_dir}/.ssh"
-        chmod 600 ${home_dir}/.ssh/authorized_keys
+        rm -f ${home_dir}/.ssh
+        mkdir -pm 700 ${home_dir}/.ssh > /dev/null 2>&1
+        cp -f /root/.ssh/authorized_keys ${home_dir}/.ssh/authorized_keys
+        chown -R ${WORKSPACE_UID}:${WORKSPACE_GID} "${home_dir}/.ssh" > /dev/null 2>&1
+        chmod 600 ${home_dir}/.ssh/authorized_keys > /dev/null 2>&1
         if [[ $WORKSPACE_MOUNTED == 'true' && $WORKSPACE_PERMISSIONS == 'false' ]]; then
             mkdir -pm 700 "/home/${USER_NAME}-linux"
-            mv "${home_dir}/.ssh" "/home/${USER_NAME}-linux/.ssh"
-            chown -R ${WORKSPACE_UID}.${WORKSPACE_GID} "/home/${USER_NAME}-linux"
-            chmod 600 "/home/${USER_NAME}-linux/.ssh/authorized_keys"
-            ln -s "/home/${USER_NAME}-linux/.ssh" "${home_dir}/.ssh"
+            printf "StrictModes no\n" > /etc/ssh/sshd_config.d/no-strict.conf
         fi
     fi
     # Set username in startup sctipts
@@ -561,7 +560,7 @@ umask 002
 source /opt/ai-dock/etc/environment.sh
 ldconfig
 if [[ ${SERVERLESS,,} != 'true' ]]; then
-    init_main "$@" > /var/log/init.log; exit
+    init_main "$@" exit
 else
-    init_serverless "$@" /var/log/init.log; exit
+    init_serverless "$@"; exit
 fi
