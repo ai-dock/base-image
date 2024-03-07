@@ -1,9 +1,8 @@
 #!/bin/bash
 
-storage_dir="${WORKSPACE}storage"
-image_storage_dir="/opt/storage"
+storage_dir="$(readlink -f ${WORKSPACE}/storage)"
+image_storage_dir="$(readlink -f /opt/storage)"
 source /opt/ai-dock/storage_monitor/etc/mappings.sh
-
 # Link files bundled in the image to $storage_dir
 if [[ -d $image_storage_dir && "$(readlink -f $image_storage_dir)" != "$(readlink -f $storage_dir)" ]]; then
     IFS=$'\n'
