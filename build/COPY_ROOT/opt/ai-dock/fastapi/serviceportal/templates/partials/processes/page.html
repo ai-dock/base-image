@@ -12,7 +12,7 @@
     
     {% for process in context.processes %}
 
-        {% if process.name != "serviceportal" and process.statename != "EXITED" %}
+        {% if process.name != "serviceportal" %}
             {% if process.group == process.name %}
                 {% set proc_identifier = process.group %}
                 {% set proc_friendly_name = process.group %}

@@ -212,7 +212,7 @@ function init_set_workspace() {
     fi
     
     # Determine workspace mount status
-    if mountpoint "$WORKSPACE" > /dev/null 2>&1; then
+    if mountpoint "$WORKSPACE" > /dev/null 2>&1 || [[ $WORKSPACE_MOUNTED == "true" ]]; then
         export WORKSPACE_MOUNTED=true
         mkdir -p "${WORKSPACE}"storage
     else
@@ -231,7 +231,7 @@ function init_set_workspace() {
     if [[ $WORKSPACE_MOUNTED == "true" ]]; then
         test_file=${WORKSPACE}/.ai-dock-permissions-test
         touch $test_file
-        if chown ${WORKSPACE_UID}.${WORKSPACE_GID} $test_file; then
+        if chown ${WORKSPACE_UID}.${WORKSPACE_GID} $test_file > /dev/null 2>&1; then
             export WORKSPACE_PERMISSIONS=true
         else 
             export WORKSPACE_PERMISSIONS=false

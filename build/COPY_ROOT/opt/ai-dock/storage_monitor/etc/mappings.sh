@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Key is relative to $WORKSPACE/storage/
 
 declare -A storage_map
