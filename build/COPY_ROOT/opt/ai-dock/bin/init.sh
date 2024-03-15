@@ -107,18 +107,18 @@ function init_set_ssh_keys() {
     # Named to avoid conflict with the cloud providers below
     
     if [[ -n $SSH_PUBKEY ]]; then
-        printf "\n%s\n" "$SSH_PUBKEY" >> /root/.ssh/authorized_keys
+        printf "\n%s\n" "$SSH_PUBKEY" > /root/.ssh/authorized_keys
     fi
     
     # Alt names for $SSH_PUBKEY
     # runpod.io
     if [[ -n $PUBLIC_KEY ]]; then
-        printf "\n%s\n" "$PUBLIC_KEY" >> /root/.ssh/authorized_keys
+        printf "\n%s\n" "$PUBLIC_KEY" > /root/.ssh/authorized_keys
     fi
     
     # vast.ai
     if [[ -n $SSH_PUBLIC_KEY ]]; then
-        printf "\n%s\n" "$SSH_PUBLIC_KEY" >> /root/.ssh/authorized_keys
+        printf "\n%s\n" "$SSH_PUBLIC_KEY" > /root/.ssh/authorized_keys
     fi
 }
 
@@ -212,7 +212,7 @@ function init_set_workspace() {
     fi
     
     # Determine workspace mount status
-    if mountpoint "$WORKSPACE" > /dev/null 2>&1 || [[ $WORKSPACE_MOUNTED == "true" ]]; then
+    if mountpoint "$WORKSPACE" > /dev/null 2>&1 || [[ $WORKSPACE_MOUNTED == "force" ]]; then
         export WORKSPACE_MOUNTED=true
         mkdir -p "${WORKSPACE}"storage
     else
@@ -284,7 +284,11 @@ function init_create_user() {
 }
 
 function init_sync_mamba_envs() {
-    if [[ ${WORKSPACE_MOUNTED,,} == "true" && ${WORKSPACE_SYNC,,} == "true" ]]; then
+    # Support depreciated variable WORKSPACE_SYNC
+    if [[ -n $WORKSPACE_SYNC ]]; then
+        export WORKSPACE_MAMBA_SYNC="$WORKSPACE_SYNC"
+    fi
+    if [[ ${WORKSPACE_MOUNTED,,} == "true" && ${WORKSPACE_MAMBA_SYNC,,} == "true" ]]; then
         printf "Mamba sync start: %s\n" "$(date +"%x %T.%3N")" >> /var/log/timing_data
         ws_mamba_target="${WORKSPACE}environments/${IMAGE_SLUG}"
         old_type_target="${WORKSPACE}environments/micromamba-${IMAGE_SLUG}"
@@ -325,6 +329,8 @@ function init_sync_mamba_envs() {
         if [[ -f "${ws_mamba_target}/.move_complete" ]]; then
             export MAMBA_ROOT_PREFIX="${ws_mamba_target}/micromamba"
             env-store MAMBA_ROOT_PREFIX
+            rm -rf /opt/micromamba
+            ln -s "${ws_mamba_target}/micromamba/" /opt/micromamba
             printf "Mamba sync complete: %s\n" "$(date +"%x %T.%3N")" >> /var/log/timing_data
         else
             printf "Mamba sync failed: %s\n" "$(date +"%x %T.%3N")" >> /var/log/timing_data

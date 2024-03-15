@@ -49,6 +49,7 @@ services:
         - ${SERVICEPORTAL_PORT_HOST:-1111}:${SERVICEPORTAL_PORT_HOST:-1111}
 
     environment:
+        - WORKSPACE_MOUNTED=force
         # Important: Edit values in .env - not here.
         # Don't enclose values in quotes
         - DIRECT_ADDRESS=${DIRECT_ADDRESS:-127.0.0.1}

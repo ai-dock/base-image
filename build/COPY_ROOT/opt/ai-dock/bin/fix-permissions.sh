@@ -28,6 +28,7 @@ function fix_container() {
     find /opt -type d ! -perm -g=w -exec chmod g+w {} \;
     # See above - Remember this is overlayfs so touch as little as possible
     find /opt -not -group ai-dock -exec chown root.ai-dock {} \;
+    chown -R root.root /root
     printf "Container file permissions reset\n"
 }
 
