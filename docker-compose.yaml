@@ -36,7 +36,7 @@ services:
       
     volumes:
       # Workspace
-      #- ./workspace:${WORKSPACE:-/workspace}:rshared
+      - ./workspace:${WORKSPACE:-/workspace}:rshared
       # Will echo to root-owned authorized_keys file;
       # Avoids changing local file owner
       - ./config/authorized_keys:/root/.ssh/authorized_keys_mount
@@ -49,7 +49,6 @@ services:
         - ${SERVICEPORTAL_PORT_HOST:-1111}:${SERVICEPORTAL_PORT_HOST:-1111}
 
     environment:
-        - WORKSPACE_MOUNTED=force
         # Important: Edit values in .env - not here.
         # Don't enclose values in quotes
         - DIRECT_ADDRESS=${DIRECT_ADDRESS:-127.0.0.1}
