@@ -290,6 +290,10 @@ See [this guide](https://link.ai-dock.org/guide-sshd-do) by DigitalOcean for an 
 >[!WARNING]  
 >You should only provide auth tokens in secure cloud environments.
 
+### Syncthing
+
+[Syncthing](https://syncthing.net/) is a peer-to-peer continuous file synchronization program which is very useful for efficiently transporting your work files from a local workstation to a remote container instance.  As the files are sync'd in real-time there is no need for a separate download to retrieve the files.
+
 ### Logtail
 
 This script follows and prints the log files for each of the above services to stdout. This allows you to follow the progress of all running services through docker's own logging system.
@@ -307,8 +311,8 @@ Some ports need to be open for the services to run or for certain features of th
 | Open Port             | Service / Description     |
 | --------------------- | ------------------------- |
 | `22`                  | SSH server                |
-| `1111`                | Service Portal web UI    |
-| `53682`               | Rclone interactive config |
+| `1111`                | Service Portal web UI     |
+| `8384`                | Syncthing |
 
 ## Pre-Configured Templates
 
