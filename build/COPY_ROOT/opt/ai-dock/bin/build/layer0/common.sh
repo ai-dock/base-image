@@ -118,6 +118,16 @@ mkdir -p /var/empty
 mkdir -p /etc/rclone
 touch /etc/rclone/rclone.conf
 
+# Install SyncThing to enable transport between local machine and cloud instance
+
+SYNCTHING_VERSION="$(curl -fsSL "https://api.github.com/repos/syncthing/syncthing/releases/latest" \
+            | jq -r '.tag_name' | sed 's/[^0-9\.\-]*//g')"
+
+SYNCTHING_URL="https://github.com/syncthing/syncthing/releases/download/v${SYNCTHING_VERSION}/syncthing-linux-amd64-v${SYNCTHING_VERSION}.tar.gz"
+mkdir /opt/syncthing/
+wget -O /opt/syncthing.tar.gz $SYNCTHING_URL && (cd /opt && tar -zxf syncthing.tar.gz -C /opt/syncthing/ --strip-components=1) && rm -f /opt/syncthing.tar.gz
+ln -s /opt/syncthing/syncthing /opt/ai-dock/bin/syncthing
+
 # Ensure correct environment for child builds
 
 printf "source /opt/ai-dock/etc/environment.sh\n" >> /etc/profile.d/02-ai-dock.sh
