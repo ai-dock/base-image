@@ -123,9 +123,6 @@ function init_set_ssh_keys() {
 }
 
 init_set_web_credentials() {
-  export SERVICEPORTAL_LOGIN=$(direct-url.sh -p "${SERVICEPORTAL_PORT_HOST:-1111}" -l "/login")
-  export SERVICEPORTAL_HOME=$(direct-url.sh -p "${SERVICEPORTAL_PORT_HOST:-1111}")
-
   # Handle cloud provider auto login
   # Vast.ai
   if [[ $(env | grep -i vast) && -n $OPEN_BUTTON_TOKEN ]]; then

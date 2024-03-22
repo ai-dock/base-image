@@ -16,6 +16,12 @@ function start() {
     
     # Give processes time to register their ports
     sleep 2
+
+    export SERVICEPORTAL_LOGIN=$(direct-url.sh -p "${SERVICEPORTAL_PORT_HOST:-1111}" -l "/login")
+    env-store SERVICEPORTAL_LOGIN
+    export SERVICEPORTAL_HOME=$(direct-url.sh -p "${SERVICEPORTAL_PORT_HOST:-1111}")
+    env-store SERVICEPORTAL_HOME
+
     port_files="/run/http_ports/*"
     
     cp -f /opt/caddy/share/base_config /opt/caddy/etc/Caddyfile

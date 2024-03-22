@@ -24,8 +24,11 @@ if [[ -z $port ]]; then
 fi
 
 function get_url {
+    preset_url=$(jq -r ".service_url" "/run/http_ports/${port}")
+    if [[ -n $preset_url ]]; then
+        url="$preset_url"
     # Vast.ai
-    if [[ $DIRECT_ADDRESS == "auto#vast-ai" ]]; then
+    elif [[ $DIRECT_ADDRESS == "auto#vast-ai" ]]; then
         declare -n vast_mapped_port=VAST_TCP_PORT_${port}
         if [[ -n $vast_mapped_port && -n $PUBLIC_IPADDR ]]; then
             url="http://${PUBLIC_IPADDR}:${vast_mapped_port}"
