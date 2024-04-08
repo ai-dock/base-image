@@ -254,8 +254,14 @@ function init_create_user() {
     useradd -ms /bin/bash $USER_NAME -d $home_dir -u $WORKSPACE_UID -g $WORKSPACE_GID
     printf "user:%s" "${USER_PASSWORD}" | chpasswd
     usermod -a -G $USER_GROUPS $USER_NAME
+
+    # For AMD devices - Ensure render group is created if /dev/kfd is present
+    if ! getent group render >/dev/null 2>&1 && [ -e "/dev/kfd" ]; then
+        groupadd -g "$(stat -c '%g' /dev/kfd)" render
+        usermod -a -G render $USER_NAME
+    fi
+
     # May not exist - todo check device ownership
-    usermod -a -G render $USER_NAME
     usermod -a -G sgx $USER_NAME
     # See the README (in)security notice
     printf "%s ALL=(ALL) NOPASSWD: ALL\n" ${USER_NAME} >> /etc/sudoers
@@ -265,7 +271,7 @@ function init_create_user() {
         chown ${WORKSPACE_UID}:${WORKSPACE_GID} "${home_dir}/.bashrc" "${home_dir}/.profile"
     fi
     # Set initial keys to match root
-    if [[ -e /root/.ssh/authorized_keys  && ! -d ${home_dir}/.ssh ]]; then
+    if [[ -e /root/.ssh/authorized_keys && ! -d ${home_dir}/.ssh ]]; then
         rm -f ${home_dir}/.ssh
         mkdir -pm 700 ${home_dir}/.ssh > /dev/null 2>&1
         cp -f /root/.ssh/authorized_keys ${home_dir}/.ssh/authorized_keys
