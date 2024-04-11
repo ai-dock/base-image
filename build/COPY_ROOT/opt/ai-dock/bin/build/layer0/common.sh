@@ -98,7 +98,7 @@ rm -f /etc/update-motd.d/10-help-text
 
 # Install micromamba (conda replacement)
 mkdir -p /opt/micromamba
-printf "channels: [%sconda-forge]\nalways_softlink: true\n" "${CUDA_VERSION:+nvdia,}"> /opt/micromamba/.mambarc
+printf "channels: [%sconda-forge]\nalways_softlink: true\n" "${CUDA_VERSION:+nvidia,}"> /opt/micromamba/.mambarc
 cd /opt/micromamba
 curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba
 micromamba shell init --shell bash --root-prefix=/opt/micromamba
