@@ -22,6 +22,10 @@ RUN apt-get update && \
 
 FROM ${IMAGE_BASE}
 
+# System libs are handled in /etc/ld.so.conf.d
+# Mamba environments only to use this variable
+ENV LD_LIBRARY_PATH=
+
 COPY --from=caddybuilder /opt/caddy/ /opt/caddy/
 
 # Determines which scripts at /opt/ai-dock/bin/build/layerX will be run by init.sh
@@ -45,7 +49,6 @@ ENV USER_PASSWORD=password
 ENV USER_GROUPS=users,ai-dock,adm,sudo,audio,video,tty,cdrom,dialout,dip,fax,floppy,lp,plugdev,ssl-cert,sudo,tape,voice
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PATH=/opt/ai-dock/bin:/opt/micromamba/bin:/opt/caddy/bin:$PATH
-ENV LD_LIBRARY_PATH=/opt/ai-dock/lib/micromamba${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
 ENV OPT_SYNC=
 ENV PYTHONUNBUFFERED=true
 ENV APT_INSTALL="apt-get install -y --no-install-recommends"

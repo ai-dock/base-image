@@ -37,7 +37,6 @@ function start() {
         --arg listen_port "${LISTEN_PORT}" \
         --arg metrics_port "${METRICS_PORT}" \
         --arg proxy_port "${PROXY_PORT}" \
-        --arg proxy_secure "${PROXY_SECURE,,}" \
         --arg service_name "${SERVICE_NAME}" \
         --arg service_url "${SERVICE_URL}" \
         '$ARGS.named'

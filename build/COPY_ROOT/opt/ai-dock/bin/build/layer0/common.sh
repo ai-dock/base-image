@@ -1,10 +1,5 @@
 #!/bin/false
 
-export MAMBA_CREATE="micromamba create --always-softlink -y -c conda-forge"
-env-store MAMBA_CREATE
-export MAMBA_INSTALL="micromamba install --always-softlink -y -c conda-forge"
-env-store MAMBA_INSTALL
-
 groupadd -g 1111 ai-dock
 chown root.ai-dock /opt
 chmod g+w /opt
@@ -42,6 +37,7 @@ $APT_INSTALL \
     libcap2-bin \
     libelf1 \
     libglib2.0-0 \
+    libgoogle-perftools4 \
     locales \
     lsb-release \
     lsof \
@@ -102,6 +98,7 @@ rm -f /etc/update-motd.d/10-help-text
 
 # Install micromamba (conda replacement)
 mkdir -p /opt/micromamba
+printf "channels: [%sconda-forge]\nalways_softlink: true\n" "${CUDA_VERSION:+nvdia,}"> /opt/micromamba/.mambarc
 cd /opt/micromamba
 curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba
 micromamba shell init --shell bash --root-prefix=/opt/micromamba
@@ -112,7 +109,6 @@ mkdir -p --mode=0755 /run/sshd
 chown -R root.ai-dock /var/log
 chmod -R g+w /var/log
 chmod -R g+s /var/log
-mkdir -p /opt/ai-dock/lib/micromamba
 mkdir -p /var/log/supervisor
 mkdir -p /var/empty
 mkdir -p /etc/rclone

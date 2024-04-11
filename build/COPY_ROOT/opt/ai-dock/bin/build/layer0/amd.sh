@@ -5,9 +5,9 @@ if [[ -z $ROCM_VERSION ]]; then
     exit 1
 fi
 
-export ROCM_VERSION="$ROCM_VERSION"
+export ROCM_VERSION="${ROCM_VERSION}"
 env-store ROCM_VERSION
-export ROCM_LEVEL="$ROCM_LEVEL"
+export ROCM_LEVEL="${ROCM_LEVEL}"
 env-store ROCM_LEVEL
 export PATH=/opt/rocm/bin:$PATH
 env-store PATH
