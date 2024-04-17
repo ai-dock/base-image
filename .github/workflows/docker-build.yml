@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # This is nor as silly as it seems... We will build for ARM later and this will be useful
+        # This is not as silly as it seems... We will build for ARM later and this will be useful
         build:
           - {latest: "false"}
       
