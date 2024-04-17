@@ -5,10 +5,11 @@ if [[ -z $ROCM_VERSION ]]; then
     exit 1
 fi
 
-export ROCM_VERSION="${ROCM_VERSION}"
+export ROCM_VERSION=$(printf "%s" "$ROCM_STRING" | cut -d'-' -f1)
 env-store ROCM_VERSION
-export ROCM_LEVEL="${ROCM_LEVEL}"
+export ROCM_LEVEL=$(printf "%s" "$ROCM_STRING" | cut -d'-' -f2)
 env-store ROCM_LEVEL
+
 export PATH=/opt/rocm/bin:$PATH
 env-store PATH
 

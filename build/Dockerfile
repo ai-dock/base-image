@@ -60,11 +60,8 @@ ENV IMAGE_SLUG="base-image"
 # Copy early so we can use scripts in the build - Changes to these files will invalidate the cache and cause a rebuild.
 COPY --chown=0:1111 ./COPY_ROOT/ /
 
-ARG CUDA_VERSION
-ARG CUDNN_VERSION
-ARG CUDA_LEVEL
-ARG ROCM_VERSION
-ARG ROCM_LEVEL
+ARG CUDA_STRING
+ARG ROCM_STRING
 
 # Use build scripts to ensure we can build all targets from one Dockerfile in a single layer.
 # Don't put anything heavy in here - We can use multi-stage building above if necessary.

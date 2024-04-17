@@ -2,19 +2,23 @@ name: Docker Build
 
 on:
   workflow_dispatch:
-  push:
-    branches: [ "main" ]
+  #push:
+  #  branches: [ "main" ]
     
 env:
   UBUNTU_VERSION: 22.04
   BUILDX_NO_DEFAULT_ATTESTATIONS: 1
-  LATEST_CUDA: "null"
-  LATEST_ROCM: "null"
-  LATEST_CPU: "null"
 
 jobs:
   cpu-base:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # This is nor as silly as it seems... We will build for ARM later and this will be useful
+        build:
+          - {latest: "false"}
+      
     steps:
       -
         name: Free Space
@@ -51,12 +55,14 @@ jobs:
         name: Set tags
         run: |
           img_path="ghcr.io/${{ env.PACKAGE_NAME }}"
-          ver_tag="cpu-${{ env.UBUNTU_VERSION }}"
           
-          if [[ $ver_tag == ${{ env.LATEST_CPU }} ]]; then
-              TAGS="${img_path}:latest-cpu, ${img_path}:$ver_tag"
+          base_tag="cpu-${{ env.UBUNTU_VERSION }}"
+
+          if [[ ${{ matrix.build.latest }} == "true" ]]; then
+              echo "Marking latest"
+              TAGS="${img_path}:${base_tag}, ${img_path}:latest-cpu"
           else
-              TAGS="${img_path}:$ver_tag"
+              TAGS="${img_path}:${base_tag}"
           fi
           echo "TAGS=${TAGS}" >> ${GITHUB_ENV}
       -
@@ -77,15 +83,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        cuda:
-          - 11.8.0
-          - 12.1.0
-          - 12.2.0
-          - 12.3.1
-        level:
-          - "base"
-          - "runtime"
-          - "devel"
+        build:
+        - {latest: "false", cuda: "11.8.0-base"}
+        - {latest: "false", cuda: "11.8.0-runtime"}
+        - {latest: "false", cuda: "11.8.0-devel"}
+        - {latest: "false", cuda: "12.1.0-base"}
+        - {latest: "false", cuda: "12.1.0-runtime"}
+        - {latest: "false", cuda: "12.1.0-devel"}
+        - {latest: "false", cuda: "12.1.1-base"}
+        - {latest: "false", cuda: "12.1.1-runtime"}
+        - {latest: "false", cuda: "12.1.1-devel"}
     steps:
       -
         name: Free Space
@@ -122,12 +129,14 @@ jobs:
         name: Set tags
         run: |
           img_path="ghcr.io/${{ env.PACKAGE_NAME }}"
-          ver_tag="cuda-${{ matrix.cuda }}-${{ matrix.level }}-${{ env.UBUNTU_VERSION }}"
           
-          if [[ $ver_tag == ${{ env.LATEST_CUDA }} ]]; then
-              TAGS="${img_path}:latest, ${img_path}:latest-cuda, ${img_path}:$ver_tag"
+          base_tag="cuda-${{ matrix.build.cuda }}-${{ env.UBUNTU_VERSION }}"
+
+          if [[ ${{ matrix.build.latest }} == "true" ]]; then
+              echo "Marking latest"
+              TAGS="${img_path}:${base_tag}, ${img_path}:latest-cuda, ${img_path}:latest"
           else
-              TAGS="${img_path}:$ver_tag"
+              TAGS="${img_path}:${base_tag}"
           fi
           echo "TAGS=${TAGS}" >> ${GITHUB_ENV}
       -
@@ -136,10 +145,9 @@ jobs:
         with:
           context: build
           build-args: |
-            IMAGE_BASE=nvidia/cuda:${{ matrix.cuda }}-${{ matrix.level }}-ubuntu${{ env.UBUNTU_VERSION }}
+            IMAGE_BASE=nvidia/cuda:${{ matrix.build.cuda }}-ubuntu${{ env.UBUNTU_VERSION }}
             XPU_TARGET=NVIDIA_GPU
-            CUDA_VERSION=${{ matrix.cuda }}
-            CUDA_LEVEL=${{ matrix.level }}
+            CUDA_STRING=${{ matrix.build.cuda }}
           push: true
           provenance: false
           tags: ${{ env.TAGS }}
@@ -149,15 +157,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        rocm:
-          - "5.4.2"
-          - "5.6"
-          - "5.7"
-          - "6.0.2"
-        level:
-          - "core"
-          - "runtime"
-          - "devel"
+        build:
+        - {latest: "false", rocm: "5.6-core"}
+        - {latest: "false", rocm: "5.6-runtime"}
+        - {latest: "false", rocm: "5.6-devel"}
+        - {latest: "false", rocm: "5.7-core"}
+        - {latest: "false", rocm: "5.7-runtime"}
+        - {latest: "false", rocm: "5.7-devel"}
+        - {latest: "false", rocm: "6.0.2-core"}
+        - {latest: "false", rocm: "6.0.2-runtime"}
+        - {latest: "false", rocm: "6.0.2-devel"}
     steps:
       -
         name: Free Space
@@ -174,7 +183,6 @@ jobs:
         name: Env Setter
         run: |
           echo "PACKAGE_NAME=${GITHUB_REPOSITORY,,}" >> ${GITHUB_ENV}
-          echo "TAG=rocm-${{ matrix.rocm }}-${{ matrix.level }}-${{ env.UBUNTU_VERSION }}" >> ${GITHUB_ENV}
       -
         name: Checkout
         uses: actions/checkout@v3
@@ -195,12 +203,14 @@ jobs:
         name: Set tags
         run: |
           img_path="ghcr.io/${{ env.PACKAGE_NAME }}"
-          ver_tag="rocm-${{ matrix.rocm }}-${{ matrix.level }}-${{ env.UBUNTU_VERSION }}"
           
-          if [[ $ver_tag == ${{ env.LATEST_ROCM }} ]]; then
-              TAGS="${img_path}:latest-rocm, ${img_path}:$ver_tag"
+          base_tag="rocm-${{ matrix.build.rocm }}-${{ env.UBUNTU_VERSION }}"
+
+          if [[ ${{ matrix.build.latest }} == "true" ]]; then
+              echo "Marking latest"
+              TAGS="${img_path}:${base_tag}, ${img_path}:latest-rocm"
           else
-              TAGS="${img_path}:$ver_tag"
+              TAGS="${img_path}:${base_tag}"
           fi
           echo "TAGS=${TAGS}" >> ${GITHUB_ENV}
       -
@@ -211,8 +221,7 @@ jobs:
           build-args: |
             IMAGE_BASE=ubuntu:${{ env.UBUNTU_VERSION }}
             XPU_TARGET=AMD_GPU
-            ROCM_VERSION=${{ matrix.rocm }}
-            ROCM_LEVEL=${{ matrix.level }}
+            ROCM_STRING=${{ matrix.build.rocm }}
           push: true
           provenance: false
           tags: ${{ env.TAGS }}

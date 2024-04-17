@@ -9,11 +9,8 @@ services:
         IMAGE_BASE: ${IMAGE_BASE:-nvidia/cuda:11.8.0-base-ubuntu22.04}
         IMAGE_TAG: ${IMAGE_TAG:-cuda-11.8.0-base-22.04}
         XPU_TARGET: ${XPU_TARGET:-NVIDIA_GPU}
-        CUDA_VERSION: ${CUDA_VERSION:-11.8.0}
-        CUDA_LEVEL: ${CUDA_LEVEL:-base}
-        CUDNN_VERSION: ${CUDNN_VERSION:-8}
-        ROCM_VERSION: ${ROCM_VERSION:-5.6}
-        ROCM_LEVEL: ${ROCM_LEVEL:-runtime}
+        CUDA_STRING: ${CUDA_STRING:-11.8.0-base}
+        ROCM_STRING: ${ROCM_STRING:-5.7-runtime}
       tags:
         - "ghcr.io/ai-dock/base-image:${IMAGE_TAG:-cuda-11.8.0-base-22.04}"
         

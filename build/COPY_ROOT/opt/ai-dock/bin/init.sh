@@ -126,7 +126,9 @@ init_set_web_credentials() {
   # Handle cloud provider auto login
   # Vast.ai
   if [[ $(env | grep -i vast) && -n $OPEN_BUTTON_TOKEN ]]; then
-      export WEB_TOKEN="${OPEN_BUTTON_TOKEN}"
+      if [[ -z $WEB_TOKEN ]]; then
+          export WEB_TOKEN="${OPEN_BUTTON_TOKEN}"
+      fi
       if [[ $WEB_PASSWORD == "password" ]]; then
           unset WEB_PASSWORD
       fi
