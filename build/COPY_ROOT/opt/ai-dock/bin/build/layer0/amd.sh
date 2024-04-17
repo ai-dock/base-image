@@ -1,7 +1,7 @@
 #!/bin/false
 
-if [[ -z $ROCM_VERSION ]]; then
-    printf "No valid ROCM_VERSION specified\n" >&2
+if [[ -z $ROCM_STRING ]]; then
+    printf "No valid ROCM_STRING specified\n" >&2
     exit 1
 fi
 
