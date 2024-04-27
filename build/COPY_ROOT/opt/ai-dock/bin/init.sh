@@ -386,23 +386,20 @@ init_sync_opt() {
                 fi
             # No/incomplete workspace copy
             else
-                # Complete the copy if not serverless
-                if [[ ${SERVERLESS,,} != 'true' ]]; then
-                    printf "Moving %s to %s\n" "$opt_dir" "$ws_dir"
+                printf "Moving %s to %s\n" "$opt_dir" "$ws_dir"
 
-                    while sleep 10; do printf "Waiting for %s application sync...\n" "$item"; done &
-                        printf "Creating archive of %s...\n" "$opt_dir"
-                        (cd /opt && tar -cf "${archive}" "${item}" --no-same-owner --no-same-permissions)
-                        printf "Transferring %s archive to %s...\n" "${item}" "${WORKSPACE}"
-                        mv -f "/opt/${archive}" "${WORKSPACE}"
-                        printf "Extracting %s archive to %s...\n" "${item}" "${WORKSPACE}${item}"
-                        tar -xf "${WORKSPACE}${archive}" -C "${WORKSPACE}" --keep-newer-files --no-same-owner --no-same-permissions
-                        rm -f "${WORKSPACE}${archive}"
-                    # Kill the progress printer
-                    kill $!
-                    printf "Moved %s to %s\n" "$opt_dir" "$ws_dir"
-                    printf 1 > $ws_dir/.move_complete
-                fi
+                while sleep 10; do printf "Waiting for %s application sync...\n" "$item"; done &
+                    printf "Creating archive of %s...\n" "$opt_dir"
+                    (cd /opt && tar -cf "${archive}" "${item}" --no-same-owner --no-same-permissions)
+                    printf "Transferring %s archive to %s...\n" "${item}" "${WORKSPACE}"
+                    mv -f "/opt/${archive}" "${WORKSPACE}"
+                    printf "Extracting %s archive to %s...\n" "${item}" "${WORKSPACE}${item}"
+                    tar -xf "${WORKSPACE}${archive}" -C "${WORKSPACE}" --keep-newer-files --no-same-owner --no-same-permissions
+                    rm -f "${WORKSPACE}${archive}"
+                # Kill the progress printer
+                kill $!
+                printf "Moved %s to %s\n" "$opt_dir" "$ws_dir"
+                printf 1 > $ws_dir/.move_complete
             fi
             
             # Create symlinks
