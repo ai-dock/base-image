@@ -56,7 +56,7 @@ jobs:
         run: |
           img_path="ghcr.io/${{ env.PACKAGE_NAME }}"
           
-          base_tag="cpu-${{ env.UBUNTU_VERSION }}"
+          base_tag="v2-cpu-${{ env.UBUNTU_VERSION }}"
 
           if [[ ${{ matrix.build.latest }} == "true" ]]; then
               echo "Marking latest"
@@ -87,12 +87,12 @@ jobs:
         - {latest: "false", cuda: "11.8.0-base"}
         - {latest: "false", cuda: "11.8.0-runtime"}
         - {latest: "false", cuda: "11.8.0-devel"}
-        - {latest: "false", cuda: "12.1.0-base"}
-        - {latest: "false", cuda: "12.1.0-runtime"}
-        - {latest: "false", cuda: "12.1.0-devel"}
         - {latest: "false", cuda: "12.1.1-base"}
         - {latest: "false", cuda: "12.1.1-runtime"}
         - {latest: "false", cuda: "12.1.1-devel"}
+        - {latest: "false", cuda: "12.4.1-base"}
+        - {latest: "false", cuda: "12.4.1-runtime"}
+        - {latest: "false", cuda: "12.4.1-devel"}
     steps:
       -
         name: Free Space
@@ -130,7 +130,7 @@ jobs:
         run: |
           img_path="ghcr.io/${{ env.PACKAGE_NAME }}"
           
-          base_tag="cuda-${{ matrix.build.cuda }}-${{ env.UBUNTU_VERSION }}"
+          base_tag="v2-cuda-${{ matrix.build.cuda }}-${{ env.UBUNTU_VERSION }}"
 
           if [[ ${{ matrix.build.latest }} == "true" ]]; then
               echo "Marking latest"
@@ -158,9 +158,6 @@ jobs:
       fail-fast: false
       matrix:
         build:
-        - {latest: "false", rocm: "5.6-core"}
-        - {latest: "false", rocm: "5.6-runtime"}
-        - {latest: "false", rocm: "5.6-devel"}
         - {latest: "false", rocm: "5.7-core"}
         - {latest: "false", rocm: "5.7-runtime"}
         - {latest: "false", rocm: "5.7-devel"}
@@ -204,7 +201,7 @@ jobs:
         run: |
           img_path="ghcr.io/${{ env.PACKAGE_NAME }}"
           
-          base_tag="rocm-${{ matrix.build.rocm }}-${{ env.UBUNTU_VERSION }}"
+          base_tag="v2-rocm-${{ matrix.build.rocm }}-${{ env.UBUNTU_VERSION }}"
 
           if [[ ${{ matrix.build.latest }} == "true" ]]; then
               echo "Marking latest"

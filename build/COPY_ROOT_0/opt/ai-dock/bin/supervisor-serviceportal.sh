@@ -14,10 +14,14 @@ function cleanup() {
     rm /run/http_ports/$PROXY_PORT > /dev/null 2>&1
     fuser -k -SIGTERM ${LISTEN_PORT}/tcp > /dev/null 2>&1 &
     wait -n
+    if [[ -z "$VIRTUAL_ENV" ]]; then
+        deactivate
+    fi
 }
 
 function start() {
     source /opt/ai-dock/etc/environment.sh
+    source /opt/ai-dock/bin/venv-set.sh serviceportal
 
     if [[ ${SERVERLESS,,} = "true" ]]; then
         printf "Refusing to start $SERVICE_NAME in serverless mode\n"
@@ -41,7 +45,9 @@ function start() {
     fuser -k -SIGKILL ${LISTEN_PORT}/tcp > /dev/null 2>&1 &
     wait -n
     
-    /usr/bin/python3 /opt/ai-dock/fastapi/serviceportal/main.py \
+    source "$SERVICEPORTAL_VENV/bin/activate"
+    cd /opt/ai-dock/fastapi/serviceportal
+    python main.py \
         -p $LISTEN_PORT
 }
 

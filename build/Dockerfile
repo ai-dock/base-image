@@ -7,11 +7,11 @@ ENV PATH=/opt/go/bin:$PATH
 ENV GOROOT=/opt/go
 RUN apt-get update && \
     apt-get install -y wget && \
-    wget https://dl.google.com/go/go1.20.5.linux-amd64.tar.gz && \
-    tar -xf go1.20.5.linux-amd64.tar.gz && \
+    wget https://dl.google.com/go/go1.22.4.linux-amd64.tar.gz && \
+    tar -xf go1.22.4.linux-amd64.tar.gz && \
     mv ./go /opt && \ 
-    wget https://github.com/caddyserver/xcaddy/releases/download/v0.3.5/xcaddy_0.3.5_linux_amd64.deb && \
-    apt-get install ./xcaddy_0.3.5_linux_amd64.deb && \
+    wget https://github.com/caddyserver/xcaddy/releases/download/v0.4.2/xcaddy_0.4.2_linux_amd64.deb && \
+    apt-get install ./xcaddy_0.4.2_linux_amd64.deb && \
     xcaddy build \
         --with github.com/caddyserver/replace-response && \
     mkdir -p /opt/caddy/bin && \
@@ -23,7 +23,7 @@ RUN apt-get update && \
 FROM ${IMAGE_BASE}
 
 # System libs are handled in /etc/ld.so.conf.d
-# Mamba environments only to use this variable
+# Python environments only to use this variable
 ENV LD_LIBRARY_PATH=
 
 COPY --from=caddybuilder /opt/caddy/ /opt/caddy/
@@ -31,6 +31,9 @@ COPY --from=caddybuilder /opt/caddy/ /opt/caddy/
 # Determines which scripts at /opt/ai-dock/bin/build/layerX will be run by init.sh
 ARG XPU_TARGET="GPU_NVIDIA" # GPU_AMD, CPU
 ENV XPU_TARGET=${XPU_TARGET}
+
+ARG NODE_VERSION=v22.2.0
+ENV NODE_VERSION=${NODE_VERSION}
 
 LABEL org.opencontainers.image.source https://github.com/ai-dock/base-image
 
@@ -51,14 +54,16 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV PATH=/opt/ai-dock/bin:/opt/micromamba/bin:/opt/caddy/bin:$PATH
 ENV OPT_SYNC=
 ENV PYTHONUNBUFFERED=true
+ENV VENV_DIR=/opt/environments/python
+ENV SERVICEPORTAL_VENV=${VENV_DIR}/serviceportal
+ENV SERVICEPORTAL_VENV_PYTHON=${SERVICEPORTAL_VENV}/bin/python
+ENV SERVICEPORTAL_VENV_PIP=${SERVICEPORTAL_VENV}/bin/pip
+
 ENV APT_INSTALL="apt-get install -y --no-install-recommends"
-ENV PIP_INSTALL="pip install --no-cache-dir"
-ENV MAMBA_ROOT_PREFIX=/opt/micromamba
-ENV MAMBA_EXE="/opt/micromamba/bin/micromamba"
 ENV RCLONE_CONFIG="/etc/rclone/rclone.conf"
 ENV IMAGE_SLUG="base-image"
 # Copy early so we can use scripts in the build - Changes to these files will invalidate the cache and cause a rebuild.
-COPY --chown=0:1111 ./COPY_ROOT/ /
+COPY --chown=0:1111 ./COPY_ROOT_0/ /
 
 ARG CUDA_STRING
 ARG ROCM_STRING
@@ -68,9 +73,5 @@ ARG ROCM_STRING
 RUN yes | unminimize && \
     set -eo pipefail && /opt/ai-dock/bin/build/layer0/init.sh | tee /var/log/build.log
 
-# Copy overrides and new files into a final layer for fast rebuilds. Uncomment below
-#COPY --chown=0:1111 ./COPY_ROOT_EXTRA/ /
-#RUN set -eo pipefail && /opt/ai-dock/bin/build/layer1/init.sh | tee -a /var/log/build.log
-
-# Keep init.sh as-is and place additional logic in /opt/ai-dock/bin/preflight.sh
+# Keep init.sh as-is and place additional logic in /opt/ai-dock/bin/preflight.d
 CMD ["init.sh"]

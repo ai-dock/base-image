@@ -30,7 +30,6 @@ function init_main() {
     supervisord -c /etc/supervisor/supervisord.conf &
     printf "%s" "$!" > /run/supervisord.pid
     # Redirect output to files - Logtail will now handle
-    init_sync_mamba_envs > /var/log/sync.log 2>&1
     init_sync_opt >> /var/log/sync.log 2>&1
     rm /run/workspace_sync
     init_source_preflight_scripts > /var/log/preflight.log 2>&1
@@ -58,7 +57,6 @@ init_serverless() {
   touch /run/workspace_sync
   init_write_environment
   init_create_user
-  init_sync_mamba_envs > /var/log/sync.log 2>&1
   init_sync_opt >> /var/log/sync.log 2>&1
   rm /run/workspace_sync
   init_source_preflight_scripts > /var/log/preflight.log 2>&1
@@ -214,6 +212,7 @@ function init_set_workspace() {
     if mountpoint "$WORKSPACE" > /dev/null 2>&1 || [[ $WORKSPACE_MOUNTED == "force" ]]; then
         export WORKSPACE_MOUNTED=true
         mkdir -p "${WORKSPACE}"storage
+        mkdir -p "${WORKSPACE}"environments/{python,javascript}
     else
         export WORKSPACE_MOUNTED=false
         ln -sT /opt/storage "${WORKSPACE}"storage > /dev/null 2>&1
@@ -288,61 +287,6 @@ function init_create_user() {
     sed -i "s/\$USER_NAME/$USER_NAME/g" /etc/supervisor/supervisord/conf.d/* 
 }
 
-function init_sync_mamba_envs() {
-    # Support depreciated variable WORKSPACE_SYNC
-    if [[ -n $WORKSPACE_SYNC ]]; then
-        export WORKSPACE_MAMBA_SYNC="$WORKSPACE_SYNC"
-    fi
-    if [[ ${WORKSPACE_MOUNTED,,} == "true" && ${WORKSPACE_MAMBA_SYNC,,} == "true" ]]; then
-        printf "Mamba sync start: %s\n" "$(date +"%x %T.%3N")" >> /var/log/timing_data
-        ws_mamba_target="${WORKSPACE}environments/${IMAGE_SLUG}"
-        old_type_target="${WORKSPACE}environments/micromamba-${IMAGE_SLUG}"
-        
-        if [[ -f ${ws_mamba_target}/.move_complete ]]; then
-            printf "Mamba environments already present at ${WORKSPACE}\n"
-
-        elif [[ -f "${old_type_target}/.move_complete" ]]; then
-            printf "Converting old sync format to improve compatibility...\n"
-            # This shouldnt exist - A full copy would have been caught above
-            rm -rf "${ws_mamba_target}"
-            mkdir -p "${ws_mamba_target}"
-            mv "${old_type_target}" "${ws_mamba_target}/micromamba"
-            mv "${ws_mamba_target}/micromamba/.move_complete" "${ws_mamba_target}/.move_complete"
-
-        else
-            # Complete the copy if not serverless
-            if [[ ${SERVERLESS,,} != 'true' ]]; then
-                mkdir -p ${ws_mamba_target}
-                printf "Moving mamba environments to %s...\n" "${WORKSPACE}"
-                while sleep 10; do printf "Waiting for workspace mamba sync...\n"; done &
-                    printf "Creating archive of /opt/micromamba...\n"
-                    (cd /opt && tar -cf micromamba.tar micromamba --no-same-owner --no-same-permissions)
-                    printf "Transferring mamba archive to %s...\n" "${ws_mamba_target}"
-                    mv /opt/micromamba.tar "${ws_mamba_target}/micromamba.tar"
-                    printf "Extracting mamba archive to %s...\n" "${ws_mamba_target}/micromamba/"
-                    tar -xf "${ws_mamba_target}/micromamba.tar" -C "${ws_mamba_target}" --keep-newer-files --no-same-owner --no-same-permissions
-                    rm -f "${ws_mamba_target}/micromamba.tar"
-                # Kill the progress printer
-                kill $!
-                printf "Moved mamba environments to %s\n" "${WORKSPACE}"
-                printf 1 > ${ws_mamba_target}/.move_complete
-            else
-                printf "Environments must be synchronised before enabling serverless mode\n..."
-            fi
-        fi
-
-        if [[ -f "${ws_mamba_target}/.move_complete" ]]; then
-            export MAMBA_ROOT_PREFIX="${ws_mamba_target}/micromamba"
-            env-store MAMBA_ROOT_PREFIX
-            rm -rf /opt/micromamba
-            ln -s "${ws_mamba_target}/micromamba/" /opt/micromamba
-            printf "Mamba sync complete: %s\n" "$(date +"%x %T.%3N")" >> /var/log/timing_data
-        else
-            printf "Mamba sync failed: %s\n" "$(date +"%x %T.%3N")" >> /var/log/timing_data
-        fi
-    fi
-}
-
 init_sync_opt() {
     # Applications at /opt *always* get synced to a mounted workspace
     if [[ $WORKSPACE_MOUNTED = "true" ]]; then
@@ -350,7 +294,7 @@ init_sync_opt() {
         IFS=: read -r -d '' -a path_array < <(printf '%s:\0' "$OPT_SYNC")
         for item in "${path_array[@]}"; do
             opt_dir="/opt/${item}"
-            if [[ ! -d $opt_dir || $opt_dir = "/opt/" || $opt_dir = "/opt/ai-dock" || $opt_dir = "/opt/micromamba" ]]; then
+            if [[ ! -d $opt_dir || $opt_dir = "/opt/" || $opt_dir = "/opt/ai-dock" ]]; then
                 continue
             fi
             
@@ -478,6 +422,7 @@ function init_source_preflight_scripts() {
 
 function init_write_environment() {
     # Ensure all variables available for interactive sessions
+    printf "# RUNTIME INSTRUCTIONS\n" >> /opt/ai-dock/etc/environment.sh
     while IFS='=' read -r -d '' key val; do
         if [[  $key != "HOME" ]]; then
             env-store "$key"
@@ -488,9 +433,14 @@ function init_write_environment() {
         printf "# First init complete\n" >> /root/.bashrc
         printf "umask 002\n" >> /root/.bashrc
         printf "source /opt/ai-dock/etc/environment.sh\n" >> /root/.bashrc
+        printf "nvm use > /dev/null 2>&1\n" >> /root/.bashrc
 
-        if [[ -n $MAMBA_DEFAULT_ENV ]]; then
-            printf "micromamba activate %s\n" $MAMBA_DEFAULT_ENV >> /root/.bashrc
+        if [[ -n $PYTHON_DEFAULT_VENV ]]; then
+            printf '\nif [[ -d $WORKSPACE/environments/python/$PYTHON_DEFAULT_VENV ]]; then\n' >> /root/.bashrc
+            printf '    source "$WORKSPACE/environments/python/$PYTHON_DEFAULT_VENV/bin/activate"\n' >> /root/.bashrc
+            printf 'else\n' >> /root/.bashrc
+            printf '    source "$VENV_DIR/$PYTHON_DEFAULT_VENV/bin/activate"\n' >> /root/.bashrc
+            printf 'fi\n' >> /root/.bashrc
         fi
         
         printf "cd %s\n" "$WORKSPACE" >> /root/.bashrc
