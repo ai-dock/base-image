@@ -30,10 +30,15 @@ apt-get update
 
 if [[ "${ROCM_LEVEL}" == "core" ]]; then
     $APT_INSTALL rocm-core \
-                 rocm-opencl-runtime
+                 rocminfo
+                 
 
 elif [[ "${ROCM_LEVEL}" == "runtime" ]]; then
-    $APT_INSTALL rocm-dev
+    $APT_INSTALL hip-runtime-amd \
+                 rocm-opencl-runtime \
+                 miopen-hip \
+                 rocblas \
+                 rocfft
 
 elif [[ "${ROCM_LEVEL}" == "devel" ]]; then
     $APT_INSTALL rocm-libs \
