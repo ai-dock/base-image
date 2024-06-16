@@ -55,7 +55,7 @@ $APT_INSTALL \
     openssh-server \
     pkg-config \
     psmisc \
-    python3 \
+    python3-full \
     python3-pip \
     python3-venv \
     rar \
@@ -88,8 +88,8 @@ apt update
 locale-gen en_US.UTF-8
 
 # Install 
-python3.10 -m venv /opt/environments/python/serviceportal
-/opt/environments/python/serviceportal/bin/pip install \
+python3.10 -m venv "$SERVICEPORTAL_VENV"
+"$SERVICEPORTAL_VENV_PIP" install \
     --no-cache-dir -r /opt/ai-dock/fastapi/requirements.txt
 
 # Get Cloudflare daemon
