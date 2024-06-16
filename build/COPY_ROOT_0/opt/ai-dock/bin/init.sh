@@ -433,7 +433,7 @@ function init_write_environment() {
         printf "# First init complete\n" >> /root/.bashrc
         printf "umask 002\n" >> /root/.bashrc
         printf "source /opt/ai-dock/etc/environment.sh\n" >> /root/.bashrc
-        printf "nvm use > /dev/null 2>&1\n" >> /root/.bashrc
+        printf "nvm use default > /dev/null 2>&1\n" >> /root/.bashrc
 
         if [[ -n $PYTHON_DEFAULT_VENV ]]; then
             printf '\nif [[ -d $WORKSPACE/environments/python/$PYTHON_DEFAULT_VENV ]]; then\n' >> /root/.bashrc
