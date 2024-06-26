@@ -30,21 +30,26 @@ apt-get update
 
 if [[ "${ROCM_LEVEL}" == "core" ]]; then
     $APT_INSTALL rocm-core \
-                 rocminfo
-                 
+                 rocminfo \
+                 amd-smi-lib \
+                 rocm-smi-lib
 
 elif [[ "${ROCM_LEVEL}" == "runtime" ]]; then
     $APT_INSTALL hip-runtime-amd \
                  rocm-opencl-runtime \
                  miopen-hip \
                  rocblas \
-                 rocfft
+                 rocfft \
+                 amd-smi-lib \
+                 rocm-smi-lib
 
 elif [[ "${ROCM_LEVEL}" == "devel" ]]; then
     $APT_INSTALL rocm-libs \
                  rocm-opencl-sdk \
                  rocm-hip-sdk \
-                 rocm-ml-sdk
+                 rocm-ml-sdk \
+                 amd-smi-lib \
+                 rocm-smi-lib
 
 else
     printf "No valid ROCM_LEVEL specified\n" >&2
