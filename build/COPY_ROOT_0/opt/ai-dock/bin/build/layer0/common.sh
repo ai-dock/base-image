@@ -127,8 +127,12 @@ env-store SYNCTHING_VERSION
 SYNCTHING_URL="https://github.com/syncthing/syncthing/releases/download/v${SYNCTHING_VERSION}/syncthing-linux-amd64-v${SYNCTHING_VERSION}.tar.gz"
 mkdir /opt/syncthing/
 wget -O /opt/syncthing.tar.gz $SYNCTHING_URL && (cd /opt && tar -zxf syncthing.tar.gz -C /opt/syncthing/ --strip-components=1) && rm -f /opt/syncthing.tar.gz
-ln -s /opt/syncthing/syncthing /opt/ai-dock/bin/syncthing
-
+if [[ -f /opt/syncthing/syncthing ]]; then
+    ln -s /opt/syncthing/syncthing /opt/ai-dock/bin/syncthing
+else
+    echo "Failed to fetch syncthing. Exiting build"
+    exit 1
+fi
 # Install node version manager and latest nodejs
 export NVM_DIR=/opt/nvm
 env-store NVM_DIR
