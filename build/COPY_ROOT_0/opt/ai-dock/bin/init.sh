@@ -122,13 +122,20 @@ function init_set_ssh_keys() {
 
 init_set_web_credentials() {
   # Handle cloud provider auto login
+  
+  if [[ -z $CADDY_AUTH_COOKIE_NAME ]]; then
+      export CADDY_AUTH_COOKIE_NAME=ai_dock_$(echo $RANDOM | md5sum | head -c 8)_token
+  fi
   # Vast.ai
   if [[ $(env | grep -i vast) && -n $OPEN_BUTTON_TOKEN ]]; then
       if [[ -z $WEB_TOKEN ]]; then
           export WEB_TOKEN="${OPEN_BUTTON_TOKEN}"
       fi
-      if [[ $WEB_PASSWORD == "password" ]]; then
-          unset WEB_PASSWORD
+      if [[ -z $WEB_USER ]]; then
+          export WEB_USER=vastai
+      fi
+      if [[ -z $WEB_PASSWORD || $WEB_PASSWORD == "password" ]]; then
+          export WEB_PASSWORD="${OPEN_BUTTON_TOKEN}"
       fi
   fi
   
@@ -140,10 +147,9 @@ init_set_web_credentials() {
       export WEB_PASSWORD="$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 12 | head -n 1)"
   fi
   
-  export WEB_PASSWORD_B64="$(printf "%s:%s" "$WEB_USER" "$WEB_PASSWORD" | base64)"
+  export WEB_PASSWORD_B64="$(caddy hash-password -p $WEB_PASSWORD)"
   
   if [[ -z $WEB_TOKEN ]]; then
-      # Not the same as password
       export WEB_TOKEN="$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)"
   fi
 

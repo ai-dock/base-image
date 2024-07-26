@@ -11,6 +11,11 @@
   log {
       level warn
   }
+  servers {
+      listener_wrappers {
+          {$CADDY_TLS_ELEVATION_STRING}
+      }
+  }
 }
 
 # Aim to be as secure as Basic Auth:
@@ -19,6 +24,7 @@
 # Token visible to logged-in users at :1111/ for simple pre-authentication
 
 (universal-config) {
+    {$CADDY_TLS_LISTEN_STRING}
     @authenticating_bearer {
         expression \
             {http.request.header.authorization} == "Bearer {$WEB_TOKEN}" || \
@@ -34,8 +40,8 @@
     
     @authorized {
         expression \
-            {http.request.cookie.ai_dock_token} == "{$WEB_TOKEN}" || \
-            {http.request.cookie.ai_dock_token} == "{$WEB_PASSWORD_B64}" || \
+            {http.request.cookie.{$CADDY_AUTH_COOKIE_NAME}} == "{$WEB_TOKEN}" || \
+            {http.request.cookie.{$CADDY_AUTH_COOKIE_NAME}} == "{$WEB_PASSWORD_B64}" || \
             {http.request.header.authorization} == "Bearer {$WEB_TOKEN}" || \
             {http.request.uri.query.token} == "{$WEB_TOKEN}" || \
             {http.request.header.authorization} == "Basic {$WEB_PASSWORD_B64}" || \

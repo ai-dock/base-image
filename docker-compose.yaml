@@ -1,4 +1,3 @@
-version: "3.8"
 # Compose file build variables set in .env
 services:
   supervisor:
@@ -38,6 +37,9 @@ services:
       # Avoids changing local file owner
       - ./config/authorized_keys:/root/.ssh/authorized_keys_mount
       - ./config/provisioning/default.sh:/opt/ai-dock/bin/provisioning.sh
+      # TLS Certificates
+      - ./config/tls/container.crt:/opt/caddy/tls/container.crt
+      - ./config/tls/container.key:/opt/caddy/tls/container.key
       
     ports:
         # SSH available on host machine port 2222 to avoid conflict. Change to suit
@@ -55,9 +57,11 @@ services:
         - DIRECT_ADDRESS_GET_WAN=${DIRECT_ADDRESS_GET_WAN:-false}
         - WORKSPACE=${WORKSPACE:-/workspace}
         - WORKSPACE_SYNC=${WORKSPACE_SYNC:-false}
+        - CADDY_AUTH_COOKIE_NAME=${CADDY_AUTH_COOKIE_NAME:-}
         - CF_TUNNEL_TOKEN=${CF_TUNNEL_TOKEN:-}
         - CF_QUICK_TUNNELS=${CF_QUICK_TUNNELS:-true}
         - WEB_ENABLE_AUTH=${WEB_ENABLE_AUTH:-true}
+        - WEB_ENABLE_HTTPS=${WEB_ENABLE_HTTPS:-false}
         - WEB_USER=${WEB_USER:-user}
         - WEB_PASSWORD=${WEB_PASSWORD:-password}
         - SERVERLESS=${SERVERLESS:-false}

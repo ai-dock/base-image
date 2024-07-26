@@ -1,4 +1,5 @@
 workspace
 config/authorized_keys
 config/rclone
+config/tls/*
 .env
