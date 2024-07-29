@@ -14,7 +14,8 @@ RUN apt-get update && \
     apt-get install ./xcaddy_0.4.2_linux_amd64.deb && \
     xcaddy build \
         --with github.com/caddyserver/replace-response && \
-    mkdir -p /opt/caddy/{bin,tls} && \
+    mkdir -p /opt/caddy/bin && \
+    mkdir -p /opt/caddy/tls && \
     mv ./caddy /opt/caddy/bin
 
 
