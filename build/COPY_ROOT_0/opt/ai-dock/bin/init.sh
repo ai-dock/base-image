@@ -46,7 +46,7 @@ function init_main() {
 function init_set_envs() {
     # Common services that we don't want in serverless mode
     if [[ ${SERVERLESS,,} == "true" && -z $SUPERVISOR_NO_AUTOSTART ]]; then
-        export SUPERVISOR_NO_AUTOSTART="syncthing,jupyter,quicktunnel,cloudflared"
+        export SUPERVISOR_NO_AUTOSTART="caddy,cloudflared,jupyter,quicktunnel,serviceportal,sshd,syncthing"
     fi
 
     for i in "$@"; do

@@ -81,12 +81,12 @@ def get_index_context(request, message=None):
         "message": message,
         "request": request,
         "page": "index",
-        "auth_token": request.cookies.get("ai_dock_token"),
+        "auth_token": request.cookies.get(os.environ.get('CADDY_AUTH_COOKIE_NAME')),
         "services": services,
         "urlslug": os.environ.get('IMAGE_SLUG'),
         "direct_address": os.environ.get('DIRECT_ADDRESS'),
-        'quicktunnels': False if os.environ.get('CF_QUICK_TUNNELS') == "false" else True,
-        'namedtunnels': True if os.environ.get('SUPERVISOR_START_CLOUDFLARED') == "1" else False
+        'quicktunnels': False if os.environ.get('CF_QUICK_TUNNELS').lower() == "false" else True,
+        'namedtunnels': False if not os.environ.get('CF_TUNNEL_TOKEN') else True
     }
 
 @app.get("/namedtunnel/{port}")

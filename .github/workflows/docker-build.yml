@@ -232,7 +232,7 @@ jobs:
               TAGS="${img_path_ghcr}:${base_tag}, ${img_path_ghcr}:latest-rocm"
               TAGS="${TAGS}, ${img_path_dhub}:${base_tag}, ${img_path_dhub}:latest-rocm"
           else
-              TAGS="${img_path}:${base_tag}"
+              TAGS="${img_path_ghcr}:${base_tag}, ${img_path_dhub}:${base_tag}"
           fi
           echo "TAGS=${TAGS}" >> ${GITHUB_ENV}
       -
