@@ -43,35 +43,16 @@ function init_main() {
     wait "$(</run/supervisord.pid)"
 }
 
-# A trimmed down init suitable for serverless infrastructure
-init_serverless() {
-  init_set_envs "$@"
-  export CF_QUICK_TUNNELS_COUNT=0
-  export SUPERVISOR_START_CLOUDFLARED=0
-  init_set_workspace
-  touch "${WORKSPACE}.update_lock"
-  init_count_gpus
-  init_create_directories
-  init_create_logfiles
-  touch /run/container_config
-  touch /run/workspace_sync
-  init_write_environment
-  init_create_user
-  init_sync_opt >> /var/log/sync.log 2>&1
-  rm /run/workspace_sync
-  init_source_preflight_scripts > /var/log/preflight.log 2>&1
-  rm /run/container_config
-  supervisord -c /etc/supervisor/supervisord.conf &
-  printf "%s" "$!" > /run/supervisord.pid
-  printf "Init complete: %s\n" "$(date +"%x %T.%3N")" >> /var/log/timing_data
-  wait "$(</run/supervisord.pid)"
-}
-
 function init_set_envs() {
     for i in "$@"; do
         IFS="=" read -r key val <<< "$i"
         if [[ -n $key && -n $val ]]; then
             export "${key}"="${val}"
+            # Normalise *_FLAGS to *_ARGS because of poor original naming
+            if [[ $key == *_FLAGS ]]; then
+                args_key="${key%_FLAGS}_ARGS"
+                export "${args_key}"="${val}"
+            fi
         fi
     done
     
@@ -163,13 +144,12 @@ function init_count_gpus() {
     if [[ -z $GPU_COUNT ]]; then
         if [[ "$XPU_TARGET" == "NVIDIA_GPU" && -d "$nvidia_dir" ]]; then
             GPU_COUNT="$(echo "$(find "$nvidia_dir" -maxdepth 1 -type d | wc -l)"-1 | bc)"
-            export GPU_COUNT
-        # TODO FIXME
         elif [[ "$XPU_TARGET" == "AMD_GPU" ]]; then
-            export GPU_COUNT=1
+            GPU_COUNT=$(lspci | grep -i -e "VGA compatible controller" -e "Display controller" | grep -i "AMD" | wc -l)
         else
-            export GPU_COUNT=0
+            GPU_COUNT=0
         fi
+        export GPU_COUNT
     fi
 }
 
@@ -471,6 +451,7 @@ function init_get_provisioning_script() {
 }
 
 function init_run_provisioning_script() {
+    # Provisioning script should create the lock file if it wants to only run once
     if [[ ! -e "$WORKSPACE"/.update_lock ]]; then
         file="/opt/ai-dock/bin/provisioning.sh"
         printf "Looking for provisioning.sh...\n"
@@ -523,8 +504,5 @@ printf "Init started: %s\n" "$(date +"%x %T.%3N")" > /var/log/timing_data
 umask 002
 source /opt/ai-dock/etc/environment.sh
 ldconfig
-if [[ ${SERVERLESS,,} != 'true' ]]; then
-    init_main "$@" exit
-else
-    init_serverless "$@"; exit
-fi
+
+init_main "$@"; exit
