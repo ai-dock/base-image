@@ -21,7 +21,7 @@ function init_main() {
     init_set_workspace
     init_count_gpus
     init_count_quicktunnels
-    init_set_cf_tunnel_wanted
+    init_toggle_supervisor_autostart
     touch /run/container_config
     touch /run/workspace_sync
     init_write_environment
@@ -44,6 +44,11 @@ function init_main() {
 }
 
 function init_set_envs() {
+    # Common services that we don't want in serverless mode
+    if [[ ${SERVERLESS,,} == "true" && -z $SUPERVISOR_NO_AUTOSTART ]]; then
+        export SUPERVISOR_NO_AUTOSTART="syncthing,jupyter,quicktunnel,cloudflared"
+    fi
+
     for i in "$@"; do
         IFS="=" read -r key val <<< "$i"
         if [[ -n $key && -n $val ]]; then
@@ -252,6 +257,7 @@ function init_create_user() {
     usermod -a -G sgx $USER_NAME
     # See the README (in)security notice
     printf "%s ALL=(ALL) NOPASSWD: ALL\n" ${USER_NAME} >> /etc/sudoers
+    sed -i 's/^Defaults[ \t]*secure_path/#Defaults secure_path/' /etc/sudoers
     if [[ ! -e ${home_dir}/.bashrc ]]; then
         cp -f /root/.bashrc ${home_dir}
         cp -f /root/.profile ${home_dir}
@@ -346,12 +352,18 @@ init_sync_opt() {
   fi
 }
 
-function init_set_cf_tunnel_wanted() {
-    if [[ -n $CF_TUNNEL_TOKEN ]]; then
-        export SUPERVISOR_START_CLOUDFLARED=1 
-    else
-        export SUPERVISOR_START_CLOUDFLARED=0
+function init_toggle_supervisor_autostart() {
+    if [[ -z $CF_TUNNEL_TOKEN ]]; then
+        SUPERVISOR_NO_AUTOSTART="${SUPERVISOR_NO_AUTOSTART:+$SUPERVISOR_NO_AUTOSTART,}cloudflared"
     fi
+
+    IFS="," read -r -a no_autostart <<< "$SUPERVISOR_NO_AUTOSTART"
+    for service in "${no_autostart[@]}"; do
+        file="/etc/supervisor/supervisord/conf.d/${service,,}.conf"
+        if [[ -f $file ]]; then
+            sed -i '/^autostart=/c\autostart=false' $file
+        fi
+    done
 }
 
 function init_direct_address() {
@@ -408,7 +420,7 @@ function init_source_preflight_scripts() {
 
 function init_write_environment() {
     # Ensure all variables available for interactive sessions
-    printf "# RUNTIME INSTRUCTIONS\n" >> /opt/ai-dock/etc/environment.sh
+    sed -i '7,$d' /opt/ai-dock/etc/environment.sh
     while IFS='=' read -r -d '' key val; do
         if [[  $key != "HOME" ]]; then
             env-store "$key"

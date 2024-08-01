@@ -27,11 +27,6 @@ function run_with_retry() {
 function start() {
     source /opt/ai-dock/etc/environment.sh
     
-    if [[ ${SERVERLESS,,} = "true" ]]; then
-        printf "Refusing to start $SERVICE_NAME in serverless mode\n"
-        exec sleep 6
-    fi
-    
     file_content="$(
       jq --null-input \
         --arg listen_port "${LISTEN_PORT}" \

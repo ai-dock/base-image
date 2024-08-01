@@ -59,6 +59,7 @@ ENV VENV_DIR=/opt/environments/python
 ENV SERVICEPORTAL_VENV=${VENV_DIR}/serviceportal
 ENV SERVICEPORTAL_VENV_PYTHON=${SERVICEPORTAL_VENV}/bin/python
 ENV SERVICEPORTAL_VENV_PIP=${SERVICEPORTAL_VENV}/bin/pip
+ENV SUPERVISOR_NO_AUTOSTART=
 
 ENV APT_INSTALL="apt-get install -y --no-install-recommends"
 ENV RCLONE_CONFIG="/etc/rclone/rclone.conf"

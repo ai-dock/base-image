@@ -10,11 +10,6 @@ function cleanup() {
 function start() {
     source /opt/ai-dock/etc/environment.sh
     
-    if [[ ${SERVERLESS,,} = "true" ]]; then
-        printf "Refusing to start SSH service in serverless mode\n"
-        exec sleep 6
-    fi
-    
     ak_file="/root/.ssh/authorized_keys"
     if [[ ! $(ssh-keygen -l -f $ak_file) ]]; then
         printf "Skipping SSH server: No public key\n" 1>&2

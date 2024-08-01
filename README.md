@@ -8,7 +8,7 @@ This file should form the basis for the README.md for all extended images, with 
 
 ## Documentation
 
-All AI-Dock containers share a common base which is designed to make running on cloud services such as [vast.ai](https://link.ai-dock.org/vast.ai) and [runpod.io](https://link.ai-dock.org/runpod.io) as straightforward and user friendly as possible.
+All AI-Dock containers share a common base which is designed to make running on container-first cloud services such as [vast.ai](https://link.ai-dock.org/vast.ai) as straightforward and user friendly as possible.
 
 Common features and options are documented in the [base wiki](https://github.com/ai-dock/base-image/wiki) but any additional features unique to this image will be detailed below.
 
