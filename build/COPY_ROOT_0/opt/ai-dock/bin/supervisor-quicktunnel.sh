@@ -26,7 +26,12 @@ function start() {
         exit 1
     else
         # Tunnel the proxy port so we get authentication
-        tunnel="--url localhost:${proxy_port}"
+        if [[ ${WEB_ENABLE_HTTPS,,} == true && -f /opt/caddy/tls/container.crt && /opt/caddy/tls/container.key ]]; then
+            tunnel="--no-tls-verify --url https://localhost:${proxy_port}"
+        else
+            tunnel="--url http://localhost:${proxy_port}"
+        fi
+        
         metrics="--metrics localhost:${metrics_port}"
     fi
     

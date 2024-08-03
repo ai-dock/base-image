@@ -29,6 +29,7 @@ $APT_INSTALL \
     file \
     fonts-dejavu \
     fonts-freefont-ttf \
+    fonts-ubuntu \
     fuse3 \
     git \
     git-lfs \

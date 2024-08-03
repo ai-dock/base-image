@@ -23,6 +23,14 @@ if [[ -z $port ]]; then
     exit 1
 fi
 
+function get_scheme() {
+    if [[ ${WEB_ENABLE_HTTPS,,} == true && -f /opt/caddy/tls/container.crt && /opt/caddy/tls/container.key ]]; then
+        echo "https://"
+    else
+        echo "http://"
+    fi
+}
+
 function get_url {
     preset_url=$(jq -r ".service_url" "/run/http_ports/${port}")
     if [[ -n $preset_url ]]; then
@@ -31,19 +39,19 @@ function get_url {
     elif [[ $DIRECT_ADDRESS == "auto#vast-ai" ]]; then
         declare -n vast_mapped_port=VAST_TCP_PORT_${port}
         if [[ -n $vast_mapped_port && -n $PUBLIC_IPADDR ]]; then
-            url="http://${PUBLIC_IPADDR}:${vast_mapped_port}"
+            url="$(get_scheme)${PUBLIC_IPADDR}:${vast_mapped_port}"
         fi
     # Runpod.io
     elif [[ $DIRECT_ADDRESS == "auto#runpod-io" ]]; then
         declare -n runpod_mapped_port=RUNPOD_TCP_PORT_${port}
         if [[ -n $runpod_mapped_port && -n $RUNPOD_PUBLIC_IP ]]; then
-            url="http://${RUNPOD_PUBLIC_IP}:${runpod_mapped_port}"
+            url="$(get_scheme)${RUNPOD_PUBLIC_IP}:${runpod_mapped_port}"
         elif [[ -n $RUNPOD_POD_ID ]]; then
-            url="https://${RUNPOD_POD_ID}-${port}.proxy.runpod.net"
+            url="$(get_scheme)${RUNPOD_POD_ID}-${port}.proxy.runpod.net"
         fi
     # Other cloud / local
     else
-        url="http://${DIRECT_ADDRESS}:${port}"
+        url="$(get_scheme)${DIRECT_ADDRESS}:${port}"
     fi
     
     if [[ -n $url ]]; then

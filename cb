@@ -1,0 +1,43 @@
+[1mdiff --git a/build/COPY_ROOT_0/opt/ai-dock/bin/direct-url.sh b/build/COPY_ROOT_0/opt/ai-dock/bin/direct-url.sh[m
+[1mindex 3404cbb..0f09dc4 100755[m
+[1m--- a/build/COPY_ROOT_0/opt/ai-dock/bin/direct-url.sh[m
+[1m+++ b/build/COPY_ROOT_0/opt/ai-dock/bin/direct-url.sh[m
+[36m@@ -23,6 +23,14 @@[m [mif [[ -z $port ]]; then[m
+     exit 1[m
+ fi[m
+ [m
+[32m+[m[32mfunction get_scheme() {[m
+[32m+[m[32m    if [[ ${WEB_ENABLE_HTTPS,,} == true && -f /opt/caddy/tls/container.crt && /opt/caddy/tls/container.key ]]; then[m
+[32m+[m[32m        echo "https://"[m
+[32m+[m[32m    else[m
+[32m+[m[32m        echo "http://"[m
+[32m+[m[32m    fi[m
+[32m+[m[32m}[m
+[32m+[m
+ function get_url {[m
+     preset_url=$(jq -r ".service_url" "/run/http_ports/${port}")[m
+     if [[ -n $preset_url ]]; then[m
+[36m@@ -31,19 +39,19 @@[m [mfunction get_url {[m
+     elif [[ $DIRECT_ADDRESS == "auto#vast-ai" ]]; then[m
+         declare -n vast_mapped_port=VAST_TCP_PORT_${port}[m
+         if [[ -n $vast_mapped_port && -n $PUBLIC_IPADDR ]]; then[m
+[31m-            url="http://${PUBLIC_IPADDR}:${vast_mapped_port}"[m
+[32m+[m[32m            url="$(get_scheme)${PUBLIC_IPADDR}:${vast_mapped_port}"[m
+         fi[m
+     # Runpod.io[m
+     elif [[ $DIRECT_ADDRESS == "auto#runpod-io" ]]; then[m
+         declare -n runpod_mapped_port=RUNPOD_TCP_PORT_${port}[m
+         if [[ -n $runpod_mapped_port && -n $RUNPOD_PUBLIC_IP ]]; then[m
+[31m-            url="http://${RUNPOD_PUBLIC_IP}:${runpod_mapped_port}"[m
+[32m+[m[32m            url="$(get_scheme)${RUNPOD_PUBLIC_IP}:${runpod_mapped_port}"[m
+         elif [[ -n $RUNPOD_POD_ID ]]; then[m
+[31m-            url="https://${RUNPOD_POD_ID}-${port}.proxy.runpod.net"[m
+[32m+[m[32m            url="$(get_scheme)${RUNPOD_POD_ID}-${port}.proxy.runpod.net"[m
+         fi[m
+     # Other cloud / local[m
+     else[m
+[31m-        url="http://${DIRECT_ADDRESS}:${port}"[m
+[32m+[m[32m        url="$(get_scheme)${DIRECT_ADDRESS}:${port}"[m
+     fi[m
+     [m
+     if [[ -n $url ]]; then[m
