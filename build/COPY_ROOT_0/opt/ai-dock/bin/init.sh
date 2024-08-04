@@ -125,6 +125,12 @@ init_set_web_credentials() {
       fi
   fi
   
+  # Vast.ai TLS certificates
+  if [[ -f /etc/instance.crt && -f /etc/instance.key ]]; then
+      cp /etc/instance.crt /opt/caddy/tls/container.crt
+      cp /etc/instance.key /opt/caddy/tls/container.key
+  fi
+  
   if [[ -z $WEB_USER ]]; then
       export WEB_USER=user
   fi

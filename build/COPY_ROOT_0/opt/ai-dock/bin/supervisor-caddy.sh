@@ -19,12 +19,6 @@ function start() {
 
     port_files="/run/http_ports/*"
 
-    # Vast.ai certificates
-    if [[ -f /etc/instance.crt && -f /etc/instance.key ]]; then
-        cp /etc/instance.crt /opt/caddy/tls/container.crt
-        cp /etc/instance.key /opt/caddy/tls/container.key
-    fi
-
     # Upgrade http to https on the same port
     if [[ ${WEB_ENABLE_HTTPS,,} == true && -f /opt/caddy/tls/container.crt && /opt/caddy/tls/container.key ]]; then
         export CADDY_TLS_ELEVATION_STRING=$'http_redirect\ntls'
