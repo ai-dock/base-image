@@ -17,7 +17,7 @@ function init_main() {
     init_create_logfiles
     init_set_ssh_keys
     init_direct_address
-    init_set_web_credentials
+    init_set_web_config
     init_set_workspace
     init_count_gpus
     init_count_quicktunnels
@@ -106,7 +106,7 @@ function init_set_ssh_keys() {
     fi
 }
 
-init_set_web_credentials() {
+init_set_web_config() {
   # Handle cloud provider auto login
   
   if [[ -z $CADDY_AUTH_COOKIE_NAME ]]; then
@@ -123,10 +123,7 @@ init_set_web_credentials() {
       if [[ -z $WEB_PASSWORD || $WEB_PASSWORD == "password" ]]; then
           export WEB_PASSWORD="${OPEN_BUTTON_TOKEN}"
       fi
-  fi
-  
-  # Vast.ai TLS certificates
-  if [[ -f /etc/instance.crt && -f /etc/instance.key ]]; then
+      # Vast.ai TLS certificates
       rm -f /opt/caddy/tls/container.*
       ln -sf /etc/instance.crt /opt/caddy/tls/container.crt
       ln -sf /etc/instance.key /opt/caddy/tls/container.key
