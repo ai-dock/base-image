@@ -20,7 +20,7 @@ function start() {
     port_files="/run/http_ports/*"
 
     # Upgrade http to https on the same port
-    if [[ ${WEB_ENABLE_HTTPS,,} == true && -f /opt/caddy/tls/container.crt && /opt/caddy/tls/container.key ]]; then
+    if [[ ${WEB_ENABLE_HTTPS,,} == true && -s $(realpath /opt/caddy/tls/container.crt) && -s $(realpath /opt/caddy/tls/container.key) ]]; then
         export CADDY_TLS_ELEVATION_STRING=$'http_redirect\ntls'
         export CADDY_TLS_LISTEN_STRING="tls /opt/caddy/tls/container.crt /opt/caddy/tls/container.key"
     fi

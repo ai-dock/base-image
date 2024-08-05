@@ -127,8 +127,9 @@ init_set_web_credentials() {
   
   # Vast.ai TLS certificates
   if [[ -f /etc/instance.crt && -f /etc/instance.key ]]; then
-      cp /etc/instance.crt /opt/caddy/tls/container.crt
-      cp /etc/instance.key /opt/caddy/tls/container.key
+      rm -f /opt/caddy/tls/container.*
+      ln -sf /etc/instance.crt /opt/caddy/tls/container.crt
+      ln -sf /etc/instance.key /opt/caddy/tls/container.key
   fi
   
   if [[ -z $WEB_USER ]]; then
