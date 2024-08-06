@@ -13,6 +13,7 @@ RUN apt-get update && \
     wget https://github.com/caddyserver/xcaddy/releases/download/v0.4.2/xcaddy_0.4.2_linux_amd64.deb && \
     apt-get install ./xcaddy_0.4.2_linux_amd64.deb && \
     xcaddy build \
+        --with github.com/caddyserver/caddy/v2=github.com/ai-dock/caddy/v2@httpredirect \
         --with github.com/caddyserver/replace-response && \
     mkdir -p /opt/caddy/bin && \
     mkdir -p /opt/caddy/tls && \

@@ -10,7 +10,7 @@ function start() {
     source /opt/ai-dock/etc/environment.sh
     
     # Give processes time to register their ports
-    sleep 2
+    sleep 4
 
     export SERVICEPORTAL_LOGIN=$(direct-url.sh -p "${SERVICEPORTAL_PORT_HOST:-1111}" -l "/login")
     env-store SERVICEPORTAL_LOGIN
