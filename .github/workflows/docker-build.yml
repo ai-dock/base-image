@@ -92,9 +92,9 @@ jobs:
       fail-fast: false
       matrix:
         build:
-        - {latest: "false", cuda: "11.8.0-base"}
-        - {latest: "false", cuda: "11.8.0-cudnn8-runtime"}
-        - {latest: "false", cuda: "11.8.0-cudnn8-devel"}
+        - {latest: "false", cuda: "12.4.1-base"}
+        - {latest: "false", cuda: "12.4.1-cudnn-runtime"}
+        - {latest: "false", cuda: "12.4.1-cudnn-devel"}
         - {latest: "false", cuda: "12.1.1-base"}
         - {latest: "false", cuda: "12.1.1-cudnn8-runtime"}
         - {latest: "false", cuda: "12.1.1-cudnn8-devel"}
@@ -173,9 +173,6 @@ jobs:
       fail-fast: false
       matrix:
         build:
-        - {latest: "false", rocm: "5.7-core"}
-        - {latest: "false", rocm: "5.7-runtime"}
-        - {latest: "false", rocm: "5.7-devel"}
         - {latest: "false", rocm: "6.0-core"}
         - {latest: "false", rocm: "6.0-runtime"}
         - {latest: "false", rocm: "6.0-devel"}
