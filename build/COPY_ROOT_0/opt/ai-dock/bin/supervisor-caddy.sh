@@ -8,9 +8,8 @@ function cleanup() {
 
 function start() {
     source /opt/ai-dock/etc/environment.sh
-    
     # Give processes time to register their ports
-    sleep 4
+    sleep 2
 
     export SERVICEPORTAL_LOGIN=$(direct-url.sh -p "${SERVICEPORTAL_PORT_HOST:-1111}" -l "/login")
     env-store SERVICEPORTAL_LOGIN
@@ -20,9 +19,31 @@ function start() {
     port_files="/run/http_ports/*"
 
     # Upgrade http to https on the same port
-    if [[ ${WEB_ENABLE_HTTPS,,} == true && -s $(realpath /opt/caddy/tls/container.crt) && -s $(realpath /opt/caddy/tls/container.key) ]]; then
-        export CADDY_TLS_ELEVATION_STRING=$'http_redirect\ntls'
-        export CADDY_TLS_LISTEN_STRING="tls /opt/caddy/tls/container.crt /opt/caddy/tls/container.key"
+    
+    if [[ ${WEB_ENABLE_HTTPS,,} == true ]]; then
+        cert_path="/opt/caddy/tls/container.crt"
+        key_path="/opt/caddy/tls/container.key"
+        max_retries=5
+        # Avoid key generation race condition
+        attempts=0
+        while [[ $attempts -lt $max_retries ]]; do
+            if [[ -f $(realpath $cert_path) && -f $(realpath $key_path) ]]; then
+                if validate_cert_and_key; then
+                    echo "Certificate and key are present and valid."
+                    export CADDY_TLS_ELEVATION_STRING=$'http_redirect\ntls'
+                    export CADDY_TLS_LISTEN_STRING="tls /opt/caddy/tls/container.crt /opt/caddy/tls/container.key"
+                    break
+                else
+                    echo "Files are present but invalid, attempt $((attempts + 1)) of $MAX_RETRIES."
+                fi
+            else
+                echo "Waiting for certificate and key to be present, attempt $((attempts + 1)) of $MAX_RETRIES."
+            fi
+            # Increment the retry counter
+            attempts=$((attempts + 1))
+            # Wait before retrying
+            sleep 5
+        done
     fi
     
     cp -f /opt/caddy/share/base_config /opt/caddy/etc/Caddyfile
@@ -47,6 +68,15 @@ function start() {
     
     caddy fmt --overwrite /opt/caddy/etc/Caddyfile
     caddy run --config /opt/caddy/etc/Caddyfile
+}
+
+function validate_cert_and_key() {
+  if openssl x509 -in "$cert_path" -noout > /dev/null 2>&1 && \
+     openssl rsa -in "$key_path" -check -noout > /dev/null 2>&1; then
+    return 0
+  else
+    return 1
+  fi
 }
 
 start 2>&1

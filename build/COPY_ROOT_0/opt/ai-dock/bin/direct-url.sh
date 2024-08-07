@@ -9,7 +9,10 @@ function cleanup() {
 unset -v port
 unset -v url
 
+cert_path=/opt/caddy/tls/container.crt
+key_path=/opt/caddy/tls/container.key
 metrics=""
+
 while getopts l:p: flag
 do
     case "${flag}" in
@@ -23,15 +26,26 @@ if [[ -z $port ]]; then
     exit 1
 fi
 
+function validate_cert_and_key() {
+  if openssl x509 -in "$cert_path" -noout > /dev/null 2>&1 && \
+     openssl rsa -in "$key_path" -check -noout > /dev/null 2>&1; then
+    return 0
+  else
+    return 1
+  fi
+}
+
 function get_scheme() {
-    if [[ ${WEB_ENABLE_HTTPS,,} == true && -f /opt/caddy/tls/container.crt && /opt/caddy/tls/container.key ]]; then
+    if [[ ${WEB_ENABLE_HTTPS,,} == "true" ]] && validate_cert_and_key; then
         echo "https://"
     else
         echo "http://"
     fi
 }
 
-function get_url {
+
+
+function get_url() {
     preset_url=$(jq -r ".service_url" "/run/http_ports/${port}")
     if [[ -n $preset_url ]]; then
         url="$preset_url"

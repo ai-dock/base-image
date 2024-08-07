@@ -98,6 +98,9 @@ jobs:
         - {latest: "false", cuda: "12.1.1-base"}
         - {latest: "false", cuda: "12.1.1-cudnn8-runtime"}
         - {latest: "false", cuda: "12.1.1-cudnn8-devel"}
+        - {latest: "false", cuda: "11.8.0-base"}
+        - {latest: "false", cuda: "11.8.0-cudnn8-runtime"}
+        - {latest: "false", cuda: "11.8.0-cudnn8-devel"}
 
     steps:
       -
