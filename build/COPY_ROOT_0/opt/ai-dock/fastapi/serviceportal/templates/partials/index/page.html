@@ -16,7 +16,7 @@
             <div>{{ service["service_name"] }}</div>
             <div>
                 <ul>
-                {% if context.direct_address %}
+                {% if context.direct_address == True %}
                     <li id='cfqt-{{ service["proxy_port"] }}'
                         hx-post="/direct"
                         hx-vals='{"port": "{{ service["proxy_port"] }}", "path": "/ai-dock/pre-auth?token={{ context.auth_token }}" }'

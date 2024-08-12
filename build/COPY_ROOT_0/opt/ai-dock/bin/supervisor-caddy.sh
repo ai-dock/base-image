@@ -7,14 +7,16 @@ function cleanup() {
 }
 
 function start() {
+    rm -f /tmp/external_ip_address
     source /opt/ai-dock/etc/environment.sh
     # Give processes time to register their ports
     sleep 2
 
-    export SERVICEPORTAL_LOGIN=$(direct-url.sh -p "${SERVICEPORTAL_PORT_HOST:-1111}" -l "/login")
-    env-store SERVICEPORTAL_LOGIN
     export SERVICEPORTAL_HOME=$(direct-url.sh -p "${SERVICEPORTAL_PORT_HOST:-1111}")
     env-store SERVICEPORTAL_HOME
+    export SERVICEPORTAL_LOGIN="${SERVICEPORTAL_HOME}/login"
+    env-store SERVICEPORTAL_LOGIN
+    
 
     port_files="/run/http_ports/*"
 

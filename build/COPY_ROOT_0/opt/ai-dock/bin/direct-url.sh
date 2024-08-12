@@ -49,14 +49,18 @@ function get_url() {
     preset_url=$(jq -r ".service_url" "/run/http_ports/${port}")
     if [[ -n $preset_url ]]; then
         url="$preset_url"
+    elif [[ ${DIRECT_ADDRESS_GET_WAN,,} == "true" ]]; then
+        url="$(get_scheme)$(/opt/ai-dock/bin/external-ip-address):${port}"
     # Vast.ai
-    elif [[ $DIRECT_ADDRESS == "auto#vast-ai" ]]; then
+    elif env | grep 'VAST_TCP_PORT' > /dev/null 2>&1; then
         declare -n vast_mapped_port=VAST_TCP_PORT_${port}
-        if [[ -n $vast_mapped_port && -n $PUBLIC_IPADDR ]]; then
-            url="$(get_scheme)${PUBLIC_IPADDR}:${vast_mapped_port}"
+        if [[ -n $vast_mapped_port ]]; then
+            url="$(get_scheme)$(/opt/ai-dock/bin/external-ip-address):${vast_mapped_port}"
+        else
+            url="$(/opt/ai-dock/bin/cfqt-url -p $port)"
         fi
     # Runpod.io
-    elif [[ $DIRECT_ADDRESS == "auto#runpod-io" ]]; then
+    elif env | grep 'RUNPOD' > /dev/null 2>&1; then
         declare -n runpod_mapped_port=RUNPOD_TCP_PORT_${port}
         if [[ -n $runpod_mapped_port && -n $RUNPOD_PUBLIC_IP ]]; then
             url="$(get_scheme)${RUNPOD_PUBLIC_IP}:${runpod_mapped_port}"
@@ -65,7 +69,7 @@ function get_url() {
         fi
     # Other cloud / local
     else
-        url="$(get_scheme)${DIRECT_ADDRESS}:${port}"
+        url="$(get_scheme)${DIRECT_ADDRESS:-localhost}:${port}"
     fi
     
     if [[ -n $url ]]; then

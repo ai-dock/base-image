@@ -50,8 +50,8 @@ def get_cfqt_url(port, path=""):
 
 def get_direct_url(port, path=""):
     try:
-        process = subprocess.run(['direct-url.sh', '-p', port, '-l', path], 
-                             stdout=subprocess.PIPE, 
+        process = subprocess.run(['direct-url.sh', '-p', port, '-l', path],
+                             stdout=subprocess.PIPE,
                              universal_newlines=True)
         output = process.stdout.strip()
         scheme = urlparse(output).scheme

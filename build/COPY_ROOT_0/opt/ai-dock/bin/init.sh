@@ -16,7 +16,6 @@ function init_main() {
     init_create_directories
     init_create_logfiles
     init_set_ssh_keys
-    init_direct_address
     init_set_web_config
     init_set_workspace
     init_count_gpus
@@ -368,39 +367,6 @@ function init_toggle_supervisor_autostart() {
             sed -i '/^autostart=/c\autostart=false' $file
         fi
     done
-}
-
-function init_direct_address() {
-    export EXTERNAL_IP_ADDRESS="$(dig +short myip.opendns.com @resolver1.opendns.com)"
-    if [[ -z $EXTERNAL_IP_ADDRESS ]];then
-        export EXTERNAL_IP_ADDRESS=$(curl -s ifconfig.me)
-    fi
-    if [[ ! -v DIRECT_ADDRESS ]]; then
-        DIRECT_ADDRESS=""
-    fi
-    
-    if [[ ${DIRECT_ADDRESS,,} == "false" ]]; then
-        export DIRECT_ADDRESS=""
-    elif [[ -z $DIRECT_ADDRESS || ${DIRECT_ADDRESS_GET_WAN,,} == 'true' ]]; then
-        if [[ ${DIRECT_ADDRESS_GET_WAN,,} == 'true' ]]; then
-            export DIRECT_ADDRESS="$EXTERNAL_IP_ADDRESS"
-        # Detected provider has direct connection method
-        elif env | grep 'VAST' > /dev/null 2>&1; then
-            export DIRECT_ADDRESS="auto#vast-ai"
-            export CLOUD_PROVIDER="vast.ai"
-            export EXTERNAL_IP_ADDRESS=${PUBLIC_IPADDR}
-        elif env | grep 'RUNPOD' > /dev/null 2>&1; then
-           export DIRECT_ADDRESS="auto#runpod-io"
-           export CLOUD_PROVIDER="runpod.io"
-           export EXTERNAL_IP_ADDRESS=${RUNPOD_PUBLIC_IP}
-        # Detected provider does not support direct connections
-        elif env | grep 'PAPERSPACE' > /dev/null 2>&1; then
-            export DIRECT_ADDRESS=""
-            export CLOUD_PROVIDER="paperspace.com"
-        else
-            export DIRECT_ADDRESS="localhost"
-        fi
-    fi
 }
 
 function init_create_directories() {

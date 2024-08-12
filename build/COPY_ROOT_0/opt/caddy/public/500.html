@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loading...</title>
+    <style>
+        body {
+            background-color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        .spinner {
+            border: 8px solid #F2F2F2; /* Light grey */
+            border-top: 8px solid grey; /* Dark grey */
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .text {
+            margin-top: 20px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="spinner"></div>
+    <div class="text">Waiting for the service to respond</div>
+
+    <script>
+        // Function to check if the current page is up
+        function checkService() {
+            fetch(window.location.href, { method: 'HEAD' })
+                .then(response => {
+                    // If the response status is not a 5xx error
+                    if (response.status < 500 || response.status >= 600) {
+                        // Reload the page
+                        window.location.reload();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking service:', error);
+                });
+        }
+
+        // Check the current page every 5 seconds
+        setInterval(checkService, 5000);
+    </script>
+</body>
+</html>

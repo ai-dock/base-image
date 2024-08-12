@@ -84,7 +84,7 @@ def get_index_context(request, message=None):
         "auth_token": request.cookies.get(os.environ.get('CADDY_AUTH_COOKIE_NAME')),
         "services": services,
         "urlslug": os.environ.get('IMAGE_SLUG'),
-        "direct_address": os.environ.get('DIRECT_ADDRESS'),
+        "direct_address": False if os.environ.get('DIRECT_ADDRESS', 'true').lower() == "false" else True,
         'quicktunnels': False if os.environ.get('CF_QUICK_TUNNELS', 'true').lower() == "false" else True,
         'namedtunnels': False if not os.environ.get('CF_TUNNEL_TOKEN') else True
     }
