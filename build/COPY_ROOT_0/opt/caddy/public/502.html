@@ -35,15 +35,15 @@
 </head>
 <body>
     <div class="spinner"></div>
-    <div class="text">Waiting for the service to respond</div>
+    <div class="text">Loading: Check container logs for progress</div>
 
     <script>
         // Function to check if the current page is up
         function checkService() {
             fetch(window.location.href, { method: 'HEAD' })
                 .then(response => {
-                    // If the response status is not a 5xx error
-                    if (response.status < 500 || response.status >= 600) {
+                    // Reload if the response status is not a 502 Bad Gateway error
+                    if (response.status != 502) {
                         // Reload the page
                         window.location.reload();
                     }

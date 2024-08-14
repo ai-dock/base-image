@@ -53,17 +53,16 @@
     @preauth {
         path /ai-dock/pre-auth
     }
-
-    handle_errors 5xx {
-        rewrite * /500.html
-        file_server
-    }
-
     
     @default {
         path /*
     }
-    
+
+    handle_errors 502 {
+        rewrite * /502.html
+        file_server
+    }
+        
     respond /ai-dock/health-check 200
 }
 
